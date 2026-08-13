@@ -66,11 +66,20 @@ app.use('/api/admin', adminRoutes);
 // Error handling middleware
 app.use(errorHandler);
 
+app.get("/", (req, res) => {
+  res.json({
+    message: "Backend working 🧠"
+  });
+});
+
+
 const PORT = process.env.PORT || 5000;
 
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
-    console.log(`[AuraLink Server] Running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+    console.log(
+      `[AuraLink Server] Running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`
+    );
   });
 }
 
