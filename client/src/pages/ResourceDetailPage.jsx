@@ -65,6 +65,17 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
     showToast('Page link copied to clipboard!', 'info');
   };
 
+  const getCategoryName = (cat) => {
+    if (!cat) return null;
+    if (typeof cat === 'object' && cat.name) return cat.name;
+    if (typeof cat === 'string' && !cat.match(/^[0-9a-fA-F]{24}$/)) {
+      return cat.charAt(0).toUpperCase() + cat.slice(1);
+    }
+    return null;
+  };
+
+  const categoryName = getCategoryName(resource.category);
+
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
       
@@ -77,9 +88,9 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
         {/* Title & Domain Header */}
         <div className="space-y-3 text-left">
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            {resource.category && (
+            {categoryName && (
               <span className="px-3 py-1 rounded-full bg-sky-500/10 text-sky-300 font-semibold border border-sky-500/20 uppercase tracking-wider">
-                {resource.category.name}
+                {categoryName}
               </span>
             )}
             <span className="px-3 py-1 rounded-full bg-dark-800 text-slate-300 border border-slate-700 font-mono">

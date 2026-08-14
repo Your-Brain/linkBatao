@@ -4,9 +4,27 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { X, Link2, Sparkles, AlertTriangle, CheckCircle2, RefreshCw, Globe, Video, Image as ImageIcon, FileText, Music, UserCheck, Shield } from 'lucide-react';
 
-export const SubmitModal = ({ isOpen, onClose, categories, onResourceSubmitted }) => {
+const FALLBACK_CATEGORIES = [
+  { _id: 'technology', name: 'Technology' },
+  { _id: 'programming', name: 'Programming' },
+  { _id: 'gaming', name: 'Gaming' },
+  { _id: 'education', name: 'Education' },
+  { _id: 'entertainment', name: 'Entertainment' },
+  { _id: 'music', name: 'Music' },
+  { _id: 'fashion', name: 'Fashion' },
+  { _id: 'sports', name: 'Sports' },
+  { _id: 'news', name: 'News' },
+  { _id: 'art', name: 'Art' },
+  { _id: 'lifestyle', name: 'Lifestyle' },
+  { _id: 'other', name: 'Other' },
+  { _id: 'sex', name: 'Sex' }
+];
+
+export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmitted }) => {
   const { user } = useAuth();
   const { showToast } = useToast();
+
+  const activeCategories = (categories && categories.length > 0) ? categories : FALLBACK_CATEGORIES;
 
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
@@ -21,10 +39,10 @@ export const SubmitModal = ({ isOpen, onClose, categories, onResourceSubmitted }
   const [previewData, setPreviewData] = useState(null);
 
   useEffect(() => {
-    if (categories && categories.length > 0 && !category) {
-      setCategory(categories[0]._id);
+    if (activeCategories && activeCategories.length > 0 && !category) {
+      setCategory(activeCategories[0]._id);
     }
-  }, [categories, category]);
+  }, [activeCategories, category]);
 
   if (!isOpen) return null;
 
@@ -216,7 +234,8 @@ export const SubmitModal = ({ isOpen, onClose, categories, onResourceSubmitted }
                 onChange={(e) => setCategory(e.target.value)}
                 className="w-full bg-dark-900 text-sm text-slate-100 px-4 py-2.5 rounded-xl border border-slate-700 focus:border-sky-400 outline-none"
               >
-                {categories.map((cat) => (
+                {!category && <option value="">Select Category...</option>}
+                {(activeCategories || []).map((cat) => (
                   <option key={cat._id} value={cat._id}>
                     {cat.name}
                   </option>

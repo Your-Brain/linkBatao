@@ -4,7 +4,7 @@ import { HeroSection } from '../components/layout/HeroSection';
 import { ResourceGrid } from '../components/resources/ResourceGrid';
 import { Flame, Clock, Bookmark, Eye, Filter, Sparkles, RefreshCw } from 'lucide-react';
 
-export const HomePage = ({ categories, onOpenSubmitModal, onReportResource, onAddToCollection }) => {
+export const HomePage = ({ categories = [], onOpenSubmitModal, onReportResource, onAddToCollection }) => {
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('all');
@@ -60,7 +60,7 @@ export const HomePage = ({ categories, onOpenSubmitModal, onReportResource, onAd
           >
             All Categories
           </button>
-          {categories.map((cat) => (
+          {(categories || []).map((cat) => (
             <button
               key={cat._id}
               onClick={() => setActiveCategory(cat.slug)}

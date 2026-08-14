@@ -101,7 +101,13 @@ export const login = async (req, res, next) => {
 // @access  Private
 export const getMe = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id).populate('savedResources');
+    const user = await User.findById(req.user.id).populate({
+      path: 'savedResources',
+      populate: [
+        { path: 'category', select: 'name slug icon' },
+        { path: 'submittedBy', select: 'username avatar' }
+      ]
+    });
     res.json({
       success: true,
       user: {

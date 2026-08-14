@@ -4,7 +4,7 @@ import API from '../services/api';
 import { ResourceGrid } from '../components/resources/ResourceGrid';
 import { Search, Filter, Sparkles, X } from 'lucide-react';
 
-export const SearchPage = ({ categories, onReportResource, onAddToCollection }) => {
+export const SearchPage = ({ categories = [], onReportResource, onAddToCollection }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const queryParam = searchParams.get('q') || '';
   const categoryParam = searchParams.get('category') || '';
@@ -20,9 +20,9 @@ export const SearchPage = ({ categories, onReportResource, onAddToCollection }) 
     setLoading(true);
     try {
       const params = {
-        q: queryParam,
         limit: 16
       };
+      if (queryParam) params.q = queryParam;
       if (categoryParam) params.category = categoryParam;
       if (typeParam) params.resourceType = typeParam;
 
@@ -46,14 +46,27 @@ export const SearchPage = ({ categories, onReportResource, onAddToCollection }) 
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    if (inputQuery.trim()) {
-      setSearchParams({ q: inputQuery.trim() });
-    }
+    const newParams = {};
+    if (inputQuery.trim()) newParams.q = inputQuery.trim();
+    if (categoryParam) newParams.category = categoryParam;
+    if (typeParam) newParams.resourceType = typeParam;
+    setSearchParams(newParams);
   };
 
   const handleSuggestionClick = (sug) => {
     const cleaned = sug.startsWith('#') ? sug.substring(1) : sug;
-    setSearchParams({ q: cleaned });
+    const newParams = { q: cleaned };
+    if (categoryParam) newParams.category = categoryParam;
+    if (typeParam) newParams.resourceType = typeParam;
+    setSearchParams(newParams);
+  };
+
+  const handleCategorySelect = (slug) => {
+    const newParams = {};
+    if (queryParam) newParams.q = queryParam;
+    if (typeParam) newParams.resourceType = typeParam;
+    if (slug && slug !== 'all') newParams.category = slug;
+    setSearchParams(newParams);
   };
 
   return (
@@ -77,7 +90,7 @@ export const SearchPage = ({ categories, onReportResource, onAddToCollection }) 
           {inputQuery && (
             <button
               type="button"
-              onClick={() => { setInputQuery(''); setSearchParams({}); }}
+              onClick={() => { setInputQuery(''); setSearchParams(categoryParam ? { category: categoryParam } : {}); }}
               className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
             >
               <X className="w-5 h-5" />
@@ -104,11 +117,41 @@ export const SearchPage = ({ categories, onReportResource, onAddToCollection }) 
         )}
       </div>
 
+      {/* Category Pills Header Slider */}
+      {(categories || []).length > 0 && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-slate-800/80">
+          <button
+            onClick={() => handleCategorySelect('all')}
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
+              !categoryParam || categoryParam === 'all'
+                ? 'bg-gradient-to-r from-sky-500 to-cyan-500 text-slate-950 shadow-glow'
+                : 'bg-dark-800/80 text-slate-400 hover:text-slate-200 border border-slate-700/60'
+            }`}
+          >
+            All Categories
+          </button>
+          {(categories || []).map((cat) => (
+            <button
+              key={cat._id}
+              onClick={() => handleCategorySelect(cat.slug)}
+              className={`px-4 py-2 rounded-full text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+                categoryParam.toLowerCase() === cat.slug.toLowerCase()
+                  ? 'bg-sky-500/20 text-sky-300 border border-sky-400/60 shadow-glow'
+                  : 'bg-dark-800/80 text-slate-400 hover:text-slate-200 border border-slate-800'
+              }`}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Results Header Stats */}
       <div className="flex items-center justify-between text-xs text-slate-400 border-b border-slate-800/80 pb-4">
         <span>
           Showing {results.length} of <strong className="text-white">{total}</strong> results
           {queryParam && <span> for "<strong className="text-sky-300">{queryParam}</strong>"</span>}
+          {categoryParam && <span> in category <strong className="text-cyan-300">{categoryParam}</strong></span>}
         </span>
       </div>
 

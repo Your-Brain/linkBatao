@@ -176,16 +176,33 @@ export const createResource = async (req, res, next) => {
       });
     }
 
-    // Verify category exists
+    // Verify category exists or resolve fallback
     let catObj;
-    if (category.match(/^[0-9a-fA-F]{24}$/)) {
+    if (category && category.match(/^[0-9a-fA-F]{24}$/)) {
       catObj = await Category.findById(category);
-    } else {
-      catObj = await Category.findOne({ slug: category.toLowerCase() });
+    }
+
+    if (!catObj && category) {
+      const cleanCat = String(category).replace(/^cat-/, '').toLowerCase();
+      catObj = await Category.findOne({
+        $or: [
+          { slug: cleanCat },
+          { name: new RegExp(`^${cleanCat}$`, 'i') }
+        ]
+      });
     }
 
     if (!catObj) {
-      return res.status(400).json({ success: false, message: 'Invalid category selected' });
+      catObj = await Category.findOne({ isActive: true });
+    }
+
+    if (!catObj) {
+      catObj = await Category.create({
+        name: 'Technology',
+        slug: 'technology',
+        description: 'Technology & software links',
+        icon: 'Cpu'
+      });
     }
 
     // Detect Embed Type

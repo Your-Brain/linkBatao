@@ -11,7 +11,9 @@ export const search = async (req, res, next) => {
     const limit = parseInt(req.query.limit, 10) || 12;
     const startIndex = (page - 1) * limit;
 
-    if (!q) {
+    const hasFilter = q || req.query.category || req.query.resourceType;
+
+    if (!hasFilter) {
       return res.json({
         success: true,
         data: [],
@@ -20,17 +22,17 @@ export const search = async (req, res, next) => {
       });
     }
 
-    const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    const searchQuery = { status: 'APPROVED' };
 
-    const searchQuery = {
-      status: 'APPROVED',
-      $or: [
+    if (q) {
+      const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      searchQuery.$or = [
         { title: regex },
         { description: regex },
         { tags: regex },
         { domain: regex }
-      ]
-    };
+      ];
+    }
 
     // Apply optional category filter during search
     if (req.query.category) {

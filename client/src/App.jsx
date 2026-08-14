@@ -19,9 +19,25 @@ import { ProfilePage } from './pages/ProfilePage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { PrivacyTermsPage } from './pages/PrivacyTermsPage';
 
+export const DEFAULT_CATEGORIES = [
+  { _id: 'technology', name: 'Technology', slug: 'technology', description: 'AI, software & hardware news', icon: 'Cpu' },
+  { _id: 'programming', name: 'Programming', slug: 'programming', description: 'Web dev & engineering', icon: 'Code' },
+  { _id: 'gaming', name: 'Gaming', slug: 'gaming', description: 'Games & eSports', icon: 'Gamepad2' },
+  { _id: 'education', name: 'Education', slug: 'education', description: 'Science & interactive learning', icon: 'GraduationCap' },
+  { _id: 'entertainment', name: 'Entertainment', slug: 'entertainment', description: 'Movies, anime & culture', icon: 'Tv' },
+  { _id: 'music', name: 'Music', slug: 'music', description: 'Tracks & podcasts', icon: 'Music' },
+  { _id: 'fashion', name: 'Fashion', slug: 'fashion', description: 'Style & streetwear', icon: 'Sparkles' },
+  { _id: 'sports', name: 'Sports', slug: 'sports', description: 'Athletics & fitness', icon: 'Trophy' },
+  { _id: 'news', name: 'News', slug: 'news', description: 'World news & finance', icon: 'Newspaper' },
+  { _id: 'art', name: 'Art', slug: 'art', description: 'Digital art & design', icon: 'Palette' },
+  { _id: 'lifestyle', name: 'Lifestyle', slug: 'lifestyle', description: 'Travel & living', icon: 'Compass' },
+  { _id: 'other', name: 'Other', slug: 'other', description: 'Uncategorized resources', icon: 'Box' },
+  { _id: 'sex', name: 'Sex', slug: 'sex', description: 'Sex category', icon: 'Heart' }
+];
+
 export function AppContent() {
   const { user } = useAuth();
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [authModalState, setAuthModalState] = useState({ isOpen: false, mode: 'login' });
   const [reportModalState, setReportModalState] = useState({ isOpen: false, resource: null });
@@ -31,7 +47,7 @@ export function AppContent() {
     const fetchCategories = async () => {
       try {
         const res = await API.get('/categories');
-        if (res.data.success) {
+        if (res.data.success && Array.isArray(res.data.data) && res.data.data.length > 0) {
           setCategories(res.data.data);
         }
       } catch (err) {

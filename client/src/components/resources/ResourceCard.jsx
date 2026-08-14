@@ -48,6 +48,17 @@ export const ResourceCard = ({ resource, onReport, onAddToCollection }) => {
     }
   };
 
+  const getCategoryName = (cat) => {
+    if (!cat) return null;
+    if (typeof cat === 'object' && cat.name) return cat.name;
+    if (typeof cat === 'string' && !cat.match(/^[0-9a-fA-F]{24}$/)) {
+      return cat.charAt(0).toUpperCase() + cat.slice(1);
+    }
+    return null;
+  };
+
+  const categoryName = getCategoryName(resource.category);
+
   return (
     <div className="glass-card rounded-2xl overflow-hidden flex flex-col justify-between group h-full border border-slate-800/80 hover:border-sky-500/40">
       
@@ -76,9 +87,9 @@ export const ResourceCard = ({ resource, onReport, onAddToCollection }) => {
             <span>{resource.resourceType}</span>
           </span>
 
-          {resource.category && (
+          {categoryName && (
             <span className="px-2.5 py-1 rounded-full bg-slate-900/80 backdrop-blur-md text-[10px] font-medium text-slate-300 border border-slate-700/60">
-              {resource.category.name}
+              {categoryName}
             </span>
           )}
         </div>
