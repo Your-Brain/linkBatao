@@ -10,6 +10,10 @@ try {
 }
 
 export const connectDB = async () => {
+  if (mongoose.connection.readyState >= 1) {
+    return;
+  }
+
   try {
     const mongoUri = process.env.MONGODB_URI;
 
