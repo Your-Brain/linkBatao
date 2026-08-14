@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { ResourceGrid } from '../components/resources/ResourceGrid';
 import { User, Bookmark, Send, ShieldCheck, Sparkles } from 'lucide-react';
 
-export const ProfilePage = ({ onReportResource, onAddToCollection }) => {
+export const ProfilePage = ({ refreshKey = 0, onReportResource, onAddToCollection }) => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('saved');
   const [savedResources, setSavedResources] = useState([]);
@@ -37,7 +37,7 @@ export const ProfilePage = ({ onReportResource, onAddToCollection }) => {
     };
 
     fetchUserData();
-  }, [user]);
+  }, [user, refreshKey]);
 
   if (!user) {
     return (

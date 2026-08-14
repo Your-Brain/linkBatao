@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import API from './services/api';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
@@ -36,8 +36,10 @@ export const DEFAULT_CATEGORIES = [
 ];
 
 export function AppContent() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [authModalState, setAuthModalState] = useState({ isOpen: false, mode: 'login' });
   const [reportModalState, setReportModalState] = useState({ isOpen: false, resource: null });
@@ -73,6 +75,13 @@ export function AppContent() {
     setAddToCollectionState({ isOpen: true, resource });
   };
 
+  const handleResourceSubmitted = (newResource) => {
+    setRefreshKey(prev => prev + 1);
+    if (newResource && newResource._id) {
+      navigate(`/resources/${newResource._id}`);
+    }
+  };
+
   return (
     <div className="relative min-h-screen flex flex-col justify-between selection:bg-sky-400 selection:text-slate-950">
       {/* Dynamic Floating Particle Background */}
@@ -92,6 +101,7 @@ export function AppContent() {
             element={
               <HomePage
                 categories={categories}
+                refreshKey={refreshKey}
                 onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
                 onReportResource={handleOpenReportModal}
                 onAddToCollection={handleOpenAddToCollectionModal}
@@ -112,6 +122,7 @@ export function AppContent() {
             element={
               <SearchPage
                 categories={categories}
+                refreshKey={refreshKey}
                 onReportResource={handleOpenReportModal}
                 onAddToCollection={handleOpenAddToCollectionModal}
               />
@@ -139,6 +150,7 @@ export function AppContent() {
             path="/profile"
             element={
               <ProfilePage
+                refreshKey={refreshKey}
                 onReportResource={handleOpenReportModal}
                 onAddToCollection={handleOpenAddToCollectionModal}
               />
@@ -157,9 +169,7 @@ export function AppContent() {
         isOpen={isSubmitModalOpen}
         onClose={() => setIsSubmitModalOpen(false)}
         categories={categories}
-        onResourceSubmitted={() => {
-          // Trigger refresh if needed or auto-navigate
-        }}
+        onResourceSubmitted={handleResourceSubmitted}
       />
 
       <AuthModal
