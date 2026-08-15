@@ -273,6 +273,76 @@ export const deleteResource = async (req, res, next) => {
   }
 };
 
+// @desc    Update resource (Owner or Admin)
+// @route   PUT /api/resources/:id
+// @access  Private
+export const updateResource = async (req, res, next) => {
+  try {
+    const resource = await Resource.findById(req.params.id);
+    if (!resource) {
+      return res.status(404).json({ success: false, message: 'Resource not found' });
+    }
+
+    const isOwner = req.user && resource.submittedBy && resource.submittedBy.toString() === req.user._id.toString();
+    const isAdmin = req.user && (req.user.role === 'ADMIN' || req.user.role === 'MODERATOR');
+
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized to edit this resource' });
+    }
+
+    const { title, description, url, category, tags, resourceType, thumbnail, status } = req.body;
+
+    if (title) resource.title = title.trim();
+    if (description !== undefined) resource.description = description.trim();
+    if (thumbnail !== undefined) resource.thumbnail = thumbnail;
+
+    if (url && url !== resource.url) {
+      const { normalizedUrl, domain } = normalizeUrl(url);
+      const embedInfo = detectEmbed(url);
+      resource.url = url;
+      resource.normalizedUrl = normalizedUrl;
+      resource.domain = domain;
+      resource.embedType = embedInfo.embedType;
+      resource.embedUrl = embedInfo.embedUrl;
+    }
+
+    if (category) {
+      resource.category = category;
+    }
+
+    if (tags !== undefined) {
+      if (Array.isArray(tags)) {
+        resource.tags = tags.map(t => t.trim().toLowerCase()).filter(Boolean);
+      } else if (typeof tags === 'string') {
+        resource.tags = tags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+      }
+    }
+
+    if (resourceType) {
+      resource.resourceType = resourceType.toUpperCase();
+    }
+
+    if (isAdmin && status && ['APPROVED', 'PENDING', 'REJECTED', 'REMOVED'].includes(status)) {
+      resource.status = status;
+    }
+
+    await resource.save();
+
+    const updated = await Resource.findById(resource._id)
+      .populate('category', 'name slug icon')
+      .populate('submittedBy', 'username avatar');
+
+    res.json({
+      success: true,
+      message: 'Resource updated successfully',
+      data: updated
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
 // @desc    Save/Bookmark a resource
 // @route   POST /api/resources/:id/save
 // @access  Private

@@ -1,40 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { EmbeddedPlayer } from '../components/resources/EmbeddedPlayer';
 import { ResourceCard } from '../components/resources/ResourceCard';
-import { ExternalLink, Bookmark, Share2, Flag, Eye, Clock, ShieldCheck, Tag, Globe, Sparkles, FolderPlus } from 'lucide-react';
+import { EditResourceModal } from '../components/resources/EditResourceModal';
+import { ExternalLink, Bookmark, Share2, Flag, Eye, EyeOff, Edit3, Trash2, ShieldAlert, Tag, Globe, Sparkles, FolderPlus } from 'lucide-react';
 
 export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
   const { id } = useParams();
-  const { savedIds, toggleSaveResource } = useAuth();
+  const { user, savedIds, toggleSaveResource } = useAuth();
   const { showToast } = useToast();
+  const navigate = useNavigate();
 
   const [resource, setResource] = useState(null);
   const [related, setRelated] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const fetchResource = async () => {
+    setLoading(true);
+    try {
+      const res = await API.get(`/resources/${id}`);
+      if (res.data.success) {
+        setResource(res.data.data);
+        setRelated(res.data.related || []);
+      }
+    } catch (err) {
+      showToast('Failed to load resource details', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchResource = async () => {
-      setLoading(true);
-      try {
-        const res = await API.get(`/resources/${id}`);
-        if (res.data.success) {
-          setResource(res.data.data);
-          setRelated(res.data.related || []);
-        }
-      } catch (err) {
-        showToast('Failed to load resource details', 'error');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchResource();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [id, showToast]);
+  }, [id]);
 
   if (loading) {
     return (
@@ -58,11 +61,44 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
     );
   }
 
+  const isAdminOrMod = user && (user.role === 'ADMIN' || user.role === 'MODERATOR');
+  const isOwner = user && resource.submittedBy && (resource.submittedBy._id === user._id || resource.submittedBy === user._id);
+  const canManage = isAdminOrMod || isOwner;
+
   const isSaved = savedIds.has(resource._id);
+  const isHidden = resource.status === 'REMOVED' || resource.status === 'REJECTED';
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
     showToast('Page link copied to clipboard!', 'info');
+  };
+
+  const handleToggleHide = async () => {
+    const newStatus = isHidden ? 'APPROVED' : 'REMOVED';
+    try {
+      const res = await API.patch(`/admin/resources/${resource._id}`, { status: newStatus });
+      if (res.data.success) {
+        showToast(`Resource is now ${newStatus === 'APPROVED' ? 'Visible' : 'Hidden'}`, 'success');
+        setResource({ ...resource, status: newStatus });
+      }
+    } catch (err) {
+      showToast('Failed to update resource visibility', 'error');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm(`Are you sure you want to delete "${resource.title}"?`)) return;
+
+    try {
+      const endpoint = isAdminOrMod ? `/admin/resources/${resource._id}` : `/resources/${resource._id}`;
+      const res = await API.delete(endpoint);
+      if (res.data.success) {
+        showToast('Resource deleted successfully', 'success');
+        navigate('/');
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to delete resource', 'error');
+    }
   };
 
   const getCategoryName = (cat) => {
@@ -79,6 +115,55 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
       
+      {/* Admin / Owner Controls Banner */}
+      {canManage && (
+        <div className="glass-panel p-4 rounded-2xl border border-amber-500/30 flex flex-wrap items-center justify-between gap-4 text-left">
+          <div className="flex items-center gap-2">
+            <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0" />
+            <div>
+              <h4 className="text-xs font-bold text-amber-300 uppercase tracking-wider">
+                {isAdminOrMod ? 'Moderator & Admin Controls' : 'Owner Actions'}
+              </h4>
+              <p className="text-[11px] text-slate-400">
+                Current Status: <strong className={isHidden ? 'text-rose-400' : 'text-emerald-400'}>{resource.status}</strong>
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsEditModalOpen(true)}
+              className="px-3 py-1.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-xs font-bold transition-colors flex items-center gap-1.5"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>Edit Link</span>
+            </button>
+
+            {isAdminOrMod && (
+              <button
+                onClick={handleToggleHide}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors flex items-center gap-1.5 ${
+                  isHidden
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
+                    : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
+                }`}
+              >
+                {isHidden ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                <span>{isHidden ? 'Unhide (Show to Users)' : 'Hide from Users'}</span>
+              </button>
+            )}
+
+            <button
+              onClick={handleDelete}
+              className="px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition-colors flex items-center gap-1.5"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Delete Link</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Top Media Player Section */}
       <EmbeddedPlayer resource={resource} />
 
@@ -226,7 +311,16 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
         </div>
       )}
 
+      {/* Edit Modal */}
+      <EditResourceModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        resource={resource}
+        onResourceUpdated={(updated) => {
+          setResource(updated);
+        }}
+      />
+
     </div>
   );
 };
-

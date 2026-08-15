@@ -180,3 +180,60 @@ export const getStats = async (req, res, next) => {
     next(err);
   }
 };
+
+// @desc    Get all resources for admin management
+// @route   GET /api/admin/resources/all
+// @access  Private (Admin/Moderator)
+export const getAllResourcesAdmin = async (req, res, next) => {
+  try {
+    const { status, search } = req.query;
+    let query = {};
+
+    if (status && status !== 'ALL') {
+      query.status = status;
+    }
+
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { url: { $regex: search, $options: 'i' } },
+        { domain: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const resources = await Resource.find(query)
+      .populate('category', 'name slug')
+      .populate('submittedBy', 'username email')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      count: resources.length,
+      data: resources
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Permanently delete any resource (Admin/Moderator)
+// @route   DELETE /api/admin/resources/:id
+// @access  Private (Admin/Moderator)
+export const deleteResourceAdmin = async (req, res, next) => {
+  try {
+    const resource = await Resource.findById(req.params.id);
+    if (!resource) {
+      return res.status(404).json({ success: false, message: 'Resource not found' });
+    }
+
+    await resource.deleteOne();
+
+    res.json({
+      success: true,
+      message: 'Resource permanently deleted'
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+

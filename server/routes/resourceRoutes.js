@@ -4,6 +4,7 @@ import {
   getResourceById,
   previewMetadata,
   createResource,
+  updateResource,
   deleteResource,
   saveResource,
   unsaveResource,
@@ -18,6 +19,7 @@ router.post('/metadata-preview', previewMetadata);
 router.post('/', optionalAuth, createResource);
 
 router.get('/:id', getResourceById);
+router.put('/:id', protect, updateResource);
 router.delete('/:id', protect, deleteResource);
 
 router.post('/:id/save', protect, saveResource);

@@ -2,32 +2,43 @@ import React, { useState, useEffect } from 'react';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { ShieldAlert, CheckCircle2, XCircle, Users, Flag, Layers, RefreshCw, Trash2, ShieldCheck } from 'lucide-react';
+import { EditResourceModal } from '../components/resources/EditResourceModal';
+import { ShieldAlert, CheckCircle2, XCircle, Users, Flag, Layers, RefreshCw, Trash2, Edit3, Eye, EyeOff, Search, Link as LinkIcon } from 'lucide-react';
 
 export const AdminDashboardPage = () => {
   const { user } = useAuth();
   const { showToast } = useToast();
 
-  const [activeTab, setActiveTab] = useState('reports');
+  const [activeTab, setActiveTab] = useState('all-resources');
   const [stats, setStats] = useState(null);
   const [reports, setReports] = useState([]);
   const [pendingResources, setPendingResources] = useState([]);
+  const [allResources, setAllResources] = useState([]);
   const [usersList, setUsersList] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Search & Filter state for All Links tab
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+
+  // Edit Modal State
+  const [editingResource, setEditingResource] = useState(null);
 
   const fetchAdminData = async () => {
     setLoading(true);
     try {
-      const [statsRes, reportsRes, pendingRes, usersRes] = await Promise.all([
+      const [statsRes, reportsRes, pendingRes, allRes, usersRes] = await Promise.all([
         API.get('/admin/stats'),
         API.get('/admin/reports'),
         API.get('/admin/resources/pending'),
+        API.get(`/admin/resources/all?status=${statusFilter}&search=${encodeURIComponent(searchTerm)}`),
         user?.role === 'ADMIN' ? API.get('/admin/users') : Promise.resolve({ data: { success: true, data: [] } })
       ]);
 
       if (statsRes.data.success) setStats(statsRes.data.stats);
       if (reportsRes.data.success) setReports(reportsRes.data.data);
       if (pendingRes.data.success) setPendingResources(pendingRes.data.data);
+      if (allRes.data.success) setAllResources(allRes.data.data);
       if (usersRes.data.success) setUsersList(usersRes.data.data);
     } catch (err) {
       showToast(err.response?.data?.message || 'Failed to load admin moderation queue', 'error');
@@ -40,7 +51,12 @@ export const AdminDashboardPage = () => {
     if (user && (user.role === 'ADMIN' || user.role === 'MODERATOR')) {
       fetchAdminData();
     }
-  }, [user]);
+  }, [user, statusFilter]);
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    fetchAdminData();
+  };
 
   if (!user || (user.role !== 'ADMIN' && user.role !== 'MODERATOR')) {
     return (
@@ -68,11 +84,26 @@ export const AdminDashboardPage = () => {
     try {
       const res = await API.patch(`/admin/resources/${resourceId}`, { status });
       if (res.data.success) {
-        showToast(`Resource status set to ${status}`, 'success');
+        const actionLabel = status === 'APPROVED' ? 'Visible to users' : status === 'REMOVED' ? 'Hidden from users' : status;
+        showToast(`Resource status updated: ${actionLabel}`, 'success');
         fetchAdminData();
       }
     } catch (err) {
       showToast('Failed to update resource status', 'error');
+    }
+  };
+
+  const handleDeleteResource = async (resourceId, title) => {
+    if (!window.confirm(`Are you sure you want to permanently delete "${title}"?`)) return;
+
+    try {
+      const res = await API.delete(`/admin/resources/${resourceId}`);
+      if (res.data.success) {
+        showToast('Resource permanently deleted', 'success');
+        fetchAdminData();
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to delete resource', 'error');
     }
   };
 
@@ -99,9 +130,9 @@ export const AdminDashboardPage = () => {
             <span>Administrator Control Center</span>
           </div>
           <h1 className="font-display font-bold text-2xl sm:text-3xl text-white">
-            Moderation Queue & Platform Governance
+            Link Moderation & Platform Governance
           </h1>
-          <p className="text-xs text-slate-400">Review link reports, manage user roles, and resolve suspicious submissions.</p>
+          <p className="text-xs text-slate-400">Edit, hide, delete, or approve any link across the entire platform.</p>
         </div>
 
         <button
@@ -136,7 +167,19 @@ export const AdminDashboardPage = () => {
       )}
 
       {/* Control Tabs */}
-      <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
+      <div className="flex flex-wrap items-center gap-3 border-b border-slate-800 pb-3">
+        <button
+          onClick={() => setActiveTab('all-resources')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            activeTab === 'all-resources'
+              ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <LinkIcon className="w-4 h-4 text-sky-400" />
+          <span>All Links & Management</span>
+        </button>
+
         <button
           onClick={() => setActiveTab('reports')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
@@ -166,15 +209,159 @@ export const AdminDashboardPage = () => {
             onClick={() => setActiveTab('users')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'users'
-                ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
+                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Users className="w-4 h-4 text-sky-400" />
+            <Users className="w-4 h-4 text-purple-400" />
             <span>Manage Users ({usersList.length})</span>
           </button>
         )}
       </div>
+
+      {/* All Links & Full Control Panel */}
+      {activeTab === 'all-resources' && (
+        <div className="space-y-4">
+          
+          {/* Search & Status Filter Bar */}
+          <div className="glass-panel p-4 rounded-2xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 w-full sm:w-96">
+              <div className="relative w-full">
+                <Search className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                <input
+                  type="text"
+                  placeholder="Search by title, URL or domain..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-dark-900 border border-slate-700 text-white text-xs focus:border-sky-400 focus:outline-none"
+                />
+              </div>
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-xl bg-sky-500 text-slate-950 font-bold text-xs shrink-0 hover:bg-sky-400"
+              >
+                Search
+              </button>
+            </form>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <span className="text-xs text-slate-400 font-medium shrink-0">Filter Status:</span>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-2 rounded-xl bg-dark-900 border border-slate-700 text-white text-xs focus:border-sky-400 focus:outline-none"
+              >
+                <option value="ALL">All Statuses</option>
+                <option value="APPROVED">APPROVED (Visible)</option>
+                <option value="REMOVED">REMOVED (Hidden)</option>
+                <option value="PENDING">PENDING (In Moderation)</option>
+                <option value="REJECTED">REJECTED</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Links Table */}
+          <div className="glass-panel rounded-2xl overflow-hidden border border-slate-800 text-left">
+            {allResources.length === 0 ? (
+              <div className="p-8 text-center text-slate-400 text-xs">No links matching the current filter.</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-slate-300">
+                  <thead className="bg-dark-800 text-slate-400 uppercase font-mono border-b border-slate-800">
+                    <tr>
+                      <th className="p-3">Title & Link</th>
+                      <th className="p-3">Category</th>
+                      <th className="p-3">Submitted By</th>
+                      <th className="p-3">Status</th>
+                      <th className="p-3 text-right">Admin Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {allResources.map((resItem) => {
+                      const isHidden = resItem.status === 'REMOVED' || resItem.status === 'REJECTED';
+                      return (
+                        <tr key={resItem._id} className="hover:bg-dark-800/40">
+                          <td className="p-3 space-y-0.5 max-w-xs">
+                            <a
+                              href={`/resources/${resItem._id}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-bold text-white hover:text-sky-300 truncate block"
+                            >
+                              {resItem.title}
+                            </a>
+                            <p className="text-[11px] text-slate-400 truncate">{resItem.url}</p>
+                          </td>
+
+                          <td className="p-3 text-slate-300">
+                            {resItem.category?.name || 'Uncategorized'}
+                          </td>
+
+                          <td className="p-3 text-slate-400">
+                            {resItem.submittedBy ? `@${resItem.submittedBy.username}` : 'Anonymous'}
+                          </td>
+
+                          <td className="p-3">
+                            <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold ${
+                              resItem.status === 'APPROVED'
+                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                : resItem.status === 'REMOVED'
+                                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                                : resItem.status === 'PENDING'
+                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                : 'bg-slate-700/50 text-slate-400'
+                            }`}>
+                              {resItem.status === 'APPROVED' ? 'VISIBLE' : resItem.status === 'REMOVED' ? 'HIDDEN' : resItem.status}
+                            </span>
+                          </td>
+
+                          <td className="p-3 text-right space-x-1.5 whitespace-nowrap">
+                            
+                            {/* Edit Link */}
+                            <button
+                              onClick={() => setEditingResource(resItem)}
+                              className="px-2.5 py-1.5 rounded-lg bg-dark-700 hover:bg-sky-500/20 text-slate-300 hover:text-sky-300 border border-slate-700 transition-colors inline-flex items-center gap-1"
+                              title="Edit Link Details"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                              <span>Edit</span>
+                            </button>
+
+                            {/* Hide / Unhide Toggle */}
+                            <button
+                              onClick={() => handleUpdateResourceStatus(resItem._id, resItem.status === 'APPROVED' ? 'REMOVED' : 'APPROVED')}
+                              className={`px-2.5 py-1.5 rounded-lg border transition-colors inline-flex items-center gap-1 ${
+                                isHidden
+                                  ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border-emerald-500/40'
+                                  : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border-amber-500/40'
+                              }`}
+                              title={isHidden ? 'Show / Unhide link to users' : 'Hide link from users'}
+                            >
+                              {isHidden ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                              <span>{isHidden ? 'Unhide' : 'Hide'}</span>
+                            </button>
+
+                            {/* Delete Permanently */}
+                            <button
+                              onClick={() => handleDeleteResource(resItem._id, resItem.title)}
+                              className="px-2.5 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 transition-colors inline-flex items-center gap-1"
+                              title="Permanently Delete Link"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>Delete</span>
+                            </button>
+
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Reports Table */}
       {activeTab === 'reports' && (
@@ -306,6 +493,14 @@ export const AdminDashboardPage = () => {
           </div>
         </div>
       )}
+
+      {/* Edit Modal */}
+      <EditResourceModal
+        isOpen={!!editingResource}
+        onClose={() => setEditingResource(null)}
+        resource={editingResource}
+        onResourceUpdated={() => fetchAdminData()}
+      />
 
     </div>
   );

@@ -4,6 +4,8 @@ import {
   resolveReport,
   getPendingResources,
   updateResourceStatus,
+  getAllResourcesAdmin,
+  deleteResourceAdmin,
   getUsers,
   updateUserRole,
   getStats
@@ -21,7 +23,9 @@ router.get('/reports', getPendingReports);
 router.patch('/reports/:id', resolveReport);
 
 router.get('/resources/pending', getPendingResources);
+router.get('/resources/all', getAllResourcesAdmin);
 router.patch('/resources/:id', updateResourceStatus);
+router.delete('/resources/:id', deleteResourceAdmin);
 
 router.get('/users', authorize('ADMIN'), getUsers);
 router.patch('/users/:id/role', authorize('ADMIN'), updateUserRole);
