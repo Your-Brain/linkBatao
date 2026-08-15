@@ -94,6 +94,10 @@ export const login = async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
+    if (user.isBanned) {
+      return res.status(403).json({ success: false, message: 'Your account has been suspended by an administrator.' });
+    }
+
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });

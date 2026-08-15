@@ -237,3 +237,56 @@ export const deleteResourceAdmin = async (req, res, next) => {
   }
 };
 
+// @desc    Toggle Ban/Unban user account (Admin only)
+// @route   PATCH /api/admin/users/:id/ban
+// @access  Private (Admin)
+export const toggleBanUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (user.role === 'ADMIN' && req.user._id.toString() !== user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Cannot ban an admin user' });
+    }
+
+    user.isBanned = !user.isBanned;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: `User @${user.username} has been ${user.isBanned ? 'banned' : 'unbanned'}`,
+      data: user
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Permanently delete a user account (Admin only)
+// @route   DELETE /api/admin/users/:id
+// @access  Private (Admin)
+export const deleteUserAdmin = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (user.role === 'ADMIN') {
+      return res.status(403).json({ success: false, message: 'Cannot delete an admin account' });
+    }
+
+    await user.deleteOne();
+
+    res.json({
+      success: true,
+      message: `User account @${user.username} permanently deleted`
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+

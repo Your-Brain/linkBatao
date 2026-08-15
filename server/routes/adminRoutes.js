@@ -8,6 +8,8 @@ import {
   deleteResourceAdmin,
   getUsers,
   updateUserRole,
+  toggleBanUser,
+  deleteUserAdmin,
   getStats
 } from '../controllers/adminController.js';
 import { protect, authorize } from '../middleware/auth.js';
@@ -29,5 +31,7 @@ router.delete('/resources/:id', deleteResourceAdmin);
 
 router.get('/users', authorize('ADMIN'), getUsers);
 router.patch('/users/:id/role', authorize('ADMIN'), updateUserRole);
+router.patch('/users/:id/ban', authorize('ADMIN'), toggleBanUser);
+router.delete('/users/:id', authorize('ADMIN'), deleteUserAdmin);
 
 export default router;

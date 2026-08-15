@@ -27,13 +27,17 @@ export const createCollection = async (req, res, next) => {
   }
 };
 
-// @desc    Get current user's collections or public collections
+// @desc    Get current user's collections or public collections (Admins can view all)
 // @route   GET /api/collections
 // @access  Public (Optional Auth)
 export const getCollections = async (req, res, next) => {
   try {
+    const isAdmin = req.user && (req.user.role === 'ADMIN' || req.user.role === 'MODERATOR');
     let query = { visibility: 'PUBLIC' };
-    if (req.user) {
+    
+    if (isAdmin) {
+      query = {}; // Admins can view all collections
+    } else if (req.user) {
       query = {
         $or: [{ visibility: 'PUBLIC' }, { ownerId: req.user.id }]
       };
@@ -74,7 +78,10 @@ export const getCollectionById = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Collection not found' });
     }
 
-    if (collection.visibility === 'PRIVATE' && (!req.user || req.user.id !== collection.ownerId._id.toString())) {
+    const isOwner = req.user && collection.ownerId && req.user.id === collection.ownerId._id.toString();
+    const isAdmin = req.user && (req.user.role === 'ADMIN' || req.user.role === 'MODERATOR');
+
+    if (collection.visibility === 'PRIVATE' && !isOwner && !isAdmin) {
       return res.status(403).json({ success: false, message: 'This collection is private' });
     }
 
@@ -87,7 +94,7 @@ export const getCollectionById = async (req, res, next) => {
   }
 };
 
-// @desc    Update collection or add/remove items
+// @desc    Update collection or add/remove items (Owner or Admin)
 // @route   PUT /api/collections/:id
 // @access  Private
 export const updateCollection = async (req, res, next) => {
@@ -97,7 +104,10 @@ export const updateCollection = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Collection not found' });
     }
 
-    if (collection.ownerId.toString() !== req.user.id) {
+    const isOwner = collection.ownerId.toString() === req.user.id;
+    const isAdmin = req.user.role === 'ADMIN' || req.user.role === 'MODERATOR';
+
+    if (!isOwner && !isAdmin) {
       return res.status(403).json({ success: false, message: 'Not authorized to edit this collection' });
     }
 
@@ -118,7 +128,7 @@ export const updateCollection = async (req, res, next) => {
   }
 };
 
-// @desc    Delete a collection
+// @desc    Delete a collection (Owner or Admin)
 // @route   DELETE /api/collections/:id
 // @access  Private
 export const deleteCollection = async (req, res, next) => {
@@ -128,7 +138,10 @@ export const deleteCollection = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Collection not found' });
     }
 
-    if (collection.ownerId.toString() !== req.user.id) {
+    const isOwner = collection.ownerId.toString() === req.user.id;
+    const isAdmin = req.user.role === 'ADMIN' || req.user.role === 'MODERATOR';
+
+    if (!isOwner && !isAdmin) {
       return res.status(403).json({ success: false, message: 'Not authorized to delete this collection' });
     }
 
@@ -140,7 +153,7 @@ export const deleteCollection = async (req, res, next) => {
   }
 };
 
-// @desc    Add a resource item to collection
+// @desc    Add a resource item to collection (Owner or Admin)
 // @route   POST /api/collections/:id/items
 // @access  Private
 export const addItemToCollection = async (req, res, next) => {
@@ -150,7 +163,10 @@ export const addItemToCollection = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Collection not found' });
     }
 
-    if (collection.ownerId.toString() !== req.user.id) {
+    const isOwner = collection.ownerId.toString() === req.user.id;
+    const isAdmin = req.user.role === 'ADMIN' || req.user.role === 'MODERATOR';
+
+    if (!isOwner && !isAdmin) {
       return res.status(403).json({ success: false, message: 'Not authorized to edit this collection' });
     }
 
@@ -175,7 +191,7 @@ export const addItemToCollection = async (req, res, next) => {
   }
 };
 
-// @desc    Remove a resource item from collection
+// @desc    Remove a resource item from collection (Owner or Admin)
 // @route   DELETE /api/collections/:id/items/:resourceId
 // @access  Private
 export const removeItemFromCollection = async (req, res, next) => {
@@ -185,7 +201,10 @@ export const removeItemFromCollection = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Collection not found' });
     }
 
-    if (collection.ownerId.toString() !== req.user.id) {
+    const isOwner = collection.ownerId.toString() === req.user.id;
+    const isAdmin = req.user.role === 'ADMIN' || req.user.role === 'MODERATOR';
+
+    if (!isOwner && !isAdmin) {
       return res.status(403).json({ success: false, message: 'Not authorized to edit this collection' });
     }
 
@@ -202,4 +221,3 @@ export const removeItemFromCollection = async (req, res, next) => {
     next(err);
   }
 };
-

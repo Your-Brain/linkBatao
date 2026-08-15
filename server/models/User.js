@@ -29,6 +29,10 @@ const userSchema = new mongoose.Schema(
       enum: ['USER', 'MODERATOR', 'ADMIN'],
       default: 'USER'
     },
+    isBanned: {
+      type: Boolean,
+      default: false
+    },
     avatar: {
       type: String,
       default: ''

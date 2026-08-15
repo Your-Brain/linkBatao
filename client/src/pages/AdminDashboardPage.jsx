@@ -3,7 +3,7 @@ import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { EditResourceModal } from '../components/resources/EditResourceModal';
-import { ShieldAlert, CheckCircle2, XCircle, Users, Flag, Layers, RefreshCw, Trash2, Edit3, Eye, EyeOff, Search, Link as LinkIcon } from 'lucide-react';
+import { ShieldAlert, CheckCircle2, XCircle, Users, Flag, Layers, RefreshCw, Trash2, Edit3, Eye, EyeOff, Search, Link as LinkIcon, Ban, UserCheck, Shield, Sparkles } from 'lucide-react';
 
 export const AdminDashboardPage = () => {
   const { user } = useAuth();
@@ -41,7 +41,7 @@ export const AdminDashboardPage = () => {
       if (allRes.data.success) setAllResources(allRes.data.data);
       if (usersRes.data.success) setUsersList(usersRes.data.data);
     } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to load admin moderation queue', 'error');
+      showToast(err.response?.data?.message || 'Failed to load admin data', 'error');
     } finally {
       setLoading(false);
     }
@@ -119,84 +119,170 @@ export const AdminDashboardPage = () => {
     }
   };
 
+  const handleToggleBanUser = async (userId, username, isCurrentlyBanned) => {
+    const actionName = isCurrentlyBanned ? 'unban' : 'ban';
+    if (!window.confirm(`Are you sure you want to ${actionName} @${username}?`)) return;
+
+    try {
+      const res = await API.patch(`/admin/users/${userId}/ban`);
+      if (res.data.success) {
+        showToast(res.data.message, 'success');
+        fetchAdminData();
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || `Failed to ${actionName} user`, 'error');
+    }
+  };
+
+  const handleDeleteUser = async (userId, username) => {
+    if (!window.confirm(`CRITICAL WARNING: Are you sure you want to PERMANENTLY DELETE user account @${username}? This action cannot be undone.`)) return;
+
+    try {
+      const res = await API.delete(`/admin/users/${userId}`);
+      if (res.data.success) {
+        showToast(`User @${username} deleted successfully`, 'success');
+        fetchAdminData();
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to delete user account', 'error');
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       
       {/* Header Banner */}
-      <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-amber-500/20 flex items-center justify-between gap-4 text-left">
+      <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-amber-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-left">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-xs font-semibold">
             <ShieldAlert className="w-4 h-4 text-amber-400" />
-            <span>Administrator Control Center</span>
+            <span>Administrator Command Center</span>
           </div>
           <h1 className="font-display font-bold text-2xl sm:text-3xl text-white">
-            Link Moderation & Platform Governance
+            Platform Moderation & Full Administration
           </h1>
-          <p className="text-xs text-slate-400">Edit, hide, delete, or approve any link across the entire platform.</p>
+          <p className="text-xs text-slate-400">Full control over link resources, moderation queue, user roles, bans, and system safety.</p>
         </div>
 
         <button
           onClick={fetchAdminData}
-          className="p-2.5 rounded-xl bg-dark-800 text-slate-300 hover:text-white border border-slate-700 transition-colors shrink-0"
+          className="px-4 py-2.5 rounded-xl bg-dark-800 text-slate-300 hover:text-white border border-slate-700 hover:border-slate-600 transition-colors shrink-0 flex items-center gap-2 text-xs font-semibold"
           title="Refresh Data"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-amber-400' : ''}`} />
+          <span>Refresh Data</span>
         </button>
       </div>
 
-      {/* Analytics Counter Cards */}
+      {/* Analytics Counter Cards (ALL CLICKABLE TO SWITCH TABS & FILTERS) */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-card p-4 rounded-2xl border border-slate-800 text-left">
-            <p className="text-xs text-slate-400">Active Resources</p>
+          
+          {/* Card 1: Active Resources -> Filter Approved */}
+          <button
+            onClick={() => {
+              setActiveTab('all-resources');
+              setStatusFilter('APPROVED');
+            }}
+            className={`glass-card p-4 rounded-2xl border text-left transition-all hover:scale-[1.02] cursor-pointer ${
+              activeTab === 'all-resources' && statusFilter === 'APPROVED'
+                ? 'border-sky-500/80 bg-sky-500/10 shadow-glow'
+                : 'border-slate-800 hover:border-sky-500/40'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-slate-400">Active Resources</p>
+              <LinkIcon className="w-4 h-4 text-sky-400" />
+            </div>
             <p className="text-2xl font-extrabold text-sky-400 mt-1">{stats.totalResources}</p>
-          </div>
-          <div className="glass-card p-4 rounded-2xl border border-slate-800 text-left">
-            <p className="text-xs text-slate-400">Pending Reports</p>
+            <p className="text-[10px] text-sky-300/70 mt-1 font-medium">Click to view active links →</p>
+          </button>
+
+          {/* Card 2: Pending Reports */}
+          <button
+            onClick={() => setActiveTab('reports')}
+            className={`glass-card p-4 rounded-2xl border text-left transition-all hover:scale-[1.02] cursor-pointer ${
+              activeTab === 'reports'
+                ? 'border-rose-500/80 bg-rose-500/10 shadow-glow'
+                : 'border-slate-800 hover:border-rose-500/40'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-slate-400">Pending Reports</p>
+              <Flag className="w-4 h-4 text-rose-400" />
+            </div>
             <p className="text-2xl font-extrabold text-rose-400 mt-1">{stats.pendingReports}</p>
-          </div>
-          <div className="glass-card p-4 rounded-2xl border border-slate-800 text-left">
-            <p className="text-xs text-slate-400">Moderation Queue</p>
+            <p className="text-[10px] text-rose-300/70 mt-1 font-medium">Click to view reports →</p>
+          </button>
+
+          {/* Card 3: Moderation Queue */}
+          <button
+            onClick={() => setActiveTab('pending')}
+            className={`glass-card p-4 rounded-2xl border text-left transition-all hover:scale-[1.02] cursor-pointer ${
+              activeTab === 'pending'
+                ? 'border-amber-500/80 bg-amber-500/10 shadow-glow'
+                : 'border-slate-800 hover:border-amber-500/40'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-slate-400">Moderation Queue</p>
+              <Layers className="w-4 h-4 text-amber-400" />
+            </div>
             <p className="text-2xl font-extrabold text-amber-400 mt-1">{stats.pendingResources}</p>
-          </div>
-          <div className="glass-card p-4 rounded-2xl border border-slate-800 text-left">
-            <p className="text-xs text-slate-400">Total Accounts</p>
-            <p className="text-2xl font-extrabold text-cyan-400 mt-1">{stats.totalUsers}</p>
-          </div>
+            <p className="text-[10px] text-amber-300/70 mt-1 font-medium">Click to review pending →</p>
+          </button>
+
+          {/* Card 4: Total Accounts */}
+          <button
+            onClick={() => user.role === 'ADMIN' && setActiveTab('users')}
+            className={`glass-card p-4 rounded-2xl border text-left transition-all hover:scale-[1.02] cursor-pointer ${
+              activeTab === 'users'
+                ? 'border-purple-500/80 bg-purple-500/10 shadow-glow'
+                : 'border-slate-800 hover:border-purple-500/40'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-slate-400">Total Accounts</p>
+              <Users className="w-4 h-4 text-purple-400" />
+            </div>
+            <p className="text-2xl font-extrabold text-purple-400 mt-1">{stats.totalUsers}</p>
+            <p className="text-[10px] text-purple-300/70 mt-1 font-medium">Click to manage users →</p>
+          </button>
+
         </div>
       )}
 
-      {/* Control Tabs */}
+      {/* Control Navigation Tabs */}
       <div className="flex flex-wrap items-center gap-3 border-b border-slate-800 pb-3">
         <button
           onClick={() => setActiveTab('all-resources')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
             activeTab === 'all-resources'
-              ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
+              ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30 shadow-md'
               : 'text-slate-400 hover:text-white'
           }`}
         >
           <LinkIcon className="w-4 h-4 text-sky-400" />
-          <span>All Links & Management</span>
+          <span>All Links & Control</span>
         </button>
 
         <button
           onClick={() => setActiveTab('reports')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
             activeTab === 'reports'
-              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30 shadow-md'
               : 'text-slate-400 hover:text-white'
           }`}
         >
           <Flag className="w-4 h-4 text-rose-400" />
-          <span>Pending Link Reports ({reports.length})</span>
+          <span>Link Reports ({reports.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('pending')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
             activeTab === 'pending'
-              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow-md'
               : 'text-slate-400 hover:text-white'
           }`}
         >
@@ -209,21 +295,21 @@ export const AdminDashboardPage = () => {
             onClick={() => setActiveTab('users')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'users'
-                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30 shadow-md'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
             <Users className="w-4 h-4 text-purple-400" />
-            <span>Manage Users ({usersList.length})</span>
+            <span>User Manager & Bans ({usersList.length})</span>
           </button>
         )}
       </div>
 
-      {/* All Links & Full Control Panel */}
+      {/* ALL LINKS MANAGEMENT TAB */}
       {activeTab === 'all-resources' && (
         <div className="space-y-4">
           
-          {/* Search & Status Filter Bar */}
+          {/* Search & Status Filter Controls */}
           <div className="glass-panel p-4 rounded-2xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
             <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 w-full sm:w-96">
               <div className="relative w-full">
@@ -244,23 +330,31 @@ export const AdminDashboardPage = () => {
               </button>
             </form>
 
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <span className="text-xs text-slate-400 font-medium shrink-0">Filter Status:</span>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 rounded-xl bg-dark-900 border border-slate-700 text-white text-xs focus:border-sky-400 focus:outline-none"
-              >
-                <option value="ALL">All Statuses</option>
-                <option value="APPROVED">APPROVED (Visible)</option>
-                <option value="REMOVED">REMOVED (Hidden)</option>
-                <option value="PENDING">PENDING (In Moderation)</option>
-                <option value="REJECTED">REJECTED</option>
-              </select>
+            {/* Quick Status Filter Pills */}
+            <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
+              {[
+                { id: 'ALL', label: 'All Statuses' },
+                { id: 'APPROVED', label: 'APPROVED (Active)' },
+                { id: 'REMOVED', label: 'REMOVED (Hidden)' },
+                { id: 'PENDING', label: 'PENDING' },
+                { id: 'REJECTED', label: 'REJECTED' }
+              ].map(statusOpt => (
+                <button
+                  key={statusOpt.id}
+                  onClick={() => setStatusFilter(statusOpt.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    statusFilter === statusOpt.id
+                      ? 'bg-sky-500 text-slate-950 font-bold shadow'
+                      : 'bg-dark-800 text-slate-400 hover:text-white border border-slate-700'
+                  }`}
+                >
+                  {statusOpt.label}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Links Table */}
+          {/* Resources Table */}
           <div className="glass-panel rounded-2xl overflow-hidden border border-slate-800 text-left">
             {allResources.length === 0 ? (
               <div className="p-8 text-center text-slate-400 text-xs">No links matching the current filter.</div>
@@ -269,10 +363,10 @@ export const AdminDashboardPage = () => {
                 <table className="w-full text-xs text-slate-300">
                   <thead className="bg-dark-800 text-slate-400 uppercase font-mono border-b border-slate-800">
                     <tr>
-                      <th className="p-3">Title & Link</th>
+                      <th className="p-3">Title & Destination</th>
                       <th className="p-3">Category</th>
                       <th className="p-3">Submitted By</th>
-                      <th className="p-3">Status</th>
+                      <th className="p-3">Visibility Status</th>
                       <th className="p-3 text-right">Admin Actions</th>
                     </tr>
                   </thead>
@@ -363,7 +457,7 @@ export const AdminDashboardPage = () => {
         </div>
       )}
 
-      {/* Reports Table */}
+      {/* LINK REPORTS TAB */}
       {activeTab === 'reports' && (
         <div className="glass-panel rounded-2xl overflow-hidden border border-slate-800 text-left">
           {reports.length === 0 ? (
@@ -410,7 +504,7 @@ export const AdminDashboardPage = () => {
         </div>
       )}
 
-      {/* Pending Submissions Queue */}
+      {/* PENDING SUBMISSIONS QUEUE TAB */}
       {activeTab === 'pending' && (
         <div className="glass-panel rounded-2xl overflow-hidden border border-slate-800 text-left">
           {pendingResources.length === 0 ? (
@@ -447,47 +541,104 @@ export const AdminDashboardPage = () => {
         </div>
       )}
 
-      {/* Users Manager (Admin Only) */}
+      {/* USER MANAGER & BAN CONTROL TAB (ADMIN ONLY) */}
       {activeTab === 'users' && user.role === 'ADMIN' && (
         <div className="glass-panel rounded-2xl overflow-hidden border border-slate-800 text-left">
+          <div className="p-4 border-b border-slate-800 bg-dark-900/50 flex items-center justify-between">
+            <h3 className="font-bold text-white text-sm flex items-center gap-2">
+              <Users className="w-4 h-4 text-purple-400" />
+              <span>Registered User Accounts & Access Controls</span>
+            </h3>
+            <span className="text-xs text-slate-400">Total Users: {usersList.length}</span>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-slate-300">
               <thead className="bg-dark-800 text-slate-400 uppercase font-mono border-b border-slate-800">
                 <tr>
                   <th className="p-3">User</th>
                   <th className="p-3">Email</th>
-                  <th className="p-3">Current Role</th>
-                  <th className="p-3 text-right">Role Assignment</th>
+                  <th className="p-3">Role</th>
+                  <th className="p-3">Account Status</th>
+                  <th className="p-3 text-right">Role Assignment & Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {usersList.map((u) => (
-                  <tr key={u._id} className="hover:bg-dark-800/40">
-                    <td className="p-3 font-semibold text-white">@{u.username}</td>
-                    <td className="p-3 text-slate-400">{u.email}</td>
-                    <td className="p-3">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                        u.role === 'ADMIN' ? 'bg-purple-500/20 text-purple-300' : u.role === 'MODERATOR' ? 'bg-amber-500/20 text-amber-300' : 'bg-sky-500/20 text-sky-300'
-                      }`}>
-                        {u.role}
-                      </span>
-                    </td>
-                    <td className="p-3 text-right space-x-1">
-                      {['USER', 'MODERATOR', 'ADMIN'].map(roleOption => (
+                {usersList.map((u) => {
+                  const isBanned = u.isBanned;
+                  return (
+                    <tr key={u._id} className="hover:bg-dark-800/40">
+                      <td className="p-3 font-semibold text-white">@{u.username}</td>
+                      <td className="p-3 text-slate-400">{u.email}</td>
+                      
+                      {/* Role Badge */}
+                      <td className="p-3">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          u.role === 'ADMIN' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : u.role === 'MODERATOR' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
+                        }`}>
+                          {u.role}
+                        </span>
+                      </td>
+
+                      {/* Account Status Badge */}
+                      <td className="p-3">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          isBanned ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                        }`}>
+                          {isBanned ? 'SUSPENDED / BANNED' : 'ACTIVE'}
+                        </span>
+                      </td>
+
+                      {/* Admin Actions */}
+                      <td className="p-3 text-right space-x-1.5 whitespace-nowrap">
+                        
+                        {/* Role Change Buttons */}
+                        {['USER', 'MODERATOR', 'ADMIN'].map(roleOption => (
+                          <button
+                            key={roleOption}
+                            disabled={u.role === roleOption}
+                            onClick={() => handleRoleChange(u._id, roleOption)}
+                            className={`px-2.5 py-1 rounded text-[10px] font-semibold transition-colors ${
+                              u.role === roleOption ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500' : 'bg-dark-700 hover:bg-slate-700 text-slate-200'
+                            }`}
+                          >
+                            {roleOption}
+                          </button>
+                        ))}
+
+                        {/* Ban / Unban Toggle Button */}
                         <button
-                          key={roleOption}
-                          disabled={u.role === roleOption}
-                          onClick={() => handleRoleChange(u._id, roleOption)}
-                          className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors ${
-                            u.role === roleOption ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500' : 'bg-dark-700 hover:bg-slate-700 text-slate-200'
+                          onClick={() => handleToggleBanUser(u._id, u.username, isBanned)}
+                          className={`px-2.5 py-1 rounded text-[10px] font-bold border transition-colors inline-flex items-center gap-1 ${
+                            isBanned
+                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
+                              : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
                           }`}
+                          title={isBanned ? 'Unban User Account' : 'Ban User Account'}
                         >
-                          {roleOption}
+                          {isBanned ? <UserCheck className="w-3 h-3" /> : <Ban className="w-3 h-3" />}
+                          <span>{isBanned ? 'Unban' : 'Ban'}</span>
                         </button>
-                      ))}
-                    </td>
-                  </tr>
-                ))}
+
+                        {/* Delete User Account Button */}
+                        <button
+                          onClick={() => handleDeleteUser(u._id, u.username)}
+                          disabled={u.role === 'ADMIN'}
+                          className={`px-2.5 py-1 rounded text-[10px] font-bold border transition-colors inline-flex items-center gap-1 ${
+                            u.role === 'ADMIN'
+                              ? 'opacity-30 cursor-not-allowed bg-slate-800 text-slate-500'
+                              : 'bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30'
+                          }`}
+                          title="Permanently Delete User Account"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          <span>Delete</span>
+                        </button>
+
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
