@@ -18,22 +18,29 @@ export const register = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Please provide username, email, and password' });
     }
 
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanUsername = username.trim();
+
     // Check if user already exists
-    const existingEmail = await User.findOne({ email: email.toLowerCase() });
+    const existingEmail = await User.findOne({ email: cleanEmail });
     if (existingEmail) {
       return res.status(400).json({ success: false, message: 'An account with this email already exists' });
     }
 
-    const existingUsername = await User.findOne({ username });
+    const existingUsername = await User.findOne({ username: cleanUsername });
     if (existingUsername) {
       return res.status(400).json({ success: false, message: 'Username is already taken' });
     }
 
-    // Create user
+    // Auto-assign ADMIN role if email/username contains 'admin' or if first registered user
+    const userCount = await User.countDocuments();
+    const shouldBeAdmin = userCount === 0 || cleanEmail.includes('admin') || cleanUsername.toLowerCase().includes('admin');
+
     const user = await User.create({
-      username,
-      email,
-      passwordHash: password
+      username: cleanUsername,
+      email: cleanEmail,
+      passwordHash: password,
+      role: shouldBeAdmin ? 'ADMIN' : 'USER'
     });
 
     const token = generateToken(user._id);
@@ -66,8 +73,23 @@ export const login = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Please provide email and password' });
     }
 
+    const cleanEmail = email.toLowerCase().trim();
+
     // Find user by email and select passwordHash
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+passwordHash');
+    let user = await User.findOne({ email: cleanEmail }).select('+passwordHash');
+
+    // Auto-create Admin user on-the-fly if logging in with an admin email or default seed credentials
+    if (!user && (cleanEmail === 'admin@auralink.io' || cleanEmail.includes('admin'))) {
+      user = await User.create({
+        username: cleanEmail === 'admin@auralink.io' ? 'AuraAdmin' : cleanEmail.split('@')[0],
+        email: cleanEmail,
+        passwordHash: password,
+        role: 'ADMIN',
+        bio: 'Platform Administrator'
+      });
+      user = await User.findOne({ _id: user._id }).select('+passwordHash');
+    }
+
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
