@@ -36,7 +36,7 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-dark-950/80 backdrop-blur-md animate-fade-in">
       <div className="relative w-full max-w-md glass-modal rounded-3xl p-6 sm:p-8 shadow-2xl border border-sky-500/30 text-left">
-        
+
         <button
           onClick={onClose}
           className="absolute top-5 right-5 p-2 text-slate-400 hover:text-white rounded-full bg-dark-800 cursor-pointer"
@@ -49,18 +49,16 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
           <button
             type="button"
             onClick={() => setMode('login')}
-            className={`font-display font-bold text-lg pb-1 transition-colors cursor-pointer ${
-              mode === 'login' ? 'text-sky-300 border-b-2 border-sky-400' : 'text-slate-500 hover:text-slate-300'
-            }`}
+            className={`font-display font-bold text-lg pb-1 transition-colors cursor-pointer ${mode === 'login' ? 'text-sky-300 border-b-2 border-sky-400' : 'text-slate-500 hover:text-slate-300'
+              }`}
           >
             Sign In
           </button>
           <button
             type="button"
             onClick={() => setMode('register')}
-            className={`font-display font-bold text-lg pb-1 transition-colors cursor-pointer ${
-              mode === 'register' ? 'text-sky-300 border-b-2 border-sky-400' : 'text-slate-500 hover:text-slate-300'
-            }`}
+            className={`font-display font-bold text-lg pb-1 transition-colors cursor-pointer ${mode === 'register' ? 'text-sky-300 border-b-2 border-sky-400' : 'text-slate-500 hover:text-slate-300'
+              }`}
           >
             Create Account
           </button>

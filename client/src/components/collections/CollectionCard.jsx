@@ -20,7 +20,7 @@ export const CollectionCard = ({ collection }) => {
               <FolderHeart className="w-4 h-4" />
             </div>
             <span className="text-xs font-semibold text-slate-300">
-              {collection.ownerId ? `@${collection.ownerId.username}` : 'User'}
+              Curated List
             </span>
           </div>
 

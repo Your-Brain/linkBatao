@@ -179,12 +179,12 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
               </p>
             )}
 
-            {/* Owner Info */}
+            {/* Collection Tag */}
             <div className="flex items-center gap-2 pt-2 text-xs text-slate-400">
               <span className="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-bold text-[10px]">
-                {collection.ownerId?.username ? collection.ownerId.username.charAt(0).toUpperCase() : 'U'}
+                ✦
               </span>
-              <span>Curated by <strong className="text-slate-200">@{collection.ownerId?.username || 'User'}</strong></span>
+              <span>Curated Public Resource List</span>
             </div>
           </div>
 

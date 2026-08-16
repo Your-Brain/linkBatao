@@ -36,7 +36,7 @@ export const ReportModal = ({ resource, isOpen, onClose }) => {
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-dark-950/80 backdrop-blur-md animate-fade-in">
       <div className="relative w-full max-w-md glass-modal rounded-3xl p-6 shadow-2xl border border-rose-500/30 text-left">
-        
+
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-full bg-dark-800 cursor-pointer"

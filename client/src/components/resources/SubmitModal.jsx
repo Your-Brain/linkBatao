@@ -117,7 +117,7 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-dark-950/80 backdrop-blur-md overflow-y-auto animate-fade-in">
       <div className="relative w-full max-w-xl glass-modal rounded-3xl p-6 sm:p-8 shadow-2xl border border-sky-500/30 my-8">
-        
+
         {/* Modal Close Button */}
         <button
           onClick={onClose}
@@ -152,7 +152,7 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="space-y-4 text-left">
-          
+
           {/* URL Input with Auto-Fetch */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
@@ -226,7 +226,7 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
 
           {/* Category & Type Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            
+
             {/* Category Dropdown */}
             <div>
               <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">

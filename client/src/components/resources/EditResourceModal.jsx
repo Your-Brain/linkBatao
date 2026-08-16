@@ -76,7 +76,7 @@ export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-dark-950/85 backdrop-blur-md animate-fade-in overflow-hidden">
       <div className="relative w-full max-w-xl glass-modal rounded-3xl border border-sky-500/30 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden text-left">
-        
+
         {/* Pinned Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800/80 bg-dark-900/60 shrink-0">
           <div className="flex items-center gap-2.5">
@@ -100,7 +100,7 @@ export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated
         {/* Scrollable Form Body */}
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden min-h-0">
           <div className="p-6 overflow-y-auto space-y-4 flex-1">
-            
+
             {/* Title */}
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">Title *</label>

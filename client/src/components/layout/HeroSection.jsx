@@ -15,7 +15,7 @@ export const HeroSection = ({ onOpenSubmitModal }) => {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-sky-500/20 via-cyan-500/10 to-indigo-500/10 blur-[100px] rounded-full pointer-events-none" />
 
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-6">
-        
+
         {/* Top Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-panel border-sky-400/30 text-sky-300 text-xs font-semibold shadow-glow animate-glow-pulse">
           <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
@@ -41,7 +41,7 @@ export const HeroSection = ({ onOpenSubmitModal }) => {
             <Plus className="w-4 h-4 stroke-[3]" />
             <span>Submit Link Anonymously</span>
           </button>
-          
+
           <button
             onClick={() => navigate('/search')}
             className="flex items-center gap-2 px-6 py-3 rounded-full glass-panel hover:bg-slate-800/80 text-slate-200 font-semibold text-sm border border-slate-700 hover:border-sky-400/50 hover:scale-105 active:scale-95 transition-all cursor-pointer"

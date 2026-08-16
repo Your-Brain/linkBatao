@@ -4,7 +4,7 @@ import API from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { EditResourceModal } from './EditResourceModal';
-import { Play, Bookmark, Share2, Flag, Eye, EyeOff, Edit3, Trash2, ExternalLink, Video, FileText, Image as ImageIcon, Globe, Music, FolderPlus, ShieldAlert } from 'lucide-react';
+import { Play, Bookmark, Share2, Flag, Eye, EyeOff, Edit3, Trash2, ExternalLink, Video, FileText, Image as ImageIcon, Globe, Music, FolderPlus, ShieldAlert, Copy, Check } from 'lucide-react';
 
 export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollection, onResourceDeleted }) => {
   const { user, savedIds, toggleSaveResource } = useAuth();
@@ -13,12 +13,23 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
   const [resource, setResource] = useState(initialResource);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   if (!resource || isDeleted) return null;
 
   const isAdminOrMod = user && (user.role === 'ADMIN' || user.role === 'MODERATOR');
   const isSaved = savedIds.has(resource._id);
   const isHidden = resource.status === 'REMOVED' || resource.status === 'REJECTED';
+
+  const handleCopyUrl = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const urlToCopy = resource.url || `${window.location.origin}/resources/${resource._id}`;
+    navigator.clipboard.writeText(urlToCopy);
+    setIsCopied(true);
+    showToast('Direct URL copied to clipboard!', 'success');
+    setTimeout(() => setIsCopied(false), 2000);
+  };
 
   const handleShare = (e) => {
     e.preventDefault();
@@ -100,10 +111,9 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
   const categoryName = getCategoryName(resource.category);
 
   return (
-    <div className={`glass-card rounded-2xl overflow-hidden p-4 border transition-all flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 text-left group hover:border-sky-500/40 ${
-      isHidden ? 'border-rose-500/50 opacity-75' : 'border-slate-800/80'
-    }`}>
-      
+    <div className={`glass-card rounded-2xl overflow-hidden p-4 border transition-all flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 text-left group hover:border-sky-500/40 ${isHidden ? 'border-rose-500/50 opacity-75' : 'border-slate-800/80'
+      }`}>
+
       {/* Left Thumbnail Preview */}
       <Link to={`/resources/${resource._id}`} className="w-full sm:w-44 h-28 shrink-0 rounded-xl overflow-hidden bg-dark-900 relative block">
         {resource.thumbnail ? (
@@ -149,7 +159,7 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
 
       {/* Middle Details Content */}
       <div className="flex-1 space-y-1.5 min-w-0">
-        
+
         {/* Meta Line */}
         <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 font-medium">
           {categoryName && (
@@ -157,7 +167,7 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
               {categoryName}
             </span>
           )}
-          <span className="flex items-center gap-1 text-[11px]">
+          <span className="flex items-center gap-1 text-[11px] text-slate-300">
             <img
               src={`https://www.google.com/s2/favicons?domain=${resource.domain}&sz=64`}
               alt={resource.domain}
@@ -166,10 +176,19 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
             />
             <span>{resource.domain}</span>
           </span>
-          <span className="text-slate-600">•</span>
-          <span className="text-[11px] text-slate-500">
-            {resource.submittedBy ? `@${resource.submittedBy.username}` : resource.anonymousId}
-          </span>
+
+          <button
+            onClick={handleCopyUrl}
+            title={isCopied ? 'URL Copied!' : 'Copy Direct URL'}
+            className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold border transition-all cursor-pointer ${
+              isCopied
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                : 'bg-dark-800 hover:bg-sky-500/20 text-slate-400 hover:text-sky-300 border-slate-700/60'
+            }`}
+          >
+            {isCopied ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5" />}
+            <span>{isCopied ? 'Copied' : 'Copy URL'}</span>
+          </button>
         </div>
 
         {/* Title */}
@@ -218,11 +237,10 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
               </button>
               <button
                 onClick={handleAdminToggleHide}
-                className={`px-2 py-0.5 rounded text-[10px] font-semibold border transition-colors flex items-center gap-0.5 ${
-                  isHidden
+                className={`px-2 py-0.5 rounded text-[10px] font-semibold border transition-colors flex items-center gap-0.5 ${isHidden
                     ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
                     : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
-                }`}
+                  }`}
               >
                 {isHidden ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
                 <span>{isHidden ? 'Unhide' : 'Hide'}</span>
@@ -242,7 +260,7 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
 
       {/* Right Stats & Action Buttons */}
       <div className="flex sm:flex-col items-center justify-between sm:justify-center gap-3 sm:border-l border-slate-800/80 sm:pl-4 shrink-0">
-        
+
         {/* Counter Badges */}
         <div className="flex items-center gap-3 text-xs text-slate-400">
           <span className="flex items-center gap-1 text-[11px]" title="Views">
@@ -260,11 +278,10 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
           <button
             onClick={handleSaveToggle}
             title={isSaved ? 'Remove Bookmark' : 'Save Bookmark'}
-            className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
-              isSaved
+            className={`p-1.5 rounded-lg border transition-all cursor-pointer ${isSaved
                 ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
                 : 'bg-dark-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border-slate-700/50'
-            }`}
+              }`}
           >
             <Bookmark className={`w-3.5 h-3.5 ${isSaved ? 'fill-sky-300' : ''}`} />
           </button>

@@ -6,7 +6,7 @@ import { useToast } from '../context/ToastContext';
 import { EmbeddedPlayer } from '../components/resources/EmbeddedPlayer';
 import { ResourceCard } from '../components/resources/ResourceCard';
 import { EditResourceModal } from '../components/resources/EditResourceModal';
-import { ExternalLink, Bookmark, Share2, Flag, Eye, EyeOff, Edit3, Trash2, ShieldAlert, Tag, Globe, Sparkles, FolderPlus } from 'lucide-react';
+import { ExternalLink, Bookmark, Share2, Flag, Eye, EyeOff, Edit3, Trash2, ShieldAlert, Tag, Globe, Sparkles, FolderPlus, Copy, Check } from 'lucide-react';
 
 export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
   const { id } = useParams();
@@ -18,6 +18,7 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
   const [related, setRelated] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isCopiedUrl, setIsCopiedUrl] = useState(false);
 
   const fetchResource = async () => {
     setLoading(true);
@@ -68,6 +69,14 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
   const isSaved = savedIds.has(resource._id);
   const isHidden = resource.status === 'REMOVED' || resource.status === 'REJECTED';
 
+  const handleCopyDirectUrl = () => {
+    const directUrl = resource.url || window.location.href;
+    navigator.clipboard.writeText(directUrl);
+    setIsCopiedUrl(true);
+    showToast('Direct URL copied to clipboard!', 'success');
+    setTimeout(() => setIsCopiedUrl(false), 2000);
+  };
+
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
     showToast('Page link copied to clipboard!', 'info');
@@ -114,7 +123,7 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-      
+
       {/* Admin / Owner Controls Banner */}
       {canManage && (
         <div className="glass-panel p-4 rounded-2xl border border-amber-500/30 flex flex-wrap items-center justify-between gap-4 text-left">
@@ -133,7 +142,7 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsEditModalOpen(true)}
-              className="px-3 py-1.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-xs font-bold transition-colors flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <Edit3 className="w-3.5 h-3.5" />
               <span>Edit Link</span>
@@ -142,11 +151,10 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
             {isAdminOrMod && (
               <button
                 onClick={handleToggleHide}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors flex items-center gap-1.5 ${
-                  isHidden
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors flex items-center gap-1.5 cursor-pointer ${isHidden
                     ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
                     : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
-                }`}
+                  }`}
               >
                 {isHidden ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
                 <span>{isHidden ? 'Unhide (Show to Users)' : 'Hide from Users'}</span>
@@ -155,7 +163,7 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
 
             <button
               onClick={handleDelete}
-              className="px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition-colors flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
               <span>Delete Link</span>
@@ -169,7 +177,7 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
 
       {/* Main Content Details Panel */}
       <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6">
-        
+
         {/* Title & Domain Header */}
         <div className="space-y-3 text-left">
           <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -193,10 +201,6 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
           </h1>
 
           <div className="flex items-center gap-4 text-xs text-slate-400 font-medium">
-            <span>
-              Submitted by: <strong className="text-sky-300">{resource.submittedBy ? `@${resource.submittedBy.username}` : resource.anonymousId}</strong>
-            </span>
-            <span>•</span>
             <span className="flex items-center gap-1">
               <Eye className="w-3.5 h-3.5 text-slate-500" />
               {resource.views} views
@@ -221,13 +225,25 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
             <ExternalLink className="w-4 h-4" />
           </a>
 
+          {/* Copy Direct Resource URL */}
+          <button
+            onClick={handleCopyDirectUrl}
+            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+              isCopiedUrl
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                : 'bg-dark-800 text-slate-300 border-slate-700 hover:border-sky-400 hover:text-sky-300'
+            }`}
+          >
+            {isCopiedUrl ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+            <span>{isCopiedUrl ? 'URL Copied!' : 'Copy Direct URL'}</span>
+          </button>
+
           <button
             onClick={() => toggleSaveResource(resource._id)}
-            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-              isSaved
+            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${isSaved
                 ? 'bg-sky-500/20 text-sky-300 border-sky-400/50'
                 : 'bg-dark-800 text-slate-300 border-slate-700 hover:border-sky-400'
-            }`}
+              }`}
           >
             <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-sky-300' : ''}`} />
             <span>{isSaved ? 'Bookmarked' : 'Save Bookmark'}</span>
@@ -246,7 +262,7 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-dark-800 text-slate-300 hover:text-white border border-slate-700 hover:border-slate-600 text-xs font-semibold transition-colors cursor-pointer"
           >
             <Share2 className="w-4 h-4" />
-            <span>Share</span>
+            <span>Share Page</span>
           </button>
 
           <button

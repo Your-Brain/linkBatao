@@ -116,7 +116,7 @@ export const AddToCollectionModal = ({ isOpen, onClose, resource, onOpenCreateCo
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark-950/80 backdrop-blur-md">
       <div className="relative w-full max-w-md glass-modal rounded-3xl p-6 shadow-2xl border border-cyan-500/30 text-left space-y-4">
-        
+
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-full bg-dark-800 cursor-pointer"
@@ -156,11 +156,10 @@ export const AddToCollectionModal = ({ isOpen, onClose, resource, onOpenCreateCo
                   key={col._id}
                   onClick={() => handleToggleCollection(col)}
                   disabled={isToggling}
-                  className={`w-full flex items-center justify-between p-3 rounded-2xl border transition-all text-left cursor-pointer ${
-                    inCol
+                  className={`w-full flex items-center justify-between p-3 rounded-2xl border transition-all text-left cursor-pointer ${inCol
                       ? 'bg-sky-500/15 border-sky-400/50 text-white'
                       : 'bg-dark-900/80 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-dark-800'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className={`p-2 rounded-xl border ${inCol ? 'bg-sky-500/20 border-sky-400/40 text-sky-300' : 'bg-dark-800 border-slate-700 text-slate-400'}`}>
@@ -178,9 +177,8 @@ export const AddToCollectionModal = ({ isOpen, onClose, resource, onOpenCreateCo
                     {isToggling ? (
                       <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
                     ) : (
-                      <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
-                        inCol ? 'bg-sky-500 border-sky-400 text-slate-950' : 'border-slate-700 bg-dark-800'
-                      }`}>
+                      <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${inCol ? 'bg-sky-500 border-sky-400 text-slate-950' : 'border-slate-700 bg-dark-800'
+                        }`}>
                         {inCol && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                       </div>
                     )}
@@ -208,18 +206,16 @@ export const AddToCollectionModal = ({ isOpen, onClose, resource, onOpenCreateCo
                   <button
                     type="button"
                     onClick={() => setNewColVis('PUBLIC')}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border cursor-pointer ${
-                      newColVis === 'PUBLIC' ? 'bg-sky-500/20 border-sky-400 text-sky-300' : 'bg-dark-900 border-slate-700 text-slate-400'
-                    }`}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border cursor-pointer ${newColVis === 'PUBLIC' ? 'bg-sky-500/20 border-sky-400 text-sky-300' : 'bg-dark-900 border-slate-700 text-slate-400'
+                      }`}
                   >
                     Public
                   </button>
                   <button
                     type="button"
                     onClick={() => setNewColVis('PRIVATE')}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border cursor-pointer ${
-                      newColVis === 'PRIVATE' ? 'bg-amber-500/20 border-amber-400 text-amber-300' : 'bg-dark-900 border-slate-700 text-slate-400'
-                    }`}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border cursor-pointer ${newColVis === 'PRIVATE' ? 'bg-amber-500/20 border-amber-400 text-amber-300' : 'bg-dark-900 border-slate-700 text-slate-400'
+                      }`}
                   >
                     Private
                   </button>

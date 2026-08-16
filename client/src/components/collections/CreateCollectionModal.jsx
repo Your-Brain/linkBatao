@@ -44,7 +44,7 @@ export const CreateCollectionModal = ({ isOpen, onClose, onCollectionCreated }) 
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-dark-950/80 backdrop-blur-md animate-fade-in">
       <div className="relative w-full max-w-md glass-modal rounded-3xl p-6 shadow-2xl border border-cyan-500/30 text-left">
-        
+
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-full bg-dark-800 cursor-pointer"
@@ -98,11 +98,10 @@ export const CreateCollectionModal = ({ isOpen, onClose, onCollectionCreated }) 
               <button
                 type="button"
                 onClick={() => setVisibility('PUBLIC')}
-                className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                  visibility === 'PUBLIC'
+                className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${visibility === 'PUBLIC'
                     ? 'bg-sky-500/20 border-sky-400 text-sky-300'
                     : 'bg-dark-900 border-slate-700 text-slate-400'
-                }`}
+                  }`}
               >
                 <Globe className="w-4 h-4" />
                 <span>Public List</span>
@@ -111,11 +110,10 @@ export const CreateCollectionModal = ({ isOpen, onClose, onCollectionCreated }) 
               <button
                 type="button"
                 onClick={() => setVisibility('PRIVATE')}
-                className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                  visibility === 'PRIVATE'
+                className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${visibility === 'PRIVATE'
                     ? 'bg-amber-500/20 border-amber-400 text-amber-300'
                     : 'bg-dark-900 border-slate-700 text-slate-400'
-                }`}
+                  }`}
               >
                 <Lock className="w-4 h-4" />
                 <span>Private Only</span>
