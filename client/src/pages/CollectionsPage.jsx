@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { CollectionCard } from '../components/collections/CollectionCard';
 import { CreateCollectionModal } from '../components/collections/CreateCollectionModal';
-import { ResourceCard } from '../components/resources/ResourceCard';
-import { FolderHeart, Plus, Lock, Globe, ArrowLeft, Trash2, User, Layers, AlertCircle } from 'lucide-react';
+import { ResourceGrid } from '../components/resources/ResourceGrid';
+import { FolderHeart, Plus, Lock, Globe, ArrowLeft, Trash2, User, Layers, AlertCircle, Sparkles } from 'lucide-react';
 
 export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
   const { id } = useParams();
@@ -83,23 +84,6 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
     }
   };
 
-  // Handle removing item from collection
-  const handleRemoveItem = async (resourceId) => {
-    if (!collection) return;
-    try {
-      const res = await API.delete(`/collections/${collection._id}/items/${resourceId}`);
-      if (res.data.success) {
-        showToast('Item removed from collection', 'info');
-        setCollection(prev => ({
-          ...prev,
-          items: prev.items.filter(item => item._id !== resourceId)
-        }));
-      }
-    } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to remove item', 'error');
-    }
-  };
-
   const isOwner = user && collection && collection.ownerId && (
     collection.ownerId._id === user._id || collection.ownerId === user._id
   );
@@ -109,11 +93,11 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
     if (detailLoading) {
       return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-pulse">
-          <div className="h-8 bg-slate-800/80 rounded w-32" />
-          <div className="glass-panel rounded-3xl h-48 bg-slate-800/50" />
+          <div className="h-8 bg-[#090e1d] rounded w-32" />
+          <div className="glass-panel rounded-3xl h-48 bg-[#090e1d]" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, idx) => (
-              <div key={idx} className="glass-card rounded-2xl h-80 bg-slate-800/60" />
+              <div key={idx} className="glass-card rounded-2xl h-80 bg-[#090e1d]" />
             ))}
           </div>
         </div>
@@ -122,16 +106,16 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
 
     if (!collection) {
       return (
-        <div className="max-w-md mx-auto py-20 px-4 text-center space-y-4">
+        <div className="max-w-md mx-auto py-20 px-4 text-center space-y-4 glass-panel rounded-3xl border border-slate-800 p-8 hud-bracket">
           <AlertCircle className="w-12 h-12 text-rose-400 mx-auto" />
-          <h2 className="text-xl font-bold text-white">Collection Not Found</h2>
-          <p className="text-sm text-slate-400">The collection you are looking for does not exist or is private.</p>
+          <h2 className="font-display text-xl font-bold text-white">Vault Not Found</h2>
+          <p className="text-xs text-slate-400">The vault collection you are looking for does not exist or is set to private access.</p>
           <Link
             to="/collections"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-500 text-slate-950 font-bold text-xs shadow-glow"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs shadow-glow"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to All Collections</span>
+            <span>Back to All Vaults</span>
           </Link>
         </div>
       );
@@ -144,47 +128,46 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
         <div>
           <button
             onClick={() => navigate('/collections')}
-            className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 text-xs font-mono font-semibold text-slate-400 hover:text-cyan-300 transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Collections</span>
+            <span>Back to Vault Index</span>
           </button>
         </div>
 
         {/* Collection Details Header Banner */}
-        <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-cyan-500/30 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-cyan-500/30 flex flex-col md:flex-row md:items-center justify-between gap-6 hud-bracket">
           <div className="space-y-3 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2.5">
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold border ${
                 collection.visibility === 'PRIVATE'
                   ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
                   : 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30'
               }`}>
                 {collection.visibility === 'PRIVATE' ? <Lock className="w-3.5 h-3.5" /> : <Globe className="w-3.5 h-3.5" />}
-                <span>{collection.visibility} Collection</span>
+                <span>{collection.visibility} VAULT</span>
               </span>
 
               <span className="text-xs text-slate-400 font-mono">
-                {collection.items ? collection.items.length : 0} items
+                {collection.items ? collection.items.length : 0} ITEMS INDEXED
               </span>
             </div>
 
-            <h1 className="font-display font-extrabold text-2xl sm:text-4xl text-white leading-tight">
+            <h1 className="font-display font-bold text-2xl sm:text-4xl text-white leading-tight">
               {collection.name}
             </h1>
 
             {collection.description && (
-              <p className="text-sm text-slate-300 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                 {collection.description}
               </p>
             )}
 
-            {/* Collection Tag */}
-            <div className="flex items-center gap-2 pt-2 text-xs text-slate-400">
-              <span className="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-bold text-[10px]">
+            <div className="flex items-center gap-2 pt-2 text-xs font-mono text-slate-400">
+              <span className="w-5 h-5 rounded-md bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-bold text-[10px]">
                 ✦
               </span>
-              <span>Curated Public Resource List</span>
+              <span>Curated Public Resource Vault</span>
             </div>
           </div>
 
@@ -194,10 +177,10 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
               <button
                 onClick={handleDeleteCollection}
                 disabled={deleting}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-bold transition-all cursor-pointer"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-mono font-bold transition-all cursor-pointer"
               >
                 <Trash2 className="w-4 h-4" />
-                <span>{deleting ? 'Deleting...' : 'Delete Collection'}</span>
+                <span>{deleting ? 'Deleting...' : 'Delete Vault'}</span>
               </button>
             </div>
           )}
@@ -206,20 +189,20 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
         {/* Collection Items Grid */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-display font-bold text-xl text-white flex items-center gap-2">
-              <Layers className="w-5 h-5 text-cyan-400" />
-              <span>Saved Items in Collection</span>
+            <h2 className="font-display font-bold text-lg text-white flex items-center gap-2">
+              <Layers className="w-4 h-4 text-cyan-400" />
+              <span>Indexed Vault Transmissions</span>
             </h2>
           </div>
 
           {!collection.items || collection.items.length === 0 ? (
-            <div className="glass-panel rounded-3xl p-12 text-center max-w-md mx-auto my-8 border border-slate-800 space-y-3">
+            <div className="glass-panel rounded-3xl p-12 text-center max-w-md mx-auto my-8 border border-slate-800 space-y-3 hud-bracket">
               <FolderHeart className="w-12 h-12 text-cyan-400/50 mx-auto" />
-              <h3 className="text-lg font-bold text-white">Collection is Empty</h3>
-              <p className="text-xs text-slate-400">No resources have been added to this list yet.</p>
+              <h3 className="font-display text-base font-bold text-white">Vault is Empty</h3>
+              <p className="text-xs text-slate-400">No resources have been added to this vault collection yet.</p>
               <Link
                 to="/"
-                className="inline-block px-4 py-2 rounded-xl bg-sky-500 text-slate-950 font-bold text-xs"
+                className="inline-block px-4 py-2 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs"
               >
                 Browse Resources to Add
               </Link>
@@ -242,27 +225,27 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 text-left">
       
       {/* Header Banner */}
-      <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-cyan-500/20 flex flex-col md:flex-row items-center justify-between gap-6">
+      <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-cyan-500/20 flex flex-col md:flex-row items-center justify-between gap-6 hud-bracket">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 text-xs font-semibold">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 text-xs font-mono font-semibold">
             <FolderHeart className="w-4 h-4 text-cyan-400" />
-            <span>Curated Lists & Collections</span>
+            <span>CURATED RESOURCE VAULTS</span>
           </div>
           <h1 className="font-display font-bold text-2xl sm:text-4xl text-white">
-            Public & Private <span className="text-gradient">Link Collections</span>
+            Public & Private <span className="text-gradient">Data Vaults</span>
           </h1>
-          <p className="text-sm text-slate-300 max-w-xl">
-            Browse structured collections created by users or group your favorite bookmarks into custom lists.
+          <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
+            Explore curated topic vaults created across the network or assemble your own custom discovery channels.
           </p>
         </div>
 
         {user && (
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-sky-500 text-slate-950 font-bold text-xs shadow-glow hover:scale-105 transition-all shrink-0 cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-sky-500 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-glow hover:scale-105 transition-all shrink-0 cursor-pointer"
           >
             <Plus className="w-4 h-4 stroke-[3]" />
-            <span>Create New List</span>
+            <span>Create Data Vault</span>
           </button>
         )}
       </div>
@@ -275,13 +258,13 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
           ))}
         </div>
       ) : collections.length === 0 ? (
-        <div className="glass-panel rounded-3xl p-12 text-center max-w-md mx-auto my-8 border border-slate-800">
+        <div className="glass-panel rounded-3xl p-12 text-center max-w-md mx-auto my-8 border border-slate-800 hud-bracket">
           <FolderHeart className="w-12 h-12 text-cyan-400/50 mx-auto mb-3" />
-          <h3 className="text-lg font-bold text-white">No Collections Found</h3>
-          <p className="text-xs text-slate-400 mt-1">Be the first to create a public link collection!</p>
+          <h3 className="font-display text-base font-bold text-white">No Data Vaults Detected</h3>
+          <p className="text-xs text-slate-400 mt-1">Be the first to initialize a public resource vault!</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {collections.map(col => (
             <CollectionCard key={col._id} collection={col} />
           ))}

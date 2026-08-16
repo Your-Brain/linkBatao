@@ -1,10 +1,29 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import API from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { EditResourceModal } from './EditResourceModal';
-import { Play, Bookmark, Share2, Flag, Eye, EyeOff, Edit3, Trash2, ExternalLink, Video, FileText, Image as ImageIcon, Globe, Music, FolderPlus, ShieldAlert, Copy, Check } from 'lucide-react';
+import {
+  Play,
+  Bookmark,
+  Share2,
+  Flag,
+  Eye,
+  EyeOff,
+  Edit3,
+  Trash2,
+  Video,
+  FileText,
+  Image as ImageIcon,
+  Globe,
+  Music,
+  FolderPlus,
+  ShieldAlert,
+  Copy,
+  Check
+} from 'lucide-react';
 
 export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollection, onResourceDeleted }) => {
   const { user, savedIds, toggleSaveResource } = useAuth();
@@ -91,11 +110,11 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
 
   const renderResourceTypeIcon = (type) => {
     switch (type) {
-      case 'VIDEO': return <Video className="w-3 h-3 text-sky-400" />;
+      case 'VIDEO': return <Video className="w-3 h-3 text-cyan-400" />;
       case 'IMAGE': return <ImageIcon className="w-3 h-3 text-emerald-400" />;
       case 'ARTICLE': return <FileText className="w-3 h-3 text-amber-400" />;
       case 'AUDIO': return <Music className="w-3 h-3 text-purple-400" />;
-      default: return <Globe className="w-3 h-3 text-cyan-400" />;
+      default: return <Globe className="w-3 h-3 text-sky-400" />;
     }
   };
 
@@ -111,30 +130,35 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
   const categoryName = getCategoryName(resource.category);
 
   return (
-    <div className={`glass-card rounded-2xl overflow-hidden p-4 border transition-all flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 text-left group hover:border-sky-500/40 ${isHidden ? 'border-rose-500/50 opacity-75' : 'border-slate-800/80'
-      }`}>
-
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25 }}
+      className={`glass-card rounded-2xl overflow-hidden p-4 border transition-all flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 text-left group hover:border-cyan-500/40 hud-bracket ${
+        isHidden ? 'border-rose-500/40 bg-rose-950/10' : 'border-slate-800'
+      }`}
+    >
       {/* Left Thumbnail Preview */}
-      <Link to={`/resources/${resource._id}`} className="w-full sm:w-44 h-28 shrink-0 rounded-xl overflow-hidden bg-dark-900 relative block">
+      <Link to={`/resources/${resource._id}`} className="w-full sm:w-44 h-28 shrink-0 rounded-xl overflow-hidden bg-[#03050a] relative block">
         {resource.thumbnail ? (
           <img
             src={resource.thumbnail}
             alt={resource.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
             onError={(e) => {
               e.target.src = `https://www.google.com/s2/favicons?domain=${resource.domain}&sz=128`;
             }}
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-dark-800 to-dark-700 p-2 text-center">
-            <Globe className="w-6 h-6 text-sky-400/60 mb-1" />
-            <span className="text-[10px] font-semibold text-slate-400 truncate max-w-[120px]">{resource.domain}</span>
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#090e1d] to-[#0e1529] p-2 text-center">
+            <Globe className="w-6 h-6 text-cyan-400/50 mb-1" />
+            <span className="text-[10px] font-mono text-slate-400 truncate max-w-[120px]">{resource.domain}</span>
           </div>
         )}
 
         {/* Resource Type Badge */}
         <div className="absolute top-2 left-2 pointer-events-none">
-          <span className="px-2 py-0.5 rounded-full bg-dark-900/90 backdrop-blur-md text-[9px] font-bold text-sky-300 border border-sky-400/20 uppercase tracking-wider flex items-center gap-1">
+          <span className="px-2 py-0.5 rounded-md bg-[#050811]/90 backdrop-blur-md text-[9px] font-mono font-bold text-cyan-300 border border-cyan-400/25 uppercase tracking-wider flex items-center gap-1">
             {renderResourceTypeIcon(resource.resourceType)}
             <span>{resource.resourceType}</span>
           </span>
@@ -142,15 +166,15 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
 
         {/* Hidden Overlay */}
         {isHidden && (
-          <div className="absolute inset-0 bg-dark-950/70 backdrop-blur-xs flex items-center justify-center pointer-events-none">
-            <span className="px-2 py-0.5 rounded bg-rose-500/80 text-white font-bold text-[10px] uppercase">Hidden</span>
+          <div className="absolute inset-0 bg-dark-950/80 backdrop-blur-xs flex items-center justify-center pointer-events-none">
+            <span className="px-2 py-0.5 rounded bg-rose-500/90 text-white font-bold text-[9px] uppercase font-mono">Hidden</span>
           </div>
         )}
 
-        {/* Play Icon Overlay */}
+        {/* Play Icon */}
         {resource.embedType !== 'NONE' && !isHidden && (
-          <div className="absolute inset-0 bg-dark-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <div className="w-8 h-8 rounded-full bg-sky-500/90 text-slate-950 flex items-center justify-center shadow-glow">
+          <div className="absolute inset-0 bg-dark-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-cyan-400 text-slate-950 flex items-center justify-center shadow-glow">
               <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
             </div>
           </div>
@@ -159,18 +183,17 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
 
       {/* Middle Details Content */}
       <div className="flex-1 space-y-1.5 min-w-0">
-
         {/* Meta Line */}
         <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 font-medium">
           {categoryName && (
-            <span className="px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-300 font-semibold border border-sky-500/20 text-[10px] uppercase tracking-wider">
+            <span className="px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-300 font-mono font-semibold border border-cyan-500/20 text-[10px] uppercase tracking-wider">
               {categoryName}
             </span>
           )}
-          <span className="flex items-center gap-1 text-[11px] text-slate-300">
+          <span className="flex items-center gap-1 text-[11px] font-mono text-slate-300">
             <img
               src={`https://www.google.com/s2/favicons?domain=${resource.domain}&sz=64`}
-              alt={resource.domain}
+              alt=""
               className="w-3.5 h-3.5 rounded-full inline"
               onError={(e) => { e.target.style.display = 'none'; }}
             />
@@ -180,10 +203,10 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
           <button
             onClick={handleCopyUrl}
             title={isCopied ? 'URL Copied!' : 'Copy Direct URL'}
-            className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold border transition-all cursor-pointer ${
+            className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-semibold border transition-all cursor-pointer ${
               isCopied
                 ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                : 'bg-dark-800 hover:bg-sky-500/20 text-slate-400 hover:text-sky-300 border-slate-700/60'
+                : 'bg-[#090e1d] hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-300 border-slate-800'
             }`}
           >
             {isCopied ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5" />}
@@ -192,8 +215,8 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
         </div>
 
         {/* Title */}
-        <Link to={`/resources/${resource._id}`} className="block">
-          <h3 className="font-display font-bold text-sm sm:text-base text-slate-100 group-hover:text-sky-300 transition-colors line-clamp-1">
+        <Link to={`/resources/${resource._id}`} className="block group-hover:text-cyan-300 transition-colors">
+          <h3 className="font-display font-bold text-sm sm:text-base text-slate-100 line-clamp-1">
             {resource.title}
           </h3>
         </Link>
@@ -210,17 +233,17 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
           {Array.isArray(resource.tags) && resource.tags.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {resource.tags.slice(0, 4).map((tag, idx) => (
-                <span key={idx} className="text-[10px] text-slate-400 font-mono bg-dark-800/80 px-2 py-0.5 rounded border border-slate-800">
+                <span key={idx} className="text-[10px] text-slate-400 font-mono bg-[#090e1d] px-1.5 py-0.5 rounded border border-slate-800">
                   #{tag}
                 </span>
               ))}
             </div>
           )}
 
-          {/* Admin Controls Line */}
+          {/* Admin Controls */}
           {isAdminOrMod && (
             <div className="flex items-center gap-1.5 ml-auto">
-              <span className="text-[10px] text-amber-400 font-bold flex items-center gap-0.5">
+              <span className="text-[10px] text-amber-400 font-mono font-bold flex items-center gap-0.5">
                 <ShieldAlert className="w-3 h-3" />
                 <span>Admin:</span>
               </span>
@@ -230,24 +253,25 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
                   e.stopPropagation();
                   setIsEditModalOpen(true);
                 }}
-                className="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 border border-sky-500/40 text-[10px] font-semibold transition-colors flex items-center gap-0.5"
+                className="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 border border-sky-500/40 text-[10px] font-semibold transition-colors flex items-center gap-0.5 cursor-pointer"
               >
                 <Edit3 className="w-3 h-3" />
                 <span>Edit</span>
               </button>
               <button
                 onClick={handleAdminToggleHide}
-                className={`px-2 py-0.5 rounded text-[10px] font-semibold border transition-colors flex items-center gap-0.5 ${isHidden
+                className={`px-2 py-0.5 rounded text-[10px] font-semibold border transition-colors flex items-center gap-0.5 cursor-pointer ${
+                  isHidden
                     ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
                     : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
-                  }`}
+                }`}
               >
                 {isHidden ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
                 <span>{isHidden ? 'Unhide' : 'Hide'}</span>
               </button>
               <button
                 onClick={handleAdminDelete}
-                className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/40 text-[10px] font-semibold transition-colors flex items-center gap-0.5"
+                className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/40 text-[10px] font-semibold transition-colors flex items-center gap-0.5 cursor-pointer"
               >
                 <Trash2 className="w-3 h-3" />
                 <span>Delete</span>
@@ -255,41 +279,38 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
             </div>
           )}
         </div>
-
       </div>
 
       {/* Right Stats & Action Buttons */}
       <div className="flex sm:flex-col items-center justify-between sm:justify-center gap-3 sm:border-l border-slate-800/80 sm:pl-4 shrink-0">
-
-        {/* Counter Badges */}
         <div className="flex items-center gap-3 text-xs text-slate-400">
-          <span className="flex items-center gap-1 text-[11px]" title="Views">
+          <span className="flex items-center gap-1 text-[11px] font-mono" title="Views">
             <Eye className="w-3.5 h-3.5 text-slate-500" />
             <span>{resource.views || 0}</span>
           </span>
-          <span className="flex items-center gap-1 text-[11px]" title="Saves">
-            <Bookmark className={`w-3.5 h-3.5 ${isSaved ? 'text-sky-400 fill-sky-400' : 'text-slate-500'}`} />
+          <span className="flex items-center gap-1 text-[11px] font-mono" title="Saves">
+            <Bookmark className={`w-3.5 h-3.5 ${isSaved ? 'text-cyan-400 fill-cyan-400' : 'text-slate-500'}`} />
             <span>{resource.saves || 0}</span>
           </span>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex items-center gap-1">
           <button
             onClick={handleSaveToggle}
             title={isSaved ? 'Remove Bookmark' : 'Save Bookmark'}
-            className={`p-1.5 rounded-lg border transition-all cursor-pointer ${isSaved
-                ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
-                : 'bg-dark-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border-slate-700/50'
-              }`}
+            className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+              isSaved
+                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+                : 'bg-[#090e1d] hover:bg-slate-800 text-slate-400 hover:text-slate-200 border-slate-800'
+            }`}
           >
-            <Bookmark className={`w-3.5 h-3.5 ${isSaved ? 'fill-sky-300' : ''}`} />
+            <Bookmark className={`w-3.5 h-3.5 ${isSaved ? 'fill-cyan-300' : ''}`} />
           </button>
 
           <button
             onClick={handleAddToCollection}
-            title="Add to Collection"
-            className="p-1.5 rounded-lg bg-dark-800 hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-300 border border-slate-700/50 transition-colors cursor-pointer"
+            title="Add to Vault"
+            className="p-1.5 rounded-lg bg-[#090e1d] hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-300 border border-slate-800 transition-colors cursor-pointer"
           >
             <FolderPlus className="w-3.5 h-3.5" />
           </button>
@@ -297,7 +318,7 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
           <button
             onClick={handleShare}
             title="Share Link"
-            className="p-1.5 rounded-lg bg-dark-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border border-slate-700/50 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg bg-[#090e1d] hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 transition-colors cursor-pointer"
           >
             <Share2 className="w-3.5 h-3.5" />
           </button>
@@ -305,12 +326,11 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
           <button
             onClick={handleReportClick}
             title="Report Link"
-            className="p-1.5 rounded-lg bg-dark-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 border border-slate-700/50 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg bg-[#090e1d] hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 border border-slate-800 transition-colors cursor-pointer"
           >
             <Flag className="w-3.5 h-3.5" />
           </button>
         </div>
-
       </div>
 
       {/* Edit Modal */}
@@ -320,7 +340,6 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
         resource={resource}
         onResourceUpdated={(updated) => setResource(updated)}
       />
-
-    </div>
+    </motion.div>
   );
 };

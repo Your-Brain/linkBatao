@@ -1,9 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { motion } from 'framer-motion';
 import API from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { X, Link2, Sparkles, AlertTriangle, CheckCircle2, RefreshCw, Globe, Video, Image as ImageIcon, FileText, Music, UserCheck, Shield } from 'lucide-react';
+import {
+  X,
+  Link2,
+  Sparkles,
+  AlertTriangle,
+  CheckCircle2,
+  RefreshCw,
+  Globe,
+  Video,
+  Image as ImageIcon,
+  FileText,
+  Music,
+  UserCheck,
+  Shield,
+  Send,
+  Radio
+} from 'lucide-react';
 
 const FALLBACK_CATEGORIES = [
   { _id: 'technology', name: 'Technology' },
@@ -65,13 +82,13 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
         if (p.metadata.resourceType) setResourceType(p.metadata.resourceType);
 
         if (p.isDuplicate) {
-          showToast('Warning: This link is already submitted to AuraLink', 'info');
+          showToast('Notice: This signal is already registered on AuraLink', 'info');
         } else {
-          showToast('Metadata fetched successfully!', 'success');
+          showToast('Telemetry metadata fetched successfully!', 'success');
         }
       }
     } catch (err) {
-      showToast(err.response?.data?.message || 'Could not auto-fetch URL metadata. You can enter details manually.', 'info');
+      showToast(err.response?.data?.message || 'Could not auto-fetch metadata. Enter parameters manually.', 'info');
     } finally {
       setFetchingPreview(false);
     }
@@ -97,7 +114,7 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
       });
 
       if (res.data.success) {
-        showToast('Link submitted successfully to AuraLink!', 'success');
+        showToast('Link signal transmitted successfully to network!', 'success');
         if (onResourceSubmitted) onResourceSubmitted(res.data.data);
         onClose();
         // Reset form
@@ -108,45 +125,50 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
         setPreviewData(null);
       }
     } catch (err) {
-      showToast(err.response?.data?.message || 'Submission failed.', 'error');
+      showToast(err.response?.data?.message || 'Transmission failed.', 'error');
     } finally {
       setSubmitting(false);
     }
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-dark-950/80 backdrop-blur-md overflow-y-auto animate-fade-in">
-      <div className="relative w-full max-w-xl glass-modal rounded-3xl p-6 sm:p-8 shadow-2xl border border-sky-500/30 my-8">
-
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#03050a]/85 backdrop-blur-xl overflow-y-auto">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 8 }}
+        transition={{ duration: 0.2 }}
+        className="relative w-full max-w-xl glass-modal rounded-3xl p-6 sm:p-8 shadow-2xl border border-cyan-500/30 my-8 hud-bracket text-left"
+      >
         {/* Modal Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 text-slate-400 hover:text-white rounded-full bg-dark-800/60 hover:bg-slate-800 transition-colors cursor-pointer"
+          className="absolute top-5 right-5 p-1.5 text-slate-400 hover:text-white rounded-xl bg-[#090e1d] border border-slate-800 transition-colors cursor-pointer"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
         {/* Modal Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500 to-cyan-400 p-0.5 shadow-glow flex items-center justify-center">
-            <div className="w-full h-full bg-dark-900 rounded-[14px] flex items-center justify-center text-sky-400">
-              <Link2 className="w-5 h-5" />
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-sky-600 p-[1px] shadow-glow flex items-center justify-center">
+            <div className="w-full h-full bg-[#050811] rounded-[11px] flex items-center justify-center text-cyan-400">
+              <Link2 className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <h2 className="font-display font-bold text-xl text-white">Submit New Link</h2>
-            <p className="text-xs text-slate-400">Public resource indexing & media discovery</p>
+            <h2 className="font-display font-bold text-lg text-white">Transmit New Link Signal</h2>
+            <p className="text-[11px] font-mono text-slate-400">Public resource indexing & telemetry discovery</p>
           </div>
         </div>
 
         {/* Identity Indicator */}
-        <div className="mb-6 px-4 py-2.5 rounded-xl bg-dark-800/80 border border-slate-700/60 flex items-center justify-between text-xs">
+        <div className="mb-5 px-3.5 py-2 rounded-xl bg-[#090e1d] border border-slate-800 flex items-center justify-between text-xs font-mono">
           <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-sky-400" />
-            <span className="text-slate-300 font-medium">Submitting as:</span>
+            <Radio className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+            <span className="text-slate-400">TRANSMISSION ORIGIN:</span>
           </div>
-          <span className="font-mono font-bold text-sky-300">
-            {user ? `@${user.username}` : `Anonymous (Auto Identifier)`}
+          <span className="font-bold text-cyan-300">
+            {user ? `@${user.username}` : `ANONYMOUS (AUTO IDENTIFIER)`}
           </span>
         </div>
 
@@ -155,7 +177,7 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
 
           {/* URL Input with Auto-Fetch */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-[11px] font-mono font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
               Resource URL *
             </label>
             <div className="flex gap-2">
@@ -165,19 +187,19 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
                 placeholder="https://youtube.com/watch?v=... or https://example.com"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                className="flex-1 bg-dark-900 text-sm text-slate-100 placeholder-slate-500 px-4 py-2.5 rounded-xl border border-slate-700 focus:border-sky-400 outline-none"
+                className="flex-1 bg-[#090e1d] text-xs text-slate-100 placeholder-slate-500 px-3.5 py-2.5 rounded-xl border border-slate-800 focus:border-cyan-400 outline-none font-mono"
               />
               <button
                 type="button"
                 onClick={handleFetchPreview}
                 disabled={fetchingPreview}
-                className="px-4 py-2.5 rounded-xl bg-dark-700 hover:bg-slate-700 text-sky-300 font-semibold text-xs border border-sky-500/30 flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
+                className="px-3.5 py-2.5 rounded-xl bg-[#0e162c] hover:bg-slate-700 text-cyan-300 font-mono font-semibold text-xs border border-cyan-500/30 flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
               >
                 {fetchingPreview ? (
-                  <RefreshCw className="w-4 h-4 animate-spin text-sky-400" />
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-cyan-400" />
                 ) : (
                   <>
-                    <Sparkles className="w-4 h-4 text-cyan-400" />
+                    <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
                     <span>Auto-Fetch</span>
                   </>
                 )}
@@ -185,19 +207,19 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
             </div>
           </div>
 
-          {/* Duplicate Link Warning Banner */}
+          {/* Duplicate Warning Banner */}
           {previewData && previewData.isDuplicate && (
-            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-2">
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
               <span>
-                Note: This normalized URL has already been registered on AuraLink. Submitting it again may be blocked.
+                Note: This normalized URL is already recorded in the global index. Submitting duplicate might be rejected.
               </span>
             </div>
           )}
 
           {/* Title */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-[11px] font-mono font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
               Title *
             </label>
             <input
@@ -206,38 +228,36 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
               placeholder="e.g. Free Interactive WebGL Shaders & Effects"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-dark-900 text-sm text-slate-100 placeholder-slate-500 px-4 py-2.5 rounded-xl border border-slate-700 focus:border-sky-400 outline-none transition-colors"
+              className="w-full bg-[#090e1d] text-xs text-slate-100 placeholder-slate-500 px-3.5 py-2.5 rounded-xl border border-slate-800 focus:border-cyan-400 outline-none"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-[11px] font-mono font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
               Description (Optional)
             </label>
             <textarea
               rows={2}
-              placeholder="What makes this link valuable? Context helps others discover it..."
+              placeholder="What makes this link valuable? Provide context for the network..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-dark-900 text-sm text-slate-100 placeholder-slate-500 px-4 py-2.5 rounded-xl border border-slate-700 focus:border-sky-400 outline-none resize-none transition-colors"
+              className="w-full bg-[#090e1d] text-xs text-slate-100 placeholder-slate-500 px-3.5 py-2.5 rounded-xl border border-slate-800 focus:border-cyan-400 outline-none resize-none"
             />
           </div>
 
           {/* Category & Type Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-            {/* Category Dropdown */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                Category
+              <label className="block text-[11px] font-mono font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                Channel / Category
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-dark-900 text-sm text-slate-100 px-4 py-2.5 rounded-xl border border-slate-700 focus:border-sky-400 outline-none transition-colors"
+                className="w-full bg-[#090e1d] text-xs font-mono text-slate-100 px-3.5 py-2.5 rounded-xl border border-slate-800 focus:border-cyan-400 outline-none cursor-pointer"
               >
-                <option value="">Select Category</option>
+                <option value="">Select Channel</option>
                 {activeCategories.map((cat) => (
                   <option key={cat._id} value={cat._id}>
                     {cat.name}
@@ -247,66 +267,71 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                Resource Type
+              <label className="block text-[11px] font-mono font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                Media Class
               </label>
               <select
                 value={resourceType}
                 onChange={(e) => setResourceType(e.target.value)}
-                className="w-full bg-dark-900 text-sm text-slate-100 px-4 py-2.5 rounded-xl border border-slate-700 focus:border-sky-400 outline-none"
+                className="w-full bg-[#090e1d] text-xs font-mono text-slate-100 px-3.5 py-2.5 rounded-xl border border-slate-800 focus:border-cyan-400 outline-none cursor-pointer"
               >
-                <option value="VIDEO">Video</option>
-                <option value="WEBSITE">Website</option>
-                <option value="ARTICLE">Article</option>
-                <option value="IMAGE">Image</option>
-                <option value="AUDIO">Audio</option>
-                <option value="OTHER">Other</option>
+                <option value="VIDEO">Video / Stream</option>
+                <option value="WEBSITE">Website / Tool</option>
+                <option value="ARTICLE">Article / Paper</option>
+                <option value="IMAGE">Image / Graphic</option>
+                <option value="AUDIO">Audio / Track</option>
+                <option value="OTHER">Other Media</option>
               </select>
             </div>
           </div>
 
           {/* Tags */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-              Tags (comma separated)
+            <label className="block text-[11px] font-mono font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              Tags (Comma separated)
             </label>
             <input
               type="text"
-              placeholder="e.g. react, tutorial, webdev, javascript"
+              placeholder="react, webdev, shaders, javascript"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
-              className="w-full bg-dark-900 text-sm text-slate-100 placeholder-slate-500 px-4 py-2.5 rounded-xl border border-slate-700 focus:border-sky-400 outline-none font-mono"
+              className="w-full bg-[#090e1d] text-xs font-mono text-slate-100 placeholder-slate-500 px-3.5 py-2.5 rounded-xl border border-slate-800 focus:border-cyan-400 outline-none"
             />
           </div>
 
           {/* Submit Action Buttons */}
-          <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-800">
+          <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-slate-800">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-mono text-slate-400 hover:text-white transition-colors cursor-pointer"
             >
               Cancel
             </button>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={submitting}
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-500 text-slate-950 font-bold text-xs shadow-glow hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-sky-500 text-slate-950 font-bold font-mono text-xs uppercase tracking-wider shadow-glow transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
               {submitting ? (
                 <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Publishing...</span>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <span>Transmitting...</span>
                 </>
               ) : (
-                <span>Publish Link</span>
+                <>
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Broadcast Link</span>
+                </>
               )}
-            </button>
+            </motion.button>
           </div>
 
         </form>
 
-      </div>
+      </motion.div>
     </div>,
     document.body
   );

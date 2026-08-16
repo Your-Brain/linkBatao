@@ -9,7 +9,6 @@ export const CanvasBackground = () => {
     const ctx = canvas.getContext('2d');
     let animationFrameId;
 
-    // Check prefers-reduced-motion
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const resize = () => {
@@ -20,51 +19,57 @@ export const CanvasBackground = () => {
     window.addEventListener('resize', resize);
     resize();
 
-    // Generate floating particle nodes
-    const particleCount = Math.min(Math.floor(window.innerWidth / 25), 45);
-    const particles = Array.from({ length: particleCount }, () => ({
+    // High performance space telemetry nodes
+    const nodeCount = Math.min(Math.floor(window.innerWidth / 30), 40);
+    const nodes = Array.from({ length: nodeCount }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      radius: Math.random() * 1.8 + 0.8,
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4,
-      alpha: Math.random() * 0.5 + 0.2
+      radius: Math.random() * 1.4 + 0.6,
+      vx: (Math.random() - 0.5) * 0.25,
+      vy: (Math.random() - 0.5) * 0.25,
+      alpha: Math.random() * 0.4 + 0.15,
+      pulse: Math.random() * Math.PI,
+      isPulsing: Math.random() > 0.7
     }));
 
     const render = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Draw subtle node connections
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x;
-          const dy = particles[i].y - particles[j].y;
+      // Subtle tech constellation web
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[i].x - nodes[j].x;
+          const dy = nodes[i].y - nodes[j].y;
           const dist = Math.sqrt(dx * dx + dy * dy);
 
-          if (dist < 130) {
+          if (dist < 140) {
             ctx.beginPath();
-            ctx.moveTo(particles[i].x, particles[i].y);
-            ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.strokeStyle = `rgba(56, 189, 248, ${0.15 * (1 - dist / 130)})`;
-            ctx.lineWidth = 0.6;
+            ctx.moveTo(nodes[i].x, nodes[i].y);
+            ctx.lineTo(nodes[j].x, nodes[j].y);
+            const lineAlpha = (1 - dist / 140) * 0.12;
+            ctx.strokeStyle = `rgba(6, 182, 212, ${lineAlpha})`;
+            ctx.lineWidth = 0.65;
             ctx.stroke();
           }
         }
       }
 
-      // Draw particles
-      particles.forEach(p => {
+      // Render nodes
+      nodes.forEach((n) => {
+        n.pulse += 0.02;
+        const currentAlpha = n.isPulsing ? n.alpha + Math.sin(n.pulse) * 0.15 : n.alpha;
+
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(56, 189, 248, ${p.alpha})`;
+        ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(34, 211, 238, ${Math.max(0.05, currentAlpha)})`;
         ctx.fill();
 
         if (!prefersReducedMotion) {
-          p.x += p.vx;
-          p.y += p.vy;
+          n.x += n.vx;
+          n.y += n.vy;
 
-          if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-          if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+          if (n.x < 0 || n.x > canvas.width) n.vx *= -1;
+          if (n.y < 0 || n.y > canvas.height) n.vy *= -1;
         }
       });
 
@@ -84,7 +89,7 @@ export const CanvasBackground = () => {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-0 opacity-60"
+      className="fixed inset-0 pointer-events-none z-0 opacity-45"
     />
   );
 };

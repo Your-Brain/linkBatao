@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { ResourceCard } from './ResourceCard';
 import { ResourceRow } from './ResourceRow';
 import { ResourceTable } from './ResourceTable';
@@ -19,25 +20,25 @@ export const ResourceGrid = ({ resources, loading, onReport, onAddToCollection, 
       <div className="space-y-4">
         {!hideLayoutToggle && (
           <div className="flex justify-end border-b border-slate-800/80 pb-3">
-            <div className="h-8 w-32 bg-slate-800/60 rounded-xl animate-pulse" />
+            <div className="h-8 w-36 bg-[#090e1d] rounded-xl animate-pulse border border-slate-800" />
           </div>
         )}
         {viewMode === 'table' ? (
-          <div className="glass-card rounded-2xl p-6 space-y-4 animate-pulse">
-            <div className="h-10 bg-slate-800/80 rounded-xl" />
-            <div className="h-12 bg-slate-800/40 rounded-xl" />
-            <div className="h-12 bg-slate-800/40 rounded-xl" />
-            <div className="h-12 bg-slate-800/40 rounded-xl" />
+          <div className="glass-card rounded-2xl p-6 space-y-4 animate-pulse border border-slate-800">
+            <div className="h-10 bg-[#0e162c] rounded-xl" />
+            <div className="h-12 bg-[#090e1d] rounded-xl" />
+            <div className="h-12 bg-[#090e1d] rounded-xl" />
+            <div className="h-12 bg-[#090e1d] rounded-xl" />
           </div>
         ) : (
-          <div className={viewMode === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "flex flex-col gap-4"}>
+          <div className={viewMode === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5" : "flex flex-col gap-3"}>
             {Array.from({ length: 8 }).map((_, idx) => (
-              <div key={idx} className={`glass-card rounded-2xl animate-pulse p-4 ${viewMode === 'grid' ? 'h-80 space-y-4' : 'h-32 flex gap-4'}`}>
-                <div className={viewMode === 'grid' ? "w-full h-40 bg-slate-800/60 rounded-xl" : "w-44 h-full bg-slate-800/60 rounded-xl shrink-0"} />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-slate-800/80 rounded w-3/4" />
-                  <div className="h-3 bg-slate-800/50 rounded w-1/2" />
-                  <div className="h-3 bg-slate-800/40 rounded w-full" />
+              <div key={idx} className={`glass-card rounded-2xl animate-pulse p-4 border border-slate-800 ${viewMode === 'grid' ? 'h-80 space-y-4' : 'h-32 flex gap-4'}`}>
+                <div className={viewMode === 'grid' ? "w-full h-40 bg-[#0e162c] rounded-xl" : "w-44 h-full bg-[#0e162c] rounded-xl shrink-0"} />
+                <div className="flex-1 space-y-2 pt-1">
+                  <div className="h-4 bg-[#0e162c] rounded w-3/4" />
+                  <div className="h-3 bg-[#090e1d] rounded w-1/2" />
+                  <div className="h-3 bg-[#090e1d] rounded w-full" />
                 </div>
               </div>
             ))}
@@ -49,68 +50,68 @@ export const ResourceGrid = ({ resources, loading, onReport, onAddToCollection, 
 
   if (!resources || resources.length === 0) {
     return (
-      <div className="glass-panel rounded-3xl p-12 text-center max-w-md mx-auto my-12 border border-slate-800 space-y-4">
-        <div className="w-16 h-16 rounded-full bg-sky-500/10 text-sky-400 mx-auto flex items-center justify-center border border-sky-500/20 shadow-glow">
-          <SearchX className="w-8 h-8" />
+      <div className="glass-panel rounded-3xl p-12 text-center max-w-md mx-auto my-12 border border-slate-800 space-y-4 hud-bracket">
+        <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 text-cyan-400 mx-auto flex items-center justify-center border border-cyan-500/20 shadow-glow">
+          <SearchX className="w-7 h-7" />
         </div>
-        <h3 className="text-xl font-bold text-white">No Resources Found</h3>
-        <p className="text-sm text-slate-400 leading-relaxed">
-          We couldn't find any media or links matching your current filters. Try searching for a different keyword or category.
+        <h3 className="font-display text-lg font-bold text-white">No Transmissions Found</h3>
+        <p className="text-xs text-slate-400 leading-relaxed">
+          No resources detected matching your current filters. Adjust your search parameters or query keywords.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-left">
 
       {/* Top Layout View Mode Switcher */}
       {!hideLayoutToggle && (
         <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
-          <span className="text-xs text-slate-400 font-medium">
-            Showing <strong className="text-slate-200">{resources.length}</strong> {resources.length === 1 ? 'item' : 'items'}
+          <span className="text-xs text-slate-400 font-mono">
+            INDEXED NODES: <strong className="text-cyan-300">{resources.length}</strong> {resources.length === 1 ? 'ITEM' : 'ITEMS'}
           </span>
 
-          <div className="flex items-center gap-1 bg-dark-900/90 p-1 rounded-xl border border-slate-800 shadow-inner">
+          <div className="flex items-center gap-1 bg-[#090e1d] p-1 rounded-xl border border-slate-800">
             {/* Grid Toggle */}
             <button
               onClick={() => handleLayoutChange('grid')}
-              className={`p-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
                 viewMode === 'grid'
-                  ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40 shadow-sm'
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
               title="Grid View (Cards)"
             >
-              <LayoutGrid className="w-4 h-4" />
+              <LayoutGrid className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Grid</span>
             </button>
 
             {/* List Toggle */}
             <button
               onClick={() => handleLayoutChange('list')}
-              className={`p-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
                 viewMode === 'list'
-                  ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40 shadow-sm'
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
               title="List View (Rows)"
             >
-              <List className="w-4 h-4" />
+              <List className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">List</span>
             </button>
 
             {/* Table Toggle */}
             <button
               onClick={() => handleLayoutChange('table')}
-              className={`p-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
                 viewMode === 'table'
-                  ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40 shadow-sm'
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
               title="Table View (Data Grid)"
             >
-              <Table2 className="w-4 h-4" />
+              <Table2 className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Table</span>
             </button>
           </div>
@@ -119,7 +120,7 @@ export const ResourceGrid = ({ resources, loading, onReport, onAddToCollection, 
 
       {/* Content Rendering: Grid vs List vs Table */}
       {viewMode === 'grid' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {resources.map((resource) => (
             <ResourceCard
               key={resource._id}
@@ -133,7 +134,7 @@ export const ResourceGrid = ({ resources, loading, onReport, onAddToCollection, 
       )}
 
       {viewMode === 'list' && (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           {resources.map((resource) => (
             <ResourceRow
               key={resource._id}
