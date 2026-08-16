@@ -225,26 +225,11 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {collection.items.map((item) => (
-                <div key={item._id} className="relative group">
-                  <ResourceCard
-                    resource={item}
-                    onReport={onReportResource}
-                    onAddToCollection={onAddToCollection}
-                  />
-                  {isOwner && (
-                    <button
-                      onClick={() => handleRemoveItem(item._id)}
-                      title="Remove item from collection"
-                      className="absolute top-3 right-3 z-20 p-2 rounded-xl bg-dark-950/80 hover:bg-rose-500 text-slate-400 hover:text-white border border-slate-700/60 shadow-lg backdrop-blur-md transition-all cursor-pointer"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
+            <ResourceGrid
+              resources={collection.items}
+              onReport={onReportResource}
+              onAddToCollection={onAddToCollection}
+            />
           )}
         </div>
 
