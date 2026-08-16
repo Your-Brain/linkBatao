@@ -76,11 +76,10 @@ export const ResourceGrid = ({ resources, loading, onReport, onAddToCollection, 
             {/* Grid Toggle */}
             <button
               onClick={() => handleLayoutChange('grid')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
-                viewMode === 'grid'
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${viewMode === 'grid'
                   ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
-              }`}
+                }`}
               title="Grid View (Cards)"
             >
               <LayoutGrid className="w-3.5 h-3.5" />
@@ -90,11 +89,10 @@ export const ResourceGrid = ({ resources, loading, onReport, onAddToCollection, 
             {/* List Toggle */}
             <button
               onClick={() => handleLayoutChange('list')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
-                viewMode === 'list'
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${viewMode === 'list'
                   ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
-              }`}
+                }`}
               title="List View (Rows)"
             >
               <List className="w-3.5 h-3.5" />
@@ -104,11 +102,10 @@ export const ResourceGrid = ({ resources, loading, onReport, onAddToCollection, 
             {/* Table Toggle */}
             <button
               onClick={() => handleLayoutChange('table')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
-                viewMode === 'table'
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${viewMode === 'table'
                   ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
-              }`}
+                }`}
               title="Table View (Data Grid)"
             >
               <Table2 className="w-3.5 h-3.5" />

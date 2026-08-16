@@ -94,11 +94,10 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
         <nav className="hidden lg:flex items-center gap-1 text-xs font-medium text-slate-300">
           <Link
             to="/"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-              isActive('/')
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${isActive('/')
                 ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/30'
                 : 'hover:text-white hover:bg-slate-800/40'
-            }`}
+              }`}
           >
             <Compass className="w-3.5 h-3.5 text-cyan-400" />
             <span>Discovery Engine</span>
@@ -106,11 +105,10 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
 
           <Link
             to="/collections"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-              isActive('/collections')
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${isActive('/collections')
                 ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/30'
                 : 'hover:text-white hover:bg-slate-800/40'
-            }`}
+              }`}
           >
             <FolderHeart className="w-3.5 h-3.5 text-sky-400" />
             <span>Vaults</span>
@@ -118,11 +116,10 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
 
           <Link
             to="/privacy"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-              isActive('/privacy')
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${isActive('/privacy')
                 ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/30'
                 : 'hover:text-white hover:bg-slate-800/40'
-            }`}
+              }`}
           >
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
             <span>Protocols</span>

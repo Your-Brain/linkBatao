@@ -47,7 +47,7 @@ export const HeroSection = ({ onOpenSubmitModal }) => {
           className="font-display font-extrabold text-3xl sm:text-5xl md:text-6xl tracking-tight text-white leading-[1.12]"
         >
           Index, Organize & Explore <br className="hidden sm:block" />
-          <span className="text-gradient">The Open Web Anonymously</span>
+          <span className="text-gradient">The Open <span className='myanimation'> Web Anonymously</span></span>
         </motion.h1>
 
         {/* Hero Subtitle */}
@@ -96,7 +96,7 @@ export const HeroSection = ({ onOpenSubmitModal }) => {
           className="pt-6"
         >
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto text-left">
-            
+
             {/* Widget 1: Shield Protocol */}
             <div className="glass-panel rounded-xl p-3 border border-slate-800 flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">

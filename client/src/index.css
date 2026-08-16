@@ -2,6 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
+
+
+:root {
+  font-size: 18px;
+}
+
+body {
+  line-height: 1.7;
+}
+
+.myanimation {
+  display: inline-block;
+
+  background: linear-gradient(90deg,
+      #22d3ee,
+      #ffffff,
+      #38bdf8,
+      #a855f7,
+      #22d3ee);
+
+  background-size: 300% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+
+  animation:
+    textFlow 4s linear infinite,
+    textFloat 3s ease-in-out infinite;
+
+  filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.25));
+}
+
+@keyframes textFlow {
+  0% {
+    background-position: 0% center;
+  }
+
+  100% {
+    background-position: 300% center;
+  }
+}
+
+@keyframes textFloat {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
 @layer base {
   :root {
     --bg-base: #050811;
@@ -20,7 +76,12 @@
     font-family: 'Inter', system-ui, sans-serif;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
     letter-spacing: -0.02em;
   }
@@ -29,7 +90,7 @@
 /* Subtle Sci-Fi Grid Overlay */
 .cosmos-grid {
   background-size: 40px 40px;
-  background-image: 
+  background-image:
     linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
 }
@@ -135,13 +196,16 @@
 }
 
 /* Interactive Input / Button Focus States */
-input:focus, textarea:focus, select:focus {
+input:focus,
+textarea:focus,
+select:focus {
   border-color: #06b6d4 !important;
   box-shadow: 0 0 0 1px rgba(6, 182, 212, 0.4), 0 0 15px -3px rgba(6, 182, 212, 0.2) !important;
 }
 
 /* Reduced Motion Handling */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   ::before,
   ::after {

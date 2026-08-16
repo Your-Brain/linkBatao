@@ -123,7 +123,7 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
 
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 text-left">
-        
+
         {/* Back Button */}
         <div>
           <button
@@ -139,11 +139,10 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
         <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-cyan-500/30 flex flex-col md:flex-row md:items-center justify-between gap-6 hud-bracket">
           <div className="space-y-3 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2.5">
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold border ${
-                collection.visibility === 'PRIVATE'
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold border ${collection.visibility === 'PRIVATE'
                   ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
                   : 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30'
-              }`}>
+                }`}>
                 {collection.visibility === 'PRIVATE' ? <Lock className="w-3.5 h-3.5" /> : <Globe className="w-3.5 h-3.5" />}
                 <span>{collection.visibility} VAULT</span>
               </span>
@@ -223,7 +222,7 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
   /* Render All Collections View */
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 text-left">
-      
+
       {/* Header Banner */}
       <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-cyan-500/20 flex flex-col md:flex-row items-center justify-between gap-6 hud-bracket">
         <div className="space-y-2">

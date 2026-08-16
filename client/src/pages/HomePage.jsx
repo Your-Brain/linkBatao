@@ -66,11 +66,10 @@ export const HomePage = ({ categories = [], refreshKey = 0, onOpenSubmitModal, o
           <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none border-b border-slate-800/80">
             <button
               onClick={() => setActiveCategory('all')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all shrink-0 cursor-pointer ${
-                activeCategory === 'all'
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all shrink-0 cursor-pointer ${activeCategory === 'all'
                   ? 'bg-gradient-to-r from-cyan-500 to-sky-500 text-slate-950 font-bold shadow-glow'
                   : 'bg-[#090e1d] text-slate-400 hover:text-slate-200 border border-slate-800'
-              }`}
+                }`}
             >
               #ALL CHANNELS
             </button>
@@ -79,11 +78,10 @@ export const HomePage = ({ categories = [], refreshKey = 0, onOpenSubmitModal, o
               <button
                 key={cat._id}
                 onClick={() => setActiveCategory(cat.slug)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all shrink-0 cursor-pointer ${
-                  activeCategory === cat.slug
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all shrink-0 cursor-pointer ${activeCategory === cat.slug
                     ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/60 shadow-sm'
                     : 'bg-[#090e1d] text-slate-400 hover:text-slate-200 border border-slate-800'
-                }`}
+                  }`}
               >
                 #{cat.name.toUpperCase()}
               </button>
@@ -98,11 +96,10 @@ export const HomePage = ({ categories = [], refreshKey = 0, onOpenSubmitModal, o
           <div className="flex items-center gap-1 overflow-x-auto">
             <button
               onClick={() => setActiveSort('trending')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition-colors cursor-pointer ${
-                activeSort === 'trending'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition-colors cursor-pointer ${activeSort === 'trending'
                   ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
                   : 'text-slate-400 hover:text-slate-200'
-              }`}
+                }`}
             >
               <Flame className="w-3.5 h-3.5 text-amber-400" />
               <span>Trending Orbit</span>
@@ -110,11 +107,10 @@ export const HomePage = ({ categories = [], refreshKey = 0, onOpenSubmitModal, o
 
             <button
               onClick={() => setActiveSort('newest')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition-colors cursor-pointer ${
-                activeSort === 'newest'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition-colors cursor-pointer ${activeSort === 'newest'
                   ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
                   : 'text-slate-400 hover:text-slate-200'
-              }`}
+                }`}
             >
               <Clock className="w-3.5 h-3.5 text-sky-400" />
               <span>Latest Transmissions</span>
@@ -122,11 +118,10 @@ export const HomePage = ({ categories = [], refreshKey = 0, onOpenSubmitModal, o
 
             <button
               onClick={() => setActiveSort('saves')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition-colors cursor-pointer ${
-                activeSort === 'saves'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition-colors cursor-pointer ${activeSort === 'saves'
                   ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
                   : 'text-slate-400 hover:text-slate-200'
-              }`}
+                }`}
             >
               <Bookmark className="w-3.5 h-3.5 text-purple-400" />
               <span>Vaulted</span>
@@ -134,11 +129,10 @@ export const HomePage = ({ categories = [], refreshKey = 0, onOpenSubmitModal, o
 
             <button
               onClick={() => setActiveSort('views')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition-colors cursor-pointer ${
-                activeSort === 'views'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition-colors cursor-pointer ${activeSort === 'views'
                   ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
                   : 'text-slate-400 hover:text-slate-200'
-              }`}
+                }`}
             >
               <Eye className="w-3.5 h-3.5 text-cyan-400" />
               <span>High Signal</span>
