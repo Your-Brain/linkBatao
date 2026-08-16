@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import API from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { X, Flag, AlertCircle, Send } from 'lucide-react';
@@ -32,13 +33,13 @@ export const ReportModal = ({ resource, isOpen, onClose }) => {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark-950/80 backdrop-blur-md">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-dark-950/80 backdrop-blur-md animate-fade-in">
       <div className="relative w-full max-w-md glass-modal rounded-3xl p-6 shadow-2xl border border-rose-500/30 text-left">
         
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-full bg-dark-800"
+          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-full bg-dark-800 cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
@@ -90,14 +91,14 @@ export const ReportModal = ({ resource, isOpen, onClose }) => {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2 rounded-xl bg-rose-500 text-white font-bold text-xs hover:bg-rose-600 transition-colors flex items-center gap-1.5"
+              className="px-5 py-2 rounded-xl bg-rose-500 text-white font-bold text-xs hover:bg-rose-600 transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <Send className="w-3.5 h-3.5" />
               <span>Submit Report</span>
@@ -106,6 +107,7 @@ export const ReportModal = ({ resource, isOpen, onClose }) => {
         </form>
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

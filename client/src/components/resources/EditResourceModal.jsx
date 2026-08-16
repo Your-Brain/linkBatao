@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import API from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { X, Save, Edit3, Link, Tag, Globe, Sparkles } from 'lucide-react';
@@ -72,8 +73,8 @@ export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-dark-950/85 backdrop-blur-md animate-fade-in overflow-hidden">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-dark-950/85 backdrop-blur-md animate-fade-in overflow-hidden">
       <div className="relative w-full max-w-xl glass-modal rounded-3xl border border-sky-500/30 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden text-left">
         
         {/* Pinned Header */}
@@ -90,7 +91,7 @@ export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -219,7 +220,7 @@ export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors"
+              className="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -236,6 +237,7 @@ export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated
         </form>
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

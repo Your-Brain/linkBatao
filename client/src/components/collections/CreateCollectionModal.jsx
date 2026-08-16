@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import API from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { X, FolderPlus, Lock, Globe } from 'lucide-react';
@@ -40,13 +41,13 @@ export const CreateCollectionModal = ({ isOpen, onClose, onCollectionCreated }) 
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark-950/80 backdrop-blur-md">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-dark-950/80 backdrop-blur-md animate-fade-in">
       <div className="relative w-full max-w-md glass-modal rounded-3xl p-6 shadow-2xl border border-cyan-500/30 text-left">
         
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-full bg-dark-800"
+          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-full bg-dark-800 cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
@@ -97,7 +98,7 @@ export const CreateCollectionModal = ({ isOpen, onClose, onCollectionCreated }) 
               <button
                 type="button"
                 onClick={() => setVisibility('PUBLIC')}
-                className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold border transition-all ${
+                className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                   visibility === 'PUBLIC'
                     ? 'bg-sky-500/20 border-sky-400 text-sky-300'
                     : 'bg-dark-900 border-slate-700 text-slate-400'
@@ -110,7 +111,7 @@ export const CreateCollectionModal = ({ isOpen, onClose, onCollectionCreated }) 
               <button
                 type="button"
                 onClick={() => setVisibility('PRIVATE')}
-                className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold border transition-all ${
+                className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                   visibility === 'PRIVATE'
                     ? 'bg-amber-500/20 border-amber-400 text-amber-300'
                     : 'bg-dark-900 border-slate-700 text-slate-400'
@@ -126,14 +127,14 @@ export const CreateCollectionModal = ({ isOpen, onClose, onCollectionCreated }) 
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-sky-500 text-slate-950 font-bold text-xs shadow-glow hover:scale-105 transition-all"
+              className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-sky-500 text-slate-950 font-bold text-xs shadow-glow hover:scale-105 transition-all cursor-pointer"
             >
               {submitting ? 'Creating...' : 'Create List'}
             </button>
@@ -141,6 +142,7 @@ export const CreateCollectionModal = ({ isOpen, onClose, onCollectionCreated }) 
         </form>
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

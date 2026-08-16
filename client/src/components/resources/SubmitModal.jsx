@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import API from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -113,14 +114,14 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark-950/80 backdrop-blur-md overflow-y-auto">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-dark-950/80 backdrop-blur-md overflow-y-auto animate-fade-in">
       <div className="relative w-full max-w-xl glass-modal rounded-3xl p-6 sm:p-8 shadow-2xl border border-sky-500/30 my-8">
         
         {/* Modal Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 text-slate-400 hover:text-white rounded-full bg-dark-800/60 hover:bg-slate-800 transition-colors"
+          className="absolute top-5 right-5 p-2 text-slate-400 hover:text-white rounded-full bg-dark-800/60 hover:bg-slate-800 transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
@@ -170,7 +171,7 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
                 type="button"
                 onClick={handleFetchPreview}
                 disabled={fetchingPreview}
-                className="px-4 py-2.5 rounded-xl bg-dark-700 hover:bg-slate-700 text-sky-300 font-semibold text-xs border border-sky-500/30 flex items-center gap-1.5 shrink-0 transition-colors"
+                className="px-4 py-2.5 rounded-xl bg-dark-700 hover:bg-slate-700 text-sky-300 font-semibold text-xs border border-sky-500/30 flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
               >
                 {fetchingPreview ? (
                   <RefreshCw className="w-4 h-4 animate-spin text-sky-400" />
@@ -202,40 +203,42 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
             <input
               type="text"
               required
-              placeholder="Descriptive resource title"
+              placeholder="e.g. Free Interactive WebGL Shaders & Effects"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-dark-900 text-sm text-slate-100 placeholder-slate-500 px-4 py-2.5 rounded-xl border border-slate-700 focus:border-sky-400 outline-none"
+              className="w-full bg-dark-900 text-sm text-slate-100 placeholder-slate-500 px-4 py-2.5 rounded-xl border border-slate-700 focus:border-sky-400 outline-none transition-colors"
             />
           </div>
 
           {/* Description */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-              Description / Summary
+              Description (Optional)
             </label>
             <textarea
               rows={2}
-              placeholder="Brief summary of what this link contains..."
+              placeholder="What makes this link valuable? Context helps others discover it..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-dark-900 text-sm text-slate-100 placeholder-slate-500 px-4 py-2.5 rounded-xl border border-slate-700 focus:border-sky-400 outline-none resize-none"
+              className="w-full bg-dark-900 text-sm text-slate-100 placeholder-slate-500 px-4 py-2.5 rounded-xl border border-slate-700 focus:border-sky-400 outline-none resize-none transition-colors"
             />
           </div>
 
-          {/* Grid: Category & Resource Type */}
+          {/* Category & Type Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            {/* Category Dropdown */}
             <div>
               <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                Category *
+                Category
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-dark-900 text-sm text-slate-100 px-4 py-2.5 rounded-xl border border-slate-700 focus:border-sky-400 outline-none"
+                className="w-full bg-dark-900 text-sm text-slate-100 px-4 py-2.5 rounded-xl border border-slate-700 focus:border-sky-400 outline-none transition-colors"
               >
-                {!category && <option value="">Select Category...</option>}
-                {(activeCategories || []).map((cat) => (
+                <option value="">Select Category</option>
+                {activeCategories.map((cat) => (
                   <option key={cat._id} value={cat._id}>
                     {cat.name}
                   </option>
@@ -281,14 +284,14 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-500 text-slate-950 font-bold text-xs shadow-glow hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-500 text-slate-950 font-bold text-xs shadow-glow hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
             >
               {submitting ? (
                 <>
@@ -304,6 +307,7 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
         </form>
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

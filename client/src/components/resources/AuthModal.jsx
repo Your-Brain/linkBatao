@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../../context/AuthContext';
 import { X, LogIn, UserPlus, Sparkles, Mail, Lock, User } from 'lucide-react';
 
@@ -32,13 +33,13 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark-950/80 backdrop-blur-md">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-dark-950/80 backdrop-blur-md animate-fade-in">
       <div className="relative w-full max-w-md glass-modal rounded-3xl p-6 sm:p-8 shadow-2xl border border-sky-500/30 text-left">
         
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 text-slate-400 hover:text-white rounded-full bg-dark-800"
+          className="absolute top-5 right-5 p-2 text-slate-400 hover:text-white rounded-full bg-dark-800 cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
@@ -48,7 +49,7 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
           <button
             type="button"
             onClick={() => setMode('login')}
-            className={`font-display font-bold text-lg pb-1 transition-colors ${
+            className={`font-display font-bold text-lg pb-1 transition-colors cursor-pointer ${
               mode === 'login' ? 'text-sky-300 border-b-2 border-sky-400' : 'text-slate-500 hover:text-slate-300'
             }`}
           >
@@ -57,7 +58,7 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
           <button
             type="button"
             onClick={() => setMode('register')}
-            className={`font-display font-bold text-lg pb-1 transition-colors ${
+            className={`font-display font-bold text-lg pb-1 transition-colors cursor-pointer ${
               mode === 'register' ? 'text-sky-300 border-b-2 border-sky-400' : 'text-slate-500 hover:text-slate-300'
             }`}
           >
@@ -110,7 +111,7 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
               <input
                 type="password"
                 required
-                minlength={6}
+                minLength={6}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -123,7 +124,7 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-4 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-500 text-slate-950 font-bold text-sm shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+            className="w-full mt-4 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-500 text-slate-950 font-bold text-sm shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             {mode === 'login' ? (
               <>
@@ -144,6 +145,7 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
         </p>
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
