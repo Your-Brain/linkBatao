@@ -12,6 +12,7 @@ import categoryRoutes from './routes/categoryRoutes.js';
 import searchRoutes from './routes/searchRoutes.js';
 import collectionRoutes from './routes/collectionRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import policyRoutes from './routes/policyRoutes.js';
 
 dotenv.config();
 
@@ -62,6 +63,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/collections', collectionRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/policies', policyRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

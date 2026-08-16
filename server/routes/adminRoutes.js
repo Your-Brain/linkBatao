@@ -12,6 +12,7 @@ import {
   deleteUserAdmin,
   getStats
 } from '../controllers/adminController.js';
+import { updatePolicy } from '../controllers/policyController.js';
 import { protect, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -28,6 +29,9 @@ router.get('/resources/pending', getPendingResources);
 router.get('/resources/all', getAllResourcesAdmin);
 router.patch('/resources/:id', updateResourceStatus);
 router.delete('/resources/:id', deleteResourceAdmin);
+
+// Dynamic Policy Management
+router.put('/policies/:key', updatePolicy);
 
 router.get('/users', authorize('ADMIN'), getUsers);
 router.patch('/users/:id/role', authorize('ADMIN'), updateUserRole);
