@@ -36,19 +36,20 @@ import {
   Lock,
   FileText,
   AlertOctagon,
-  AlertTriangle
+  AlertTriangle,
+  Globe
 } from 'lucide-react';
 
 const ICON_OPTIONS = [
-  { value: 'Lock', label: 'Lock (Security / Auth)' },
+  { value: 'Lock', label: 'Lock (Security / Privacy)' },
   { value: 'ShieldCheck', label: 'Shield Check (Safety)' },
   { value: 'Shield', label: 'Shield (Protection)' },
   { value: 'ExternalLink', label: 'External Link (Indexing / Embedding)' },
   { value: 'AlertOctagon', label: 'Alert Octagon (DMCA / Infringement)' },
-  { value: 'FileText', label: 'File Text (Terms & Protocols)' },
+  { value: 'FileText', label: 'File Text (Terms & Security)' },
   { value: 'AlertTriangle', label: 'Alert Triangle (Warnings)' },
   { value: 'CheckCircle2', label: 'Check Circle (Guarantees)' },
-  { value: 'Globe', label: 'Globe (Network & Web)' }
+  { value: 'Globe', label: 'Globe (Web / Network)' }
 ];
 
 export const AdminDashboardPage = () => {
@@ -79,7 +80,6 @@ export const AdminDashboardPage = () => {
     sections: []
   });
   const [savingPolicy, setSavingPolicy] = useState(false);
-  const [loadingPolicy, setLoadingPolicy] = useState(false);
 
   const fetchAdminData = async () => {
     setLoading(true);
@@ -105,7 +105,6 @@ export const AdminDashboardPage = () => {
   };
 
   const fetchPolicyData = async () => {
-    setLoadingPolicy(true);
     try {
       const res = await API.get('/policies/privacy-safety');
       if (res.data.success && res.data.data) {
@@ -113,8 +112,6 @@ export const AdminDashboardPage = () => {
       }
     } catch (err) {
       console.warn('Failed to load policy data', err);
-    } finally {
-      setLoadingPolicy(false);
     }
   };
 
@@ -220,7 +217,7 @@ export const AdminDashboardPage = () => {
     }
   };
 
-  // Policy Handlers
+  // Policy Editor Methods
   const handleAddPolicySection = () => {
     const newSection = {
       title: `${(policyData.sections?.length || 0) + 1}. New Policy Section`,
@@ -393,7 +390,7 @@ export const AdminDashboardPage = () => {
           }`}
         >
           <LinkIcon className="w-4 h-4 text-sky-400" />
-          <span>All Links & Control</span>
+          <span>All Links & Control ({allResources.length})</span>
         </button>
 
         <button
@@ -430,7 +427,7 @@ export const AdminDashboardPage = () => {
           }`}
         >
           <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span>Privacy & Safety Policy</span>
+          <span>Privacy & Safety Policy (Update Content)</span>
         </button>
 
         {user.role === 'ADMIN' && (
@@ -498,8 +495,8 @@ export const AdminDashboardPage = () => {
               ))}
             </div>
 
-            {/* View Mode Toggle (Table / Grid / List) */}
-            <div className="flex items-center bg-dark-900/80 p-1 rounded-xl border border-slate-800 self-end lg:self-center shrink-0">
+            {/* View Mode Switcher: Table / Grid / List */}
+            <div className="flex items-center bg-dark-900/90 p-1 rounded-xl border border-slate-800 self-end lg:self-center shrink-0">
               <button
                 onClick={() => setViewMode('table')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
@@ -507,7 +504,7 @@ export const AdminDashboardPage = () => {
                     ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40 shadow-sm'
                     : 'text-slate-400 hover:text-white'
                 }`}
-                title="Table View (Detailed Data)"
+                title="Table View (Data Grid)"
               >
                 <TableIcon className="w-3.5 h-3.5" />
                 <span>Table</span>
@@ -520,7 +517,7 @@ export const AdminDashboardPage = () => {
                     ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40 shadow-sm'
                     : 'text-slate-400 hover:text-white'
                 }`}
-                title="Grid View (Cards & Previews)"
+                title="Grid View (Visual Cards)"
               >
                 <LayoutGrid className="w-3.5 h-3.5" />
                 <span>Grid</span>
@@ -533,7 +530,7 @@ export const AdminDashboardPage = () => {
                     ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40 shadow-sm'
                     : 'text-slate-400 hover:text-white'
                 }`}
-                title="List View (Rows & Thumbnails)"
+                title="List View (Horizontal Rows)"
               >
                 <List className="w-3.5 h-3.5" />
                 <span>List</span>
@@ -942,36 +939,95 @@ export const AdminDashboardPage = () => {
 
       {/* PENDING SUBMISSIONS QUEUE TAB */}
       {activeTab === 'pending' && (
-        <div className="glass-panel rounded-2xl overflow-hidden border border-slate-800 text-left">
+        <div className="space-y-4">
+          <div className="glass-panel p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
+            <span className="text-xs font-semibold text-amber-300">
+              Pending Submissions Awaiting Moderation ({pendingResources.length})
+            </span>
+            <div className="flex items-center bg-dark-900/90 p-1 rounded-xl border border-slate-800">
+              <button
+                onClick={() => setViewMode('table')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  viewMode === 'table' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <TableIcon className="w-3.5 h-3.5" />
+                <span>Table</span>
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  viewMode === 'grid' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span>Grid</span>
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  viewMode === 'list' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <List className="w-3.5 h-3.5" />
+                <span>List</span>
+              </button>
+            </div>
+          </div>
+
           {pendingResources.length === 0 ? (
-            <div className="p-8 text-center text-slate-400 text-xs">No resources currently pending review.</div>
-          ) : (
-            <div className="divide-y divide-slate-800/60">
+            <div className="glass-panel rounded-2xl p-12 text-center text-slate-400 text-xs border border-slate-800">
+              No resources currently pending review. All clear!
+            </div>
+          ) : viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {pendingResources.map((resItem) => (
-                <div key={resItem._id} className="p-4 flex items-center justify-between gap-4 hover:bg-dark-800/40">
-                  <div className="space-y-1">
-                    <span className="px-2 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-300 font-bold uppercase">
-                      {resItem.status}
-                    </span>
-                    <h4 className="font-bold text-white text-sm">{resItem.title}</h4>
-                    <p className="text-xs text-slate-400">{resItem.url}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleUpdateResourceStatus(resItem._id, 'APPROVED')}
-                      className="px-3 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold text-xs hover:bg-emerald-400 cursor-pointer"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => handleUpdateResourceStatus(resItem._id, 'REJECTED')}
-                      className="px-3 py-1.5 rounded-lg bg-rose-500 text-white font-bold text-xs hover:bg-rose-600 cursor-pointer"
-                    >
-                      Reject
-                    </button>
-                  </div>
-                </div>
+                <ResourceCard
+                  key={resItem._id}
+                  resource={resItem}
+                  onResourceDeleted={() => fetchAdminData()}
+                />
               ))}
+            </div>
+          ) : viewMode === 'list' ? (
+            <div className="space-y-3">
+              {pendingResources.map((resItem) => (
+                <ResourceRow
+                  key={resItem._id}
+                  resource={resItem}
+                  onResourceDeleted={() => fetchAdminData()}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="glass-panel rounded-2xl overflow-hidden border border-slate-800 text-left">
+              <div className="divide-y divide-slate-800/60">
+                {pendingResources.map((resItem) => (
+                  <div key={resItem._id} className="p-4 flex items-center justify-between gap-4 hover:bg-dark-800/40">
+                    <div className="space-y-1">
+                      <span className="px-2 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-300 font-bold uppercase">
+                        {resItem.status}
+                      </span>
+                      <h4 className="font-bold text-white text-sm">{resItem.title}</h4>
+                      <p className="text-xs text-slate-400">{resItem.url}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleUpdateResourceStatus(resItem._id, 'APPROVED')}
+                        className="px-3 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold text-xs hover:bg-emerald-400 cursor-pointer"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleUpdateResourceStatus(resItem._id, 'REJECTED')}
+                        className="px-3 py-1.5 rounded-lg bg-rose-500 text-white font-bold text-xs hover:bg-rose-600 cursor-pointer"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
