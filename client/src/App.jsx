@@ -19,6 +19,8 @@ import { ProfilePage } from './pages/ProfilePage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { PrivacyTermsPage } from './pages/PrivacyTermsPage';
 
+import { HomeLoader } from './components/layout/HomeLoader';
+
 export const DEFAULT_CATEGORIES = [
   { _id: 'technology', name: 'Technology', slug: 'technology', description: 'AI, software & hardware news', icon: 'Cpu' },
   { _id: 'programming', name: 'Programming', slug: 'programming', description: 'Web dev & engineering', icon: 'Code' },
@@ -38,33 +40,75 @@ export const DEFAULT_CATEGORIES = [
 export function AppContent() {
   const navigate = useNavigate();
   const { user } = useAuth();
+
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  // Show loader only when the app starts
+  const [isLoading, setIsLoading] = useState(true);
+
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
-  const [authModalState, setAuthModalState] = useState({ isOpen: false, mode: 'login' });
-  const [reportModalState, setReportModalState] = useState({ isOpen: false, resource: null });
-  const [addToCollectionState, setAddToCollectionState] = useState({ isOpen: false, resource: null });
+  const [authModalState, setAuthModalState] = useState({
+    isOpen: false,
+    mode: 'login'
+  });
+  const [reportModalState, setReportModalState] = useState({
+    isOpen: false,
+    resource: null
+  });
+  const [addToCollectionState, setAddToCollectionState] = useState({
+    isOpen: false,
+    resource: null
+  });
+
+  // -----------------------------------------
+  // Initial App Loading
+  // -----------------------------------------
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1200);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // -----------------------------------------
+  // Fetch Categories
+  // -----------------------------------------
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const res = await API.get('/categories');
-        if (res.data.success && Array.isArray(res.data.data) && res.data.data.length > 0) {
+
+        if (
+          res.data.success &&
+          Array.isArray(res.data.data) &&
+          res.data.data.length > 0
+        ) {
           setCategories(res.data.data);
         }
       } catch (err) {
         console.error('[App] Failed to fetch categories:', err);
       }
     };
+
     fetchCategories();
   }, []);
 
   const handleOpenAuthModal = (mode = 'login') => {
-    setAuthModalState({ isOpen: true, mode });
+    setAuthModalState({
+      isOpen: true,
+      mode
+    });
   };
 
   const handleOpenReportModal = (resource) => {
-    setReportModalState({ isOpen: true, resource });
+    setReportModalState({
+      isOpen: true,
+      resource
+    });
   };
 
   const handleOpenAddToCollectionModal = (resource) => {
@@ -72,19 +116,38 @@ export function AppContent() {
       handleOpenAuthModal('login');
       return;
     }
-    setAddToCollectionState({ isOpen: true, resource });
+
+    setAddToCollectionState({
+      isOpen: true,
+      resource
+    });
   };
 
   const handleResourceSubmitted = (newResource) => {
     setRefreshKey(prev => prev + 1);
+
     if (newResource && newResource._id) {
       navigate(`/resources/${newResource._id}`);
     }
   };
 
+  // -----------------------------------------
+  // Show Loader Once
+  // -----------------------------------------
+
+  if (isLoading) {
+    return <HomeLoader />;
+  }
+
+  // -----------------------------------------
+  // Main Application
+  // -----------------------------------------
+
   return (
     <div className="relative min-h-screen flex flex-col justify-between selection:bg-sky-400 selection:text-slate-950">
+
       {/* Dynamic Floating Particle Background */}
+
       <CanvasBackground />
 
       {/* Navigation Header */}
@@ -96,6 +159,7 @@ export function AppContent() {
       {/* Main Page Router */}
       <main className="flex-1 relative z-10">
         <Routes>
+
           <Route
             path="/"
             element={
@@ -108,6 +172,7 @@ export function AppContent() {
               />
             }
           />
+
           <Route
             path="/resources/:id"
             element={
@@ -117,6 +182,7 @@ export function AppContent() {
               />
             }
           />
+
           <Route
             path="/search"
             element={
@@ -128,6 +194,7 @@ export function AppContent() {
               />
             }
           />
+
           <Route
             path="/collections"
             element={
@@ -137,6 +204,7 @@ export function AppContent() {
               />
             }
           />
+
           <Route
             path="/collections/:id"
             element={
@@ -146,6 +214,7 @@ export function AppContent() {
               />
             }
           />
+
           <Route
             path="/profile"
             element={
@@ -156,9 +225,23 @@ export function AppContent() {
               />
             }
           />
-          <Route path="/admin" element={<AdminDashboardPage />} />
-          <Route path="/privacy" element={<PrivacyTermsPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+
+          <Route
+            path="/admin"
+            element={<AdminDashboardPage />}
+          />
+
+          <Route
+            path="/privacy"
+            element={<PrivacyTermsPage />}
+          />
+
+          {/* Invalid route → Home */}
+          <Route
+            path="*"
+            element={<Navigate to="/" replace />}
+          />
+
         </Routes>
       </main>
 
@@ -166,6 +249,7 @@ export function AppContent() {
       <Footer />
 
       {/* Modals Container */}
+
       <SubmitModal
         isOpen={isSubmitModalOpen}
         onClose={() => setIsSubmitModalOpen(false)}
@@ -175,21 +259,37 @@ export function AppContent() {
 
       <AuthModal
         isOpen={authModalState.isOpen}
-        onClose={() => setAuthModalState({ isOpen: false, mode: 'login' })}
+        onClose={() =>
+          setAuthModalState({
+            isOpen: false,
+            mode: 'login'
+          })
+        }
         initialMode={authModalState.mode}
       />
 
       <ReportModal
         isOpen={reportModalState.isOpen}
-        onClose={() => setReportModalState({ isOpen: false, resource: null })}
+        onClose={() =>
+          setReportModalState({
+            isOpen: false,
+            resource: null
+          })
+        }
         resource={reportModalState.resource}
       />
 
       <AddToCollectionModal
         isOpen={addToCollectionState.isOpen}
-        onClose={() => setAddToCollectionState({ isOpen: false, resource: null })}
+        onClose={() =>
+          setAddToCollectionState({
+            isOpen: false,
+            resource: null
+          })
+        }
         resource={addToCollectionState.resource}
       />
+
     </div>
   );
 }
@@ -205,4 +305,3 @@ export default function App() {
     </Router>
   );
 }
-
