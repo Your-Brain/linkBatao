@@ -5,9 +5,10 @@ import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { CollectionCard } from '../components/collections/CollectionCard';
+import { EditCollectionModal } from '../components/collections/EditCollectionModal';
 import { CreateCollectionModal } from '../components/collections/CreateCollectionModal';
 import { ResourceGrid } from '../components/resources/ResourceGrid';
-import { FolderHeart, Plus, Lock, Globe, ArrowLeft, Trash2, User, Layers, AlertCircle, Sparkles } from 'lucide-react';
+import { FolderHeart, Plus, Lock, Globe, ArrowLeft, Trash2, Edit3, User, Layers, AlertCircle, Sparkles, ShieldCheck } from 'lucide-react';
 
 export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
   const { id } = useParams();
@@ -19,6 +20,7 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
   const [collections, setCollections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // Single collection detail state
   const [collection, setCollection] = useState(null);
@@ -85,8 +87,12 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
   };
 
   const isOwner = user && collection && collection.ownerId && (
-    collection.ownerId._id === user._id || collection.ownerId === user._id
+    (collection.ownerId._id && collection.ownerId._id === user._id) ||
+    collection.ownerId === user._id ||
+    collection.ownerId === user.id
   );
+  const isAdmin = user && (user.role === 'ADMIN' || user.role === 'MODERATOR');
+  const canManage = isOwner || isAdmin;
 
   /* Render Single Collection View */
   if (id) {
@@ -147,6 +153,13 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
                 <span>{collection.visibility} VAULT</span>
               </span>
 
+              {isAdmin && !isOwner && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                  <ShieldCheck className="w-3 h-3" />
+                  <span>ADMIN OVERRIDE</span>
+                </span>
+              )}
+
               <span className="text-xs text-slate-400 font-mono">
                 {collection.items ? collection.items.length : 0} ITEMS INDEXED
               </span>
@@ -166,13 +179,23 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
               <span className="w-5 h-5 rounded-md bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-bold text-[10px]">
                 ✦
               </span>
-              <span>Curated Public Resource Vault</span>
+              <span>
+                {collection.ownerId ? `Curated by @${collection.ownerId.username || 'user'}` : 'Public Resource Vault'}
+              </span>
             </div>
           </div>
 
-          {/* Action Buttons for Owner */}
-          {isOwner && (
-            <div className="flex items-center gap-3 shrink-0">
+          {/* Action Buttons for Owner or Admin */}
+          {canManage && (
+            <div className="flex flex-wrap items-center gap-3 shrink-0">
+              <button
+                onClick={() => setIsEditModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-mono font-bold transition-all cursor-pointer shadow-sm"
+              >
+                <Edit3 className="w-4 h-4" />
+                <span>Edit Vault</span>
+              </button>
+
               <button
                 onClick={handleDeleteCollection}
                 disabled={deleting}
@@ -184,6 +207,14 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
             </div>
           )}
         </div>
+
+        {/* Edit Collection Modal */}
+        <EditCollectionModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          collection={collection}
+          onCollectionUpdated={(updated) => setCollection(updated)}
+        />
 
         {/* Collection Items Grid */}
         <div className="space-y-4">

@@ -6,6 +6,9 @@ import {
   updateResourceStatus,
   getAllResourcesAdmin,
   deleteResourceAdmin,
+  getAllCollectionsAdmin,
+  updateCollectionAdmin,
+  deleteCollectionAdmin,
   getUsers,
   updateUserRole,
   toggleBanUser,
@@ -29,6 +32,11 @@ router.get('/resources/pending', getPendingResources);
 router.get('/resources/all', getAllResourcesAdmin);
 router.patch('/resources/:id', updateResourceStatus);
 router.delete('/resources/:id', deleteResourceAdmin);
+
+// Data Vaults / Collections Administration
+router.get('/collections', getAllCollectionsAdmin);
+router.put('/collections/:id', updateCollectionAdmin);
+router.delete('/collections/:id', deleteCollectionAdmin);
 
 // Dynamic Policy Management
 router.put('/policies/:key', updatePolicy);

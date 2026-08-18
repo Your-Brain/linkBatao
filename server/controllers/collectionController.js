@@ -62,13 +62,21 @@ export const getCollections = async (req, res, next) => {
   }
 };
 
+// Helper to check if user can manage collection
+const canManageCollection = (user, collection) => {
+  if (!user || !collection) return false;
+  if (user.role === 'ADMIN' || user.role === 'MODERATOR') return true;
+  const ownerId = collection.ownerId?._id ? collection.ownerId._id.toString() : collection.ownerId?.toString();
+  return ownerId === user.id || ownerId === user._id?.toString();
+};
+
 // @desc    Get single collection by ID
 // @route   GET /api/collections/:id
 // @access  Public (Optional Auth)
 export const getCollectionById = async (req, res, next) => {
   try {
     const collection = await Collection.findById(req.params.id)
-      .populate('ownerId', 'username avatar bio')
+      .populate('ownerId', 'username avatar bio role')
       .populate({
         path: 'items',
         populate: [{ path: 'category', select: 'name slug icon' }, { path: 'submittedBy', select: 'username avatar' }]
@@ -78,10 +86,9 @@ export const getCollectionById = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Collection not found' });
     }
 
-    const isOwner = req.user && collection.ownerId && req.user.id === collection.ownerId._id.toString();
-    const isAdmin = req.user && (req.user.role === 'ADMIN' || req.user.role === 'MODERATOR');
+    const canAccess = collection.visibility === 'PUBLIC' || canManageCollection(req.user, collection);
 
-    if (collection.visibility === 'PRIVATE' && !isOwner && !isAdmin) {
+    if (!canAccess) {
       return res.status(403).json({ success: false, message: 'This collection is private' });
     }
 
@@ -104,24 +111,29 @@ export const updateCollection = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Collection not found' });
     }
 
-    const isOwner = collection.ownerId.toString() === req.user.id;
-    const isAdmin = req.user.role === 'ADMIN' || req.user.role === 'MODERATOR';
-
-    if (!isOwner && !isAdmin) {
+    if (!canManageCollection(req.user, collection)) {
       return res.status(403).json({ success: false, message: 'Not authorized to edit this collection' });
     }
 
     const { name, description, visibility, items } = req.body;
     if (name) collection.name = name.trim();
     if (description !== undefined) collection.description = description.trim();
-    if (visibility) collection.visibility = visibility;
+    if (visibility && ['PUBLIC', 'PRIVATE'].includes(visibility)) collection.visibility = visibility;
     if (Array.isArray(items)) collection.items = items;
 
     await collection.save();
 
+    const populated = await Collection.findById(collection._id)
+      .populate('ownerId', 'username avatar role')
+      .populate({
+        path: 'items',
+        populate: [{ path: 'category', select: 'name slug icon' }, { path: 'submittedBy', select: 'username avatar' }]
+      });
+
     res.json({
       success: true,
-      data: collection
+      message: 'Collection updated successfully',
+      data: populated
     });
   } catch (err) {
     next(err);
@@ -138,10 +150,7 @@ export const deleteCollection = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Collection not found' });
     }
 
-    const isOwner = collection.ownerId.toString() === req.user.id;
-    const isAdmin = req.user.role === 'ADMIN' || req.user.role === 'MODERATOR';
-
-    if (!isOwner && !isAdmin) {
+    if (!canManageCollection(req.user, collection)) {
       return res.status(403).json({ success: false, message: 'Not authorized to delete this collection' });
     }
 
@@ -163,10 +172,7 @@ export const addItemToCollection = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Collection not found' });
     }
 
-    const isOwner = collection.ownerId.toString() === req.user.id;
-    const isAdmin = req.user.role === 'ADMIN' || req.user.role === 'MODERATOR';
-
-    if (!isOwner && !isAdmin) {
+    if (!canManageCollection(req.user, collection)) {
       return res.status(403).json({ success: false, message: 'Not authorized to edit this collection' });
     }
 
@@ -181,10 +187,14 @@ export const addItemToCollection = async (req, res, next) => {
       await collection.save();
     }
 
+    const populated = await Collection.findById(collection._id)
+      .populate('ownerId', 'username avatar')
+      .populate('items');
+
     res.json({
       success: true,
       message: 'Item added to collection',
-      data: collection
+      data: populated
     });
   } catch (err) {
     next(err);
@@ -201,10 +211,7 @@ export const removeItemFromCollection = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Collection not found' });
     }
 
-    const isOwner = collection.ownerId.toString() === req.user.id;
-    const isAdmin = req.user.role === 'ADMIN' || req.user.role === 'MODERATOR';
-
-    if (!isOwner && !isAdmin) {
+    if (!canManageCollection(req.user, collection)) {
       return res.status(403).json({ success: false, message: 'Not authorized to edit this collection' });
     }
 
@@ -212,10 +219,14 @@ export const removeItemFromCollection = async (req, res, next) => {
     collection.items = collection.items.filter(item => item.toString() !== resourceId);
     await collection.save();
 
+    const populated = await Collection.findById(collection._id)
+      .populate('ownerId', 'username avatar')
+      .populate('items');
+
     res.json({
       success: true,
       message: 'Item removed from collection',
-      data: collection
+      data: populated
     });
   } catch (err) {
     next(err);

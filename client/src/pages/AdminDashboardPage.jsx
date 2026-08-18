@@ -4,8 +4,10 @@ import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { EditResourceModal } from '../components/resources/EditResourceModal';
+import { EditCollectionModal } from '../components/collections/EditCollectionModal';
 import { ResourceCard } from '../components/resources/ResourceCard';
 import { ResourceRow } from '../components/resources/ResourceRow';
+import { CollectionCard } from '../components/collections/CollectionCard';
 import { 
   ShieldAlert, 
   CheckCircle2, 
@@ -37,7 +39,11 @@ import {
   FileText,
   AlertOctagon,
   AlertTriangle,
-  Globe
+  Globe,
+  FolderHeart,
+  FolderPlus,
+  FolderEdit,
+  Folder
 } from 'lucide-react';
 
 const ICON_OPTIONS = [
@@ -65,12 +71,19 @@ export const AdminDashboardPage = () => {
   const [reports, setReports] = useState([]);
   const [pendingResources, setPendingResources] = useState([]);
   const [allResources, setAllResources] = useState([]);
+  const [allCollections, setAllCollections] = useState([]);
   const [usersList, setUsersList] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Search & Filter state for All Links tab
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+
+  // Search & Filter state for Vaults/Collections tab
+  const [vaultSearchTerm, setVaultSearchTerm] = useState('');
+  const [vaultVisibilityFilter, setVaultVisibilityFilter] = useState('ALL');
+  const [vaultViewMode, setVaultViewMode] = useState('table');
+  const [editingCollection, setEditingCollection] = useState(null);
 
   // Edit Modal State
   const [editingResource, setEditingResource] = useState(null);
@@ -87,11 +100,12 @@ export const AdminDashboardPage = () => {
   const fetchAdminData = async () => {
     setLoading(true);
     try {
-      const [statsRes, reportsRes, pendingRes, allRes, usersRes] = await Promise.all([
+      const [statsRes, reportsRes, pendingRes, allRes, collectionsRes, usersRes] = await Promise.all([
         API.get('/admin/stats'),
         API.get('/admin/reports'),
         API.get('/admin/resources/pending'),
         API.get(`/admin/resources/all?status=${statusFilter}&search=${encodeURIComponent(searchTerm)}`),
+        API.get(`/admin/collections?visibility=${vaultVisibilityFilter}&search=${encodeURIComponent(vaultSearchTerm)}`),
         user?.role === 'ADMIN' ? API.get('/admin/users') : Promise.resolve({ data: { success: true, data: [] } })
       ]);
 
@@ -99,6 +113,7 @@ export const AdminDashboardPage = () => {
       if (reportsRes.data.success) setReports(reportsRes.data.data);
       if (pendingRes.data.success) setPendingResources(pendingRes.data.data);
       if (allRes.data.success) setAllResources(allRes.data.data);
+      if (collectionsRes.data.success) setAllCollections(collectionsRes.data.data);
       if (usersRes.data.success) setUsersList(usersRes.data.data);
     } catch (err) {
       showToast(err.response?.data?.message || 'Failed to load admin data', 'error');
@@ -123,9 +138,14 @@ export const AdminDashboardPage = () => {
       fetchAdminData();
       fetchPolicyData();
     }
-  }, [user, statusFilter]);
+  }, [user, statusFilter, vaultVisibilityFilter]);
 
   const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    fetchAdminData();
+  };
+
+  const handleVaultSearchSubmit = (e) => {
     e.preventDefault();
     fetchAdminData();
   };
@@ -176,6 +196,33 @@ export const AdminDashboardPage = () => {
       }
     } catch (err) {
       showToast(err.response?.data?.message || 'Failed to delete resource', 'error');
+    }
+  };
+
+  const handleDeleteCollectionAdmin = async (colId, colName) => {
+    if (!window.confirm(`Are you sure you want to permanently delete Vault "${colName}"?`)) return;
+
+    try {
+      const res = await API.delete(`/admin/collections/${colId}`);
+      if (res.data.success) {
+        showToast(res.data.message || 'Vault deleted successfully', 'success');
+        fetchAdminData();
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to delete vault', 'error');
+    }
+  };
+
+  const handleToggleVaultVisibility = async (colId, currentVisibility) => {
+    const newVisibility = currentVisibility === 'PUBLIC' ? 'PRIVATE' : 'PUBLIC';
+    try {
+      const res = await API.put(`/admin/collections/${colId}`, { visibility: newVisibility });
+      if (res.data.success) {
+        showToast(`Vault visibility updated to ${newVisibility}`, 'success');
+        fetchAdminData();
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to update vault visibility', 'error');
     }
   };
 
@@ -282,7 +329,7 @@ export const AdminDashboardPage = () => {
           <h1 className="font-display font-bold text-2xl sm:text-3xl text-white">
             Platform Moderation & Full Administration
           </h1>
-          <p className="text-xs text-slate-400">Full control over link resources, moderation queue, user roles, bans, and dynamic policy guarantees.</p>
+          <p className="text-xs text-slate-400">Full control over link resources, data vaults, moderation queue, user roles, bans, and dynamic policy guarantees.</p>
         </div>
 
         <button
@@ -300,7 +347,7 @@ export const AdminDashboardPage = () => {
 
       {/* Analytics Counter Cards */}
       {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           
           {/* Card 1: Active Resources */}
           <button
@@ -319,10 +366,27 @@ export const AdminDashboardPage = () => {
               <LinkIcon className="w-4 h-4 text-sky-400" />
             </div>
             <p className="text-2xl font-extrabold text-sky-400 mt-1">{stats.totalResources}</p>
-            <p className="text-[10px] text-sky-300/70 mt-1 font-medium">Click to view active links →</p>
+            <p className="text-[10px] text-sky-300/70 mt-1 font-medium">View active links →</p>
           </button>
 
-          {/* Card 2: Reports Queue */}
+          {/* Card 2: Data Vaults */}
+          <button
+            onClick={() => setActiveTab('vaults')}
+            className={`glass-card p-4 rounded-2xl border text-left transition-all hover:scale-[1.02] cursor-pointer ${
+              activeTab === 'vaults'
+                ? 'border-cyan-500/80 bg-cyan-500/10 shadow-glow'
+                : 'border-slate-800 hover:border-cyan-500/40'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-slate-400">Data Vaults</p>
+              <FolderHeart className="w-4 h-4 text-cyan-400" />
+            </div>
+            <p className="text-2xl font-extrabold text-cyan-400 mt-1">{stats.totalCollections || allCollections.length || 0}</p>
+            <p className="text-[10px] text-cyan-300/70 mt-1 font-medium">Manage all vaults →</p>
+          </button>
+
+          {/* Card 3: Reports Queue */}
           <button
             onClick={() => setActiveTab('reports')}
             className={`glass-card p-4 rounded-2xl border text-left transition-all hover:scale-[1.02] cursor-pointer ${
@@ -336,10 +400,10 @@ export const AdminDashboardPage = () => {
               <Flag className="w-4 h-4 text-rose-400" />
             </div>
             <p className="text-2xl font-extrabold text-rose-400 mt-1">{stats.pendingReports}</p>
-            <p className="text-[10px] text-rose-300/70 mt-1 font-medium">Click to moderate reports →</p>
+            <p className="text-[10px] text-rose-300/70 mt-1 font-medium">Moderate reports →</p>
           </button>
 
-          {/* Card 3: Pending Review */}
+          {/* Card 4: Pending Review */}
           <button
             onClick={() => setActiveTab('pending')}
             className={`glass-card p-4 rounded-2xl border text-left transition-all hover:scale-[1.02] cursor-pointer ${
@@ -353,10 +417,10 @@ export const AdminDashboardPage = () => {
               <Layers className="w-4 h-4 text-amber-400" />
             </div>
             <p className="text-2xl font-extrabold text-amber-400 mt-1">{stats.pendingResources}</p>
-            <p className="text-[10px] text-amber-300/70 mt-1 font-medium">Click to review submissions →</p>
+            <p className="text-[10px] text-amber-300/70 mt-1 font-medium">Review submissions →</p>
           </button>
 
-          {/* Card 4: Total Users */}
+          {/* Card 5: Total Users */}
           <button
             onClick={() => {
               if (user.role === 'ADMIN') setActiveTab('users');
@@ -375,7 +439,7 @@ export const AdminDashboardPage = () => {
             </div>
             <p className="text-2xl font-extrabold text-purple-400 mt-1">{stats.totalUsers}</p>
             <p className="text-[10px] text-purple-300/70 mt-1 font-medium">
-              {user.role === 'ADMIN' ? 'Click to manage user bans →' : 'Registered platform users'}
+              {user.role === 'ADMIN' ? 'Manage user bans →' : 'Registered users'}
             </p>
           </button>
 
@@ -394,6 +458,19 @@ export const AdminDashboardPage = () => {
         >
           <LinkIcon className="w-4 h-4 text-sky-400" />
           <span>All Links & Control ({allResources.length})</span>
+        </button>
+
+        {/* Data Vaults Management Tab */}
+        <button
+          onClick={() => setActiveTab('vaults')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'vaults'
+              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-md'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <FolderHeart className="w-4 h-4 text-cyan-400" />
+          <span>Data Vaults & Lists ({allCollections.length})</span>
         </button>
 
         <button
@@ -447,6 +524,238 @@ export const AdminDashboardPage = () => {
           </button>
         )}
       </div>
+
+      {/* DATA VAULTS / COLLECTIONS MANAGEMENT TAB */}
+      {activeTab === 'vaults' && (
+        <div className="space-y-4 text-left">
+          
+          {/* Search, Filter & View Controls */}
+          <div className="glass-panel p-4 rounded-2xl border border-slate-800 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+            
+            {/* Search Input */}
+            <form onSubmit={handleVaultSearchSubmit} className="flex items-center gap-2 w-full lg:w-80">
+              <div className="relative w-full">
+                <Search className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                <input
+                  type="text"
+                  placeholder="Search vaults by name, description, owner..."
+                  value={vaultSearchTerm}
+                  onChange={(e) => setVaultSearchTerm(e.target.value)}
+                  className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-dark-900 border border-slate-700 text-white text-xs focus:border-cyan-400 focus:outline-none"
+                />
+              </div>
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs shrink-0 hover:bg-cyan-400 cursor-pointer"
+              >
+                Search
+              </button>
+            </form>
+
+            {/* Quick Visibility Filter Pills */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              {[
+                { id: 'ALL', label: 'All Vaults' },
+                { id: 'PUBLIC', label: 'PUBLIC (Visible)' },
+                { id: 'PRIVATE', label: 'PRIVATE (Hidden)' }
+              ].map(opt => (
+                <button
+                  key={opt.id}
+                  onClick={() => setVaultVisibilityFilter(opt.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    vaultVisibilityFilter === opt.id
+                      ? 'bg-cyan-500 text-slate-950 font-bold shadow'
+                      : 'bg-dark-800 text-slate-400 hover:text-white border border-slate-700'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            {/* View Mode Switcher */}
+            <div className="flex items-center bg-dark-900/90 p-1 rounded-xl border border-slate-800 self-end lg:self-center shrink-0">
+              <button
+                onClick={() => setVaultViewMode('table')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  vaultViewMode === 'table'
+                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="Table View"
+              >
+                <TableIcon className="w-3.5 h-3.5" />
+                <span>Table</span>
+              </button>
+
+              <button
+                onClick={() => setVaultViewMode('grid')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  vaultViewMode === 'grid'
+                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="Grid View"
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span>Grid</span>
+              </button>
+            </div>
+
+          </div>
+
+          {/* Vaults Content Rendering */}
+          {allCollections.length === 0 ? (
+            <div className="glass-panel p-12 text-center text-slate-400 text-xs rounded-2xl border border-slate-800">
+              No Data Vaults matching the current criteria.
+            </div>
+          ) : vaultViewMode === 'grid' ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {allCollections.map((col) => (
+                <div key={col._id} className="relative group">
+                  <CollectionCard collection={col} />
+                  <div className="absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-dark-950/90 p-1 rounded-xl border border-slate-800 shadow-xl">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setEditingCollection(col);
+                      }}
+                      className="p-1.5 text-slate-300 hover:text-cyan-400 rounded-lg hover:bg-dark-800 transition-colors"
+                      title="Edit Vault"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDeleteCollectionAdmin(col._id, col.name);
+                      }}
+                      className="p-1.5 text-rose-400 hover:text-rose-300 rounded-lg hover:bg-rose-500/20 transition-colors"
+                      title="Delete Vault"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            /* TABLE VIEW */
+            <div className="glass-panel rounded-2xl overflow-hidden border border-slate-800">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-slate-300">
+                  <thead className="bg-dark-800 text-slate-400 uppercase font-mono border-b border-slate-800">
+                    <tr>
+                      <th className="p-3">Vault Name & Description</th>
+                      <th className="p-3">Curated By</th>
+                      <th className="p-3">Items Count</th>
+                      <th className="p-3">Visibility</th>
+                      <th className="p-3 text-right">Admin Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {allCollections.map((col) => {
+                      const isPrivate = col.visibility === 'PRIVATE';
+                      const itemsCount = col.items ? col.items.length : 0;
+                      return (
+                        <tr key={col._id} className="hover:bg-dark-800/40">
+                          <td className="p-3 space-y-0.5 max-w-xs">
+                            <Link
+                              to={`/collections/${col._id}`}
+                              className="font-bold text-white hover:text-cyan-300 truncate block"
+                            >
+                              {col.name}
+                            </Link>
+                            {col.description && (
+                              <p className="text-[11px] text-slate-400 truncate">{col.description}</p>
+                            )}
+                          </td>
+
+                          <td className="p-3 text-slate-300">
+                            {col.ownerId ? (
+                              <span className="font-mono text-cyan-400">@{col.ownerId.username}</span>
+                            ) : (
+                              <span className="text-slate-500">Anonymous</span>
+                            )}
+                          </td>
+
+                          <td className="p-3 font-mono">
+                            <span className="px-2 py-0.5 rounded bg-dark-900 border border-slate-700 text-slate-300">
+                              {itemsCount} {itemsCount === 1 ? 'item' : 'items'}
+                            </span>
+                          </td>
+
+                          <td className="p-3">
+                            <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold inline-flex items-center gap-1 ${
+                              isPrivate
+                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                            }`}>
+                              {isPrivate ? <Lock className="w-3 h-3" /> : <Globe className="w-3 h-3" />}
+                              <span>{col.visibility}</span>
+                            </span>
+                          </td>
+
+                          <td className="p-3 text-right space-x-1.5 whitespace-nowrap">
+                            
+                            {/* View Vault Link */}
+                            <Link
+                              to={`/collections/${col._id}`}
+                              className="px-2.5 py-1.5 rounded-lg bg-dark-700 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors inline-flex items-center gap-1 cursor-pointer"
+                              title="Explore Vault Page"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                              <span>View</span>
+                            </Link>
+
+                            {/* Edit Vault */}
+                            <button
+                              onClick={() => setEditingCollection(col)}
+                              className="px-2.5 py-1.5 rounded-lg bg-dark-700 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300 border border-slate-700 transition-colors inline-flex items-center gap-1 cursor-pointer"
+                              title="Edit Vault Parameters"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                              <span>Edit</span>
+                            </button>
+
+                            {/* Toggle Public / Private */}
+                            <button
+                              onClick={() => handleToggleVaultVisibility(col._id, col.visibility)}
+                              className={`px-2.5 py-1.5 rounded-lg border transition-colors inline-flex items-center gap-1 cursor-pointer ${
+                                isPrivate
+                                  ? 'bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border-cyan-500/40'
+                                  : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border-amber-500/40'
+                              }`}
+                              title={isPrivate ? 'Make Vault Public' : 'Make Vault Private'}
+                            >
+                              {isPrivate ? <Globe className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
+                              <span>{isPrivate ? 'Make Public' : 'Make Private'}</span>
+                            </button>
+
+                            {/* Delete Permanently */}
+                            <button
+                              onClick={() => handleDeleteCollectionAdmin(col._id, col.name)}
+                              className="px-2.5 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 transition-colors inline-flex items-center gap-1 cursor-pointer"
+                              title="Permanently Delete Vault"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>Delete</span>
+                            </button>
+
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+        </div>
+      )}
 
       {/* ALL LINKS MANAGEMENT TAB */}
       {activeTab === 'all-resources' && (
@@ -670,6 +979,120 @@ export const AdminDashboardPage = () => {
         </div>
       )}
 
+      {/* LINK REPORTS TAB */}
+      {activeTab === 'reports' && (
+        <div className="glass-panel rounded-2xl overflow-hidden border border-slate-800 text-left">
+          {reports.length === 0 ? (
+            <div className="p-12 text-center text-slate-400 text-xs">
+              <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
+              <span>No pending reports. All clear!</span>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-slate-300">
+                <thead className="bg-dark-800 text-slate-400 uppercase font-mono border-b border-slate-800">
+                  <tr>
+                    <th className="p-3">Target Resource</th>
+                    <th className="p-3">Reason</th>
+                    <th className="p-3">Details</th>
+                    <th className="p-3">Reported By</th>
+                    <th className="p-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {reports.map((report) => (
+                    <tr key={report._id} className="hover:bg-dark-800/40">
+                      <td className="p-3 space-y-0.5">
+                        <p className="font-bold text-white truncate max-w-xs">{report.resourceId?.title || 'Unknown'}</p>
+                        <p className="text-[11px] text-slate-400 truncate max-w-xs">{report.resourceId?.url || ''}</p>
+                      </td>
+                      <td className="p-3 font-semibold text-rose-400">{report.reason}</td>
+                      <td className="p-3 max-w-xs truncate text-slate-400">{report.description || 'No comment provided'}</td>
+                      <td className="p-3 text-slate-400">
+                        {report.reporterId ? `@${report.reporterId.username}` : 'Anonymous'}
+                      </td>
+                      <td className="p-3 text-right space-x-2 whitespace-nowrap">
+                        <button
+                          onClick={() => handleResolveReport(report._id, 'RESOLVE', true)}
+                          className="px-2.5 py-1.5 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 transition-colors cursor-pointer"
+                        >
+                          Remove Resource
+                        </button>
+                        <button
+                          onClick={() => handleResolveReport(report._id, 'DISMISS', false)}
+                          className="px-2.5 py-1.5 rounded-lg bg-dark-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                        >
+                          Dismiss
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* PENDING SUBMISSIONS TAB */}
+      {activeTab === 'pending' && (
+        <div className="glass-panel rounded-2xl overflow-hidden border border-slate-800 text-left">
+          {pendingResources.length === 0 ? (
+            <div className="p-12 text-center text-slate-400 text-xs">
+              <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
+              <span>No pending submissions awaiting review.</span>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-slate-300">
+                <thead className="bg-dark-800 text-slate-400 uppercase font-mono border-b border-slate-800">
+                  <tr>
+                    <th className="p-3">Title & URL</th>
+                    <th className="p-3">Category</th>
+                    <th className="p-3">Submitted By</th>
+                    <th className="p-3">Status</th>
+                    <th className="p-3 text-right">Moderation Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {pendingResources.map((resItem) => (
+                    <tr key={resItem._id} className="hover:bg-dark-800/40">
+                      <td className="p-3 space-y-0.5 max-w-xs">
+                        <p className="font-bold text-white truncate">{resItem.title}</p>
+                        <p className="text-[11px] text-slate-400 truncate">{resItem.url}</p>
+                      </td>
+                      <td className="p-3">{resItem.category?.name || 'General'}</td>
+                      <td className="p-3 text-slate-400">
+                        {resItem.submittedBy ? `@${resItem.submittedBy.username}` : 'Anonymous'}
+                      </td>
+                      <td className="p-3">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                          {resItem.status}
+                        </span>
+                      </td>
+                      <td className="p-3 text-right space-x-2 whitespace-nowrap">
+                        <button
+                          onClick={() => handleUpdateResourceStatus(resItem._id, 'APPROVED')}
+                          className="px-2.5 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition-colors cursor-pointer"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleUpdateResourceStatus(resItem._id, 'REJECTED')}
+                          className="px-2.5 py-1.5 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 transition-colors cursor-pointer"
+                        >
+                          Reject
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* DYNAMIC PRIVACY & SAFETY POLICY TAB */}
       {activeTab === 'privacy' && (
         <div className="space-y-6 text-left">
@@ -816,7 +1239,7 @@ export const AdminDashboardPage = () => {
                       <button
                         type="button"
                         onClick={() => handleRemovePolicySection(idx)}
-                        className="p-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors cursor-pointer ml-1"
+                        className="p-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 transition-colors cursor-pointer ml-1"
                         title="Delete Section"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -1468,12 +1891,20 @@ export const AdminDashboardPage = () => {
         </div>
       )}
 
-      {/* Edit Modal */}
+      {/* Edit Resource Modal */}
       <EditResourceModal
         isOpen={!!editingResource}
         onClose={() => setEditingResource(null)}
         resource={editingResource}
         onResourceUpdated={() => fetchAdminData()}
+      />
+
+      {/* Edit Collection / Vault Modal */}
+      <EditCollectionModal
+        isOpen={!!editingCollection}
+        onClose={() => setEditingCollection(null)}
+        collection={editingCollection}
+        onCollectionUpdated={() => fetchAdminData()}
       />
 
     </div>

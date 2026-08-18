@@ -2,6 +2,7 @@ import Report from '../models/Report.js';
 import Resource from '../models/Resource.js';
 import User from '../models/User.js';
 import Category from '../models/Category.js';
+import Collection from '../models/Collection.js';
 
 // @desc    Get all pending reports for moderation queue
 // @route   GET /api/admin/reports
@@ -165,6 +166,7 @@ export const getStats = async (req, res, next) => {
     const totalUsers = await User.countDocuments();
     const pendingReports = await Report.countDocuments({ status: 'PENDING' });
     const totalCategories = await Category.countDocuments();
+    const totalCollections = await Collection.countDocuments();
 
     res.json({
       success: true,
@@ -173,8 +175,99 @@ export const getStats = async (req, res, next) => {
         pendingResources,
         totalUsers,
         pendingReports,
-        totalCategories
+        totalCategories,
+        totalCollections
       }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Get all collections/vaults for admin management
+// @route   GET /api/admin/collections
+// @access  Private (Admin/Moderator)
+export const getAllCollectionsAdmin = async (req, res, next) => {
+  try {
+    const { visibility, search } = req.query;
+    let query = {};
+
+    if (visibility && visibility !== 'ALL') {
+      query.visibility = visibility;
+    }
+
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const collections = await Collection.find(query)
+      .populate('ownerId', 'username email avatar role')
+      .populate({
+        path: 'items',
+        select: 'title thumbnail domain resourceType url'
+      })
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      count: collections.length,
+      data: collections
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Update any collection/vault as Admin
+// @route   PUT /api/admin/collections/:id
+// @access  Private (Admin/Moderator)
+export const updateCollectionAdmin = async (req, res, next) => {
+  try {
+    const collection = await Collection.findById(req.params.id);
+    if (!collection) {
+      return res.status(404).json({ success: false, message: 'Collection not found' });
+    }
+
+    const { name, description, visibility, items } = req.body;
+    if (name) collection.name = name.trim();
+    if (description !== undefined) collection.description = description.trim();
+    if (visibility && ['PUBLIC', 'PRIVATE'].includes(visibility)) collection.visibility = visibility;
+    if (Array.isArray(items)) collection.items = items;
+
+    await collection.save();
+
+    const populated = await Collection.findById(collection._id)
+      .populate('ownerId', 'username email avatar')
+      .populate('items', 'title thumbnail domain resourceType url');
+
+    res.json({
+      success: true,
+      message: 'Vault updated successfully by Administrator',
+      data: populated
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Permanently delete any collection/vault as Admin
+// @route   DELETE /api/admin/collections/:id
+// @access  Private (Admin/Moderator)
+export const deleteCollectionAdmin = async (req, res, next) => {
+  try {
+    const collection = await Collection.findById(req.params.id);
+    if (!collection) {
+      return res.status(404).json({ success: false, message: 'Collection not found' });
+    }
+
+    await collection.deleteOne();
+
+    res.json({
+      success: true,
+      message: `Vault "${collection.name}" permanently deleted by Administrator`
     });
   } catch (err) {
     next(err);
