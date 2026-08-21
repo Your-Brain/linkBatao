@@ -35,79 +35,79 @@ export const ReportModal = ({ resource, isOpen, onClose }) => {
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#03050a]/85 backdrop-blur-xl">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-md">
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 8 }}
+        initial={{ opacity: 0, scale: 0.96, y: 6 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 8 }}
-        transition={{ duration: 0.2 }}
-        className="relative w-full max-w-md glass-modal rounded-3xl p-6 shadow-2xl border border-rose-500/30 text-left hud-bracket"
+        exit={{ opacity: 0, scale: 0.96, y: 6 }}
+        transition={{ duration: 0.15 }}
+        className="relative w-full max-w-md bg-zinc-900 rounded-2xl p-6 shadow-2xl border border-zinc-800 text-left"
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-white rounded-xl bg-[#090e1d] border border-slate-800 transition-colors cursor-pointer"
+          className="absolute top-4 right-4 p-1.5 text-zinc-400 hover:text-white rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
 
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-xl bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center justify-center">
             <Flag className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-display font-bold text-base text-white">Signal Report Console</h3>
-            <p className="text-[11px] font-mono text-slate-400 truncate max-w-[240px]">{resource.title}</p>
+            <h3 className="font-semibold text-sm text-white">Report Resource</h3>
+            <p className="text-xs text-zinc-400 truncate max-w-[240px]">{resource.title}</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-[11px] font-mono font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-              Anomaly / Reason *
+            <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+              Reason for Report *
             </label>
             <select
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className="w-full bg-[#090e1d] text-xs font-mono text-slate-100 px-3.5 py-2.5 rounded-xl border border-slate-800 focus:border-rose-400 outline-none cursor-pointer"
+              className="w-full bg-zinc-950 text-xs text-zinc-100 px-3.5 py-2.5 rounded-xl border border-zinc-800 focus:border-indigo-500 outline-none cursor-pointer"
             >
               <option value="BROKEN_LINK">Broken or offline target URL</option>
-              <option value="SPAM">Spam or misleading destination</option>
-              <option value="MALICIOUS">Malware, exploit, or security threat</option>
-              <option value="COPYRIGHT">Copyright or DMCA notice</option>
-              <option value="INCORRECT_CATEGORY">Incorrect channel / invalid tags</option>
-              <option value="HARASSMENT">Harassment or abusive content</option>
-              <option value="OTHER">Other network concern</option>
+              <option value="SPAM">Spam or misleading content</option>
+              <option value="MALICIOUS">Malware or security risk</option>
+              <option value="COPYRIGHT">Copyright or DMCA issue</option>
+              <option value="INCORRECT_CATEGORY">Incorrect category or tags</option>
+              <option value="HARASSMENT">Inappropriate or abusive content</option>
+              <option value="OTHER">Other issue</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-[11px] font-mono font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-              Telemetry Notes (Optional)
+            <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+              Additional Details (Optional)
             </label>
             <textarea
               rows={3}
-              placeholder="Describe the issue for the moderation command team..."
+              placeholder="Describe the issue for moderation review..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-[#090e1d] text-xs text-slate-100 placeholder-slate-500 px-3.5 py-2.5 rounded-xl border border-slate-800 focus:border-rose-400 outline-none resize-none"
+              className="w-full bg-zinc-950 text-xs text-zinc-100 placeholder-zinc-500 px-3.5 py-2.5 rounded-xl border border-zinc-800 focus:border-indigo-500 outline-none resize-none"
             />
           </div>
 
-          <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-slate-800">
+          <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-zinc-800">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-mono text-slate-400 hover:text-white cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-medium text-zinc-400 hover:text-white cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold font-mono text-xs uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-medium text-xs shadow-sm transition-all disabled:opacity-50 cursor-pointer"
             >
-              <Send className="w-3 h-3" />
-              <span>{submitting ? 'Transmitting...' : 'Dispatch Report'}</span>
+              <Send className="w-3.5 h-3.5" />
+              <span>{submitting ? 'Submitting...' : 'Submit Report'}</span>
             </button>
           </div>
         </form>

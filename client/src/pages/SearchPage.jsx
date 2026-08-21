@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import API from '../services/api';
 import { useIncognito } from '../context/IncognitoContext';
 import { ResourceGrid } from '../components/resources/ResourceGrid';
-import { Search, Filter, Sparkles, X, Radio, Terminal, Compass } from 'lucide-react';
+import { Search, Filter, Sparkles, X } from 'lucide-react';
 
 export const SearchPage = ({ categories = [], onReportResource, onAddToCollection }) => {
   const { isIncognito } = useIncognito();
@@ -23,7 +23,7 @@ export const SearchPage = ({ categories = [], onReportResource, onAddToCollectio
     setLoading(true);
     try {
       const params = {
-        limit: 16,
+        limit: 18,
         includeNsfw: isIncognito
       };
       if (queryParam) params.q = queryParam;
@@ -75,49 +75,49 @@ export const SearchPage = ({ categories = [], onReportResource, onAddToCollectio
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 text-left">
-      
-      {/* Sci-Fi Search Console Banner */}
-      <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-cyan-500/25 text-center space-y-5 hud-bracket relative overflow-hidden">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/40 border border-cyan-500/30 text-cyan-300 text-xs font-mono shadow-glow">
-          <Terminal className="w-3.5 h-3.5 text-cyan-400" />
-          <span>QUERY CONSOLE // DEEP TELEMETRY INDEX</span>
+
+      {/* Search Header Banner */}
+      <div className="bg-zinc-900 rounded-3xl p-6 sm:p-8 border border-zinc-800 text-center space-y-4 shadow-sm relative overflow-hidden">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-600/15 border border-indigo-500/30 text-indigo-300 text-xs font-medium">
+          <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+          <span>Global Search Engine</span>
         </div>
 
-        <h1 className="font-display font-bold text-2xl sm:text-4xl text-white">
-          Signal & Link <span className="text-gradient">Search Radar</span>
+        <h1 className="font-bold text-2xl sm:text-3xl text-white">
+          Search Discovery Index
         </h1>
 
-        <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto relative">
+        <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto relative shadow-md">
           <input
             type="text"
-            placeholder="Search keywords, #tags, domains (youtube.com), or topics..."
+            placeholder="Search keywords, #tags, domains, or topics..."
             value={inputQuery}
             onChange={(e) => setInputQuery(e.target.value)}
-            className="w-full bg-[#090e1d] text-sm sm:text-base text-slate-100 placeholder-slate-500 pl-12 pr-12 py-3.5 rounded-2xl border border-slate-700 focus:border-cyan-400 outline-none transition-all shadow-inner"
+            className="w-full bg-zinc-950 text-sm sm:text-base text-zinc-100 placeholder-zinc-500 pl-11 pr-11 py-3.5 rounded-2xl border border-zinc-800 focus:border-indigo-500 outline-none transition-all shadow-inner"
           />
-          <Search className="w-5 h-5 text-cyan-400 absolute left-4 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2" />
           {inputQuery && (
             <button
               type="button"
               onClick={() => { setInputQuery(''); setSearchParams(categoryParam ? { category: categoryParam } : {}); }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white cursor-pointer"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           )}
         </form>
 
         {/* Auto Suggestions */}
         {suggestions.length > 0 && (
-          <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
-            <span className="text-slate-400 font-mono text-[11px] flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-cyan-400" /> Signals:
+          <div className="flex flex-wrap items-center justify-center gap-1.5 text-xs pt-1">
+            <span className="text-zinc-500 text-xs flex items-center gap-1">
+              Suggested:
             </span>
             {suggestions.map((sug, idx) => (
               <button
                 key={idx}
                 onClick={() => handleSuggestionClick(sug)}
-                className="px-2.5 py-1 rounded-lg bg-[#090e1d] hover:bg-cyan-500/20 text-cyan-300 border border-slate-800 hover:border-cyan-400 font-mono text-[11px] transition-colors cursor-pointer"
+                className="px-2.5 py-0.5 rounded-lg bg-zinc-950 hover:bg-zinc-800 text-zinc-300 hover:text-indigo-300 border border-zinc-800 text-xs transition-colors cursor-pointer"
               >
                 {sug}
               </button>
@@ -128,16 +128,16 @@ export const SearchPage = ({ categories = [], onReportResource, onAddToCollectio
 
       {/* Category Pills Header Slider */}
       {(categories || []).length > 0 && (
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none border-b border-slate-800/80">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-zinc-800/80">
           <button
             onClick={() => handleCategorySelect('all')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all shrink-0 cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all shrink-0 cursor-pointer ${
               !categoryParam || categoryParam === 'all'
-                ? 'bg-gradient-to-r from-cyan-500 to-sky-500 text-slate-950 font-bold shadow-glow'
-                : 'bg-[#090e1d] text-slate-400 hover:text-slate-200 border border-slate-800'
+                ? 'bg-indigo-600 text-white shadow-sm font-semibold'
+                : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-800'
             }`}
           >
-            #ALL CHANNELS
+            All Categories
           </button>
           {(categories || []).map((cat) => {
             const isSexCat = cat.slug === 'sex' || cat.name?.toLowerCase() === 'sex';
@@ -146,17 +146,17 @@ export const SearchPage = ({ categories = [], onReportResource, onAddToCollectio
               <button
                 key={cat._id}
                 onClick={() => handleCategorySelect(cat.slug)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all shrink-0 cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all shrink-0 cursor-pointer ${
                   isSelected
                     ? isSexCat
-                      ? 'bg-purple-500/30 text-purple-200 border border-purple-400 shadow-sm'
-                      : 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/60 shadow-sm'
+                      ? 'bg-purple-600 text-white shadow-sm font-semibold'
+                      : 'bg-indigo-600 text-white shadow-sm font-semibold'
                     : isSexCat
-                    ? 'bg-purple-950/20 text-purple-300/80 hover:text-purple-200 border border-purple-500/30'
-                    : 'bg-[#090e1d] text-slate-400 hover:text-slate-200 border border-slate-800'
+                      ? 'bg-purple-950/40 text-purple-300 hover:text-purple-100 border border-purple-800/60'
+                      : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-800'
                 }`}
               >
-                #{cat.name.toUpperCase()}{isSexCat ? ' [18+]' : ''}
+                {cat.name} {isSexCat ? '(18+)' : ''}
               </button>
             );
           })}
@@ -164,15 +164,15 @@ export const SearchPage = ({ categories = [], onReportResource, onAddToCollectio
       )}
 
       {/* Results Header Stats */}
-      <div className="flex items-center justify-between text-xs text-slate-400 font-mono border-b border-slate-800/80 pb-4">
+      <div className="flex items-center justify-between text-xs text-zinc-400 border-b border-zinc-800/80 pb-3">
         <span>
-          SIGNAL QUERY MATCHES: <strong className="text-cyan-300">{results.length}</strong> / {total} TOTAL
-          {queryParam && <span> FOR "<strong className="text-white">{queryParam}</strong>"</span>}
-          {categoryParam && <span> IN CHANNEL <strong className="text-sky-300">{categoryParam.toUpperCase()}</strong></span>}
+          Found <strong className="text-zinc-200">{results.length}</strong> matching {results.length === 1 ? 'result' : 'results'}
+          {queryParam && <span> for "<strong className="text-zinc-100">{queryParam}</strong>"</span>}
+          {categoryParam && <span> in <strong className="text-indigo-300">{categoryParam}</strong></span>}
         </span>
       </div>
 
-      {/* Results Grid */}
+      {/* Results Grid with Skeleton loading */}
       <ResourceGrid
         resources={results}
         loading={loading}
@@ -183,3 +183,4 @@ export const SearchPage = ({ categories = [], onReportResource, onAddToCollectio
     </div>
   );
 };
+

@@ -48,30 +48,30 @@ export const EditCollectionModal = ({ isOpen, onClose, collection, onCollectionU
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-dark-950/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-md glass-modal rounded-3xl p-6 shadow-2xl border border-cyan-500/30 text-left hud-bracket">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-md">
+      <div className="relative w-full max-w-md bg-zinc-900 rounded-2xl p-6 shadow-2xl border border-zinc-800 text-left">
 
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-full bg-dark-800 cursor-pointer"
+          className="absolute top-4 right-4 p-1.5 text-zinc-400 hover:text-white rounded-lg bg-zinc-800 hover:bg-zinc-700 cursor-pointer transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
 
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-xl bg-indigo-600/15 text-indigo-400 border border-indigo-500/30 flex items-center justify-center">
             <FolderEdit className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-display font-bold text-lg text-white">Modify Data Vault</h3>
-            <p className="text-xs text-slate-400">Update parameters and privacy permissions</p>
+            <h3 className="font-semibold text-sm text-white">Edit Collection</h3>
+            <p className="text-xs text-zinc-400">Update collection details and visibility</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-              Vault Name *
+            <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+              Collection Name *
             </label>
             <input
               type="text"
@@ -79,71 +79,71 @@ export const EditCollectionModal = ({ isOpen, onClose, collection, onCollectionU
               placeholder="e.g. Machine Learning Toolkits"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-dark-900 text-sm text-slate-100 placeholder-slate-500 px-4 py-2.5 rounded-xl border border-slate-700 focus:border-cyan-400 outline-none"
+              className="w-full bg-zinc-950 text-xs text-zinc-100 placeholder-zinc-500 px-3.5 py-2.5 rounded-xl border border-zinc-800 focus:border-indigo-500 outline-none transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-medium text-zinc-300 mb-1.5">
               Description
             </label>
             <textarea
               rows={3}
-              placeholder="Describe the purpose of this vault..."
+              placeholder="Describe the purpose of this collection..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-dark-900 text-sm text-slate-100 placeholder-slate-500 px-4 py-2.5 rounded-xl border border-slate-700 focus:border-cyan-400 outline-none resize-none"
+              className="w-full bg-zinc-950 text-xs text-zinc-100 placeholder-zinc-500 px-3.5 py-2.5 rounded-xl border border-zinc-800 focus:border-indigo-500 outline-none resize-none transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-              Visibility Status
+            <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+              Privacy Visibility
             </label>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setVisibility('PUBLIC')}
-                className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                className={`flex items-center justify-center gap-2 p-3 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
                   visibility === 'PUBLIC'
-                    ? 'bg-sky-500/20 border-sky-400 text-sky-300'
-                    : 'bg-dark-900 border-slate-700 text-slate-400'
+                    ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300 font-semibold'
+                    : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-zinc-200'
                 }`}
               >
                 <Globe className="w-4 h-4" />
-                <span>Public Vault</span>
+                <span>Public</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setVisibility('PRIVATE')}
-                className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                className={`flex items-center justify-center gap-2 p-3 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
                   visibility === 'PRIVATE'
-                    ? 'bg-amber-500/20 border-amber-400 text-amber-300'
-                    : 'bg-dark-900 border-slate-700 text-slate-400'
+                    ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-semibold'
+                    : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-zinc-200'
                 }`}
               >
                 <Lock className="w-4 h-4" />
-                <span>Private Only</span>
+                <span>Private</span>
               </button>
             </div>
           </div>
 
-          <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-medium text-zinc-400 hover:text-white cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-sky-500 text-slate-950 font-bold text-xs shadow-glow hover:scale-105 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs shadow-sm transition-all disabled:opacity-50 cursor-pointer"
             >
               <Save className="w-4 h-4" />
-              <span>{submitting ? 'Saving...' : 'Save Vault'}</span>
+              <span>{submitting ? 'Saving...' : 'Save Changes'}</span>
             </button>
           </div>
         </form>

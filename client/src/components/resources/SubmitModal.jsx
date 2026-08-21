@@ -297,13 +297,11 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
           </div>
 
           {/* 18+ NSFW Adult Content Toggle */}
-          <div className={`p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
-            isNsfw ? 'bg-purple-950/30 border-purple-500/50' : 'bg-[#090e1d] border-slate-800'
-          }`}>
+          <div className={`p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 ${isNsfw ? 'bg-purple-950/30 border-purple-500/50' : 'bg-[#090e1d] border-slate-800'
+            }`}>
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 border ${
-                isNsfw ? 'bg-purple-500/20 text-purple-300 border-purple-500/40' : 'bg-dark-800 text-slate-400 border-slate-700'
-              }`}>
+              <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 border ${isNsfw ? 'bg-purple-500/20 text-purple-300 border-purple-500/40' : 'bg-dark-800 text-slate-400 border-slate-700'
+                }`}>
                 <Shield className="w-3.5 h-3.5" />
               </div>
               <div className="min-w-0">

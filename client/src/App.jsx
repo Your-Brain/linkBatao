@@ -63,6 +63,21 @@ export function AppContent() {
     resource: null
   });
 
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   const visibleCategories = filterCategories(categories);
 
   // -----------------------------------------
@@ -148,11 +163,35 @@ export function AppContent() {
   // -----------------------------------------
 
   return (
-    <div className="relative min-h-screen flex flex-col justify-between selection:bg-sky-400 selection:text-slate-950">
+    <div className="relative min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white bg-zinc-950 text-zinc-100">
 
-      {/* Dynamic Floating Particle Background */}
-
+      {/* Dynamic Ambient Background */}
       <CanvasBackground />
+
+      {/* Offline Status Warning Bar */}
+      {isOffline && (
+        <div className="bg-amber-950/90 border-b border-amber-800/80 px-4 py-2 z-50 text-xs text-amber-200 flex items-center justify-between gap-3 shadow-md backdrop-blur-md sticky top-0">
+          <div className="flex items-center gap-2 max-w-7xl mx-auto w-full justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              <span><strong>Offline Mode:</strong> Internet disconnected. Displaying cached layout and saved bookmarks.</span>
+            </div>
+            <button
+              onClick={() => {
+                if (navigator.onLine) {
+                  setIsOffline(false);
+                  setRefreshKey(prev => prev + 1);
+                } else {
+                  window.location.reload();
+                }
+              }}
+              className="px-2.5 py-1 rounded-md bg-amber-900/60 hover:bg-amber-900 text-amber-100 font-medium text-xs border border-amber-700 transition-colors cursor-pointer shrink-0"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Navigation Header */}
       <Navbar
@@ -160,28 +199,28 @@ export function AppContent() {
         onOpenAuthModal={handleOpenAuthModal}
       />
 
-      {/* Incognito Stealth Active Banner */}
+      {/* Incognito Active Banner */}
       {isIncognito && (
-        <div className="bg-gradient-to-r from-purple-950/90 via-[#0a0718]/90 to-rose-950/90 border-b border-purple-500/30 px-4 py-1.5 z-30 backdrop-blur-md">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 text-xs font-mono">
+        <div className="bg-purple-950/80 border-b border-purple-800/80 px-4 py-1.5 z-30 backdrop-blur-md">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 min-w-0">
               <span className="flex h-2 w-2 relative shrink-0">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
               </span>
-              <span className="font-bold text-[11px] uppercase tracking-wider text-purple-300 truncate">
-                🕶️ INCOGNITO STEALTH ACTIVE // 18+ ADULT CHANNELS UNLOCKED
+              <span className="font-semibold text-xs text-purple-200 truncate">
+                Incognito Mode Active: 18+ channels unlocked
               </span>
-              <span className="hidden sm:inline text-[10px] text-purple-400/70">
-                (Alt+I or Shield Button to toggle)
+              <span className="hidden sm:inline text-xs text-purple-300/70">
+                (Press Alt+I to toggle)
               </span>
             </div>
             <button
               onClick={disableIncognito}
-              className="px-2.5 py-0.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-[10px] font-bold uppercase transition-colors shrink-0 cursor-pointer shadow-sm"
-              title="Instantly exit Incognito mode and shield adult content"
+              className="px-2.5 py-0.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-purple-200 border border-purple-700/60 text-xs font-medium transition-colors shrink-0 cursor-pointer shadow-sm"
+              title="Exit Incognito mode"
             >
-              <span>Shield Content (Exit)</span>
+              <span>Safe Mode (Exit)</span>
             </button>
           </div>
         </div>

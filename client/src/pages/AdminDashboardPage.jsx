@@ -337,10 +337,10 @@ export const AdminDashboardPage = () => {
             fetchAdminData();
             fetchPolicyData();
           }}
-          className="px-4 py-2.5 rounded-xl bg-dark-800 text-slate-300 hover:text-white border border-slate-700 hover:border-slate-600 transition-colors shrink-0 flex items-center gap-2 text-xs font-semibold cursor-pointer"
+          className="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 transition-colors shrink-0 flex items-center gap-2 text-xs font-medium cursor-pointer"
           title="Refresh Data"
         >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-amber-400' : ''}`} />
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-indigo-400' : ''}`} />
           <span>Refresh Data</span>
         </button>
       </div>
@@ -355,69 +355,69 @@ export const AdminDashboardPage = () => {
               setActiveTab('all-resources');
               setStatusFilter('APPROVED');
             }}
-            className={`glass-card p-4 rounded-2xl border text-left transition-all hover:scale-[1.02] cursor-pointer ${
+            className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
               activeTab === 'all-resources' && statusFilter === 'APPROVED'
-                ? 'border-sky-500/80 bg-sky-500/10 shadow-glow'
-                : 'border-slate-800 hover:border-sky-500/40'
+                ? 'border-indigo-500/80 bg-indigo-600/10 shadow-sm'
+                : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'
             }`}
           >
             <div className="flex items-center justify-between">
-              <p className="text-xs text-slate-400">Active Resources</p>
-              <LinkIcon className="w-4 h-4 text-sky-400" />
+              <p className="text-xs text-zinc-400">Active Links</p>
+              <LinkIcon className="w-4 h-4 text-indigo-400" />
             </div>
-            <p className="text-2xl font-extrabold text-sky-400 mt-1">{stats.totalResources}</p>
-            <p className="text-[10px] text-sky-300/70 mt-1 font-medium">View active links →</p>
+            <p className="text-2xl font-bold text-indigo-400 mt-1">{stats.totalResources}</p>
+            <p className="text-[11px] text-zinc-400 mt-1 font-medium">View active links →</p>
           </button>
 
-          {/* Card 2: Data Vaults */}
+          {/* Card 2: Collections */}
           <button
             onClick={() => setActiveTab('vaults')}
-            className={`glass-card p-4 rounded-2xl border text-left transition-all hover:scale-[1.02] cursor-pointer ${
+            className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
               activeTab === 'vaults'
-                ? 'border-cyan-500/80 bg-cyan-500/10 shadow-glow'
-                : 'border-slate-800 hover:border-cyan-500/40'
+                ? 'border-indigo-500/80 bg-indigo-600/10 shadow-sm'
+                : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'
             }`}
           >
             <div className="flex items-center justify-between">
-              <p className="text-xs text-slate-400">Data Vaults</p>
-              <FolderHeart className="w-4 h-4 text-cyan-400" />
+              <p className="text-xs text-zinc-400">Collections</p>
+              <FolderHeart className="w-4 h-4 text-indigo-400" />
             </div>
-            <p className="text-2xl font-extrabold text-cyan-400 mt-1">{stats.totalCollections || allCollections.length || 0}</p>
-            <p className="text-[10px] text-cyan-300/70 mt-1 font-medium">Manage all vaults →</p>
+            <p className="text-2xl font-bold text-indigo-400 mt-1">{stats.totalCollections || allCollections.length || 0}</p>
+            <p className="text-[11px] text-zinc-400 mt-1 font-medium">Manage collections →</p>
           </button>
 
           {/* Card 3: Reports Queue */}
           <button
             onClick={() => setActiveTab('reports')}
-            className={`glass-card p-4 rounded-2xl border text-left transition-all hover:scale-[1.02] cursor-pointer ${
+            className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
               activeTab === 'reports'
-                ? 'border-rose-500/80 bg-rose-500/10 shadow-glow'
-                : 'border-slate-800 hover:border-rose-500/40'
+                ? 'border-rose-500/80 bg-rose-500/10 shadow-sm'
+                : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'
             }`}
           >
             <div className="flex items-center justify-between">
-              <p className="text-xs text-slate-400">Open Reports</p>
+              <p className="text-xs text-zinc-400">Open Reports</p>
               <Flag className="w-4 h-4 text-rose-400" />
             </div>
-            <p className="text-2xl font-extrabold text-rose-400 mt-1">{stats.pendingReports}</p>
-            <p className="text-[10px] text-rose-300/70 mt-1 font-medium">Moderate reports →</p>
+            <p className="text-2xl font-bold text-rose-400 mt-1">{stats.pendingReports}</p>
+            <p className="text-[11px] text-zinc-400 mt-1 font-medium">Moderate reports →</p>
           </button>
 
           {/* Card 4: Pending Review */}
           <button
             onClick={() => setActiveTab('pending')}
-            className={`glass-card p-4 rounded-2xl border text-left transition-all hover:scale-[1.02] cursor-pointer ${
+            className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
               activeTab === 'pending'
-                ? 'border-amber-500/80 bg-amber-500/10 shadow-glow'
-                : 'border-slate-800 hover:border-amber-500/40'
+                ? 'border-amber-500/80 bg-amber-500/10 shadow-sm'
+                : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'
             }`}
           >
             <div className="flex items-center justify-between">
-              <p className="text-xs text-slate-400">Pending Review</p>
+              <p className="text-xs text-zinc-400">Pending Review</p>
               <Layers className="w-4 h-4 text-amber-400" />
             </div>
-            <p className="text-2xl font-extrabold text-amber-400 mt-1">{stats.pendingResources}</p>
-            <p className="text-[10px] text-amber-300/70 mt-1 font-medium">Review submissions →</p>
+            <p className="text-2xl font-bold text-amber-400 mt-1">{stats.pendingResources}</p>
+            <p className="text-[11px] text-zinc-400 mt-1 font-medium">Review submissions →</p>
           </button>
 
           {/* Card 5: Total Users */}
@@ -425,21 +425,21 @@ export const AdminDashboardPage = () => {
             onClick={() => {
               if (user.role === 'ADMIN') setActiveTab('users');
             }}
-            className={`glass-card p-4 rounded-2xl border text-left transition-all hover:scale-[1.02] ${
+            className={`p-4 rounded-2xl border text-left transition-all ${
               user.role === 'ADMIN' ? 'cursor-pointer' : 'cursor-default'
             } ${
               activeTab === 'users'
-                ? 'border-purple-500/80 bg-purple-500/10 shadow-glow'
-                : 'border-slate-800 hover:border-purple-500/40'
+                ? 'border-purple-500/80 bg-purple-500/10 shadow-sm'
+                : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'
             }`}
           >
             <div className="flex items-center justify-between">
-              <p className="text-xs text-slate-400">Total Users</p>
+              <p className="text-xs text-zinc-400">Total Users</p>
               <Users className="w-4 h-4 text-purple-400" />
             </div>
-            <p className="text-2xl font-extrabold text-purple-400 mt-1">{stats.totalUsers}</p>
-            <p className="text-[10px] text-purple-300/70 mt-1 font-medium">
-              {user.role === 'ADMIN' ? 'Manage user bans →' : 'Registered users'}
+            <p className="text-2xl font-bold text-purple-400 mt-1">{stats.totalUsers}</p>
+            <p className="text-[11px] text-zinc-400 mt-1 font-medium">
+              {user.role === 'ADMIN' ? 'Manage user roles →' : 'Registered users'}
             </p>
           </button>
 
@@ -447,50 +447,50 @@ export const AdminDashboardPage = () => {
       )}
 
       {/* Control Navigation Tabs */}
-      <div className="flex flex-wrap items-center gap-3 border-b border-slate-800 pb-3">
+      <div className="flex flex-wrap items-center gap-2 border-b border-zinc-800 pb-3">
         <button
           onClick={() => setActiveTab('all-resources')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
             activeTab === 'all-resources'
-              ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30 shadow-md'
-              : 'text-slate-400 hover:text-white'
+              ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/40 shadow-sm font-semibold'
+              : 'text-zinc-400 hover:text-white'
           }`}
         >
-          <LinkIcon className="w-4 h-4 text-sky-400" />
-          <span>All Links & Control ({allResources.length})</span>
+          <LinkIcon className="w-4 h-4 text-indigo-400" />
+          <span>All Resources ({allResources.length})</span>
         </button>
 
-        {/* Data Vaults Management Tab */}
+        {/* Collections Tab */}
         <button
           onClick={() => setActiveTab('vaults')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
             activeTab === 'vaults'
-              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-md'
-              : 'text-slate-400 hover:text-white'
+              ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/40 shadow-sm font-semibold'
+              : 'text-zinc-400 hover:text-white'
           }`}
         >
-          <FolderHeart className="w-4 h-4 text-cyan-400" />
-          <span>Data Vaults & Lists ({allCollections.length})</span>
+          <FolderHeart className="w-4 h-4 text-indigo-400" />
+          <span>Collections ({allCollections.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('reports')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
             activeTab === 'reports'
-              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30 shadow-md'
-              : 'text-slate-400 hover:text-white'
+              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-sm font-semibold'
+              : 'text-zinc-400 hover:text-white'
           }`}
         >
           <Flag className="w-4 h-4 text-rose-400" />
-          <span>Link Reports ({reports.length})</span>
+          <span>Reports ({reports.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('pending')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
             activeTab === 'pending'
-              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow-md'
-              : 'text-slate-400 hover:text-white'
+              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm font-semibold'
+              : 'text-zinc-400 hover:text-white'
           }`}
         >
           <Layers className="w-4 h-4 text-amber-400" />
@@ -500,27 +500,27 @@ export const AdminDashboardPage = () => {
         {/* Dynamic Privacy & Safety Policy Tab */}
         <button
           onClick={() => setActiveTab('privacy')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
             activeTab === 'privacy'
-              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-md'
-              : 'text-slate-400 hover:text-white'
+              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm font-semibold'
+              : 'text-zinc-400 hover:text-white'
           }`}
         >
           <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span>Privacy & Safety Policy (Update Content)</span>
+          <span>Policy Editor</span>
         </button>
 
         {user.role === 'ADMIN' && (
           <button
             onClick={() => setActiveTab('users')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
               activeTab === 'users'
-                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30 shadow-md'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-sm font-semibold'
+                : 'text-zinc-400 hover:text-white'
             }`}
           >
             <Users className="w-4 h-4 text-purple-400" />
-            <span>User Manager & Bans ({usersList.length})</span>
+            <span>User Management ({usersList.length})</span>
           </button>
         )}
       </div>

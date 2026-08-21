@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
@@ -16,121 +16,301 @@ import {
   Menu,
   X,
   ShieldAlert,
-  Radio,
-  Sparkles,
-  Command,
-  Eye,
-  EyeOff,
   Ghost,
-  Shield
+  Shield,
+  Layers,
+  Clock,
+  Trash2,
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
+
+const SEARCH_HISTORY_KEY = 'auralink_search_history';
 
 export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
   const { user, logout } = useAuth();
   const { isIncognito, toggleIncognito } = useIncognito();
   const navigate = useNavigate();
   const location = useLocation();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [searchHistory, setSearchHistory] = useState([]);
+
+  const searchInputRef = useRef(null);
+  const searchContainerRef = useRef(null);
+
+  // Load search history from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(SEARCH_HISTORY_KEY);
+      if (stored) {
+        setSearchHistory(JSON.parse(stored));
+      }
+    } catch (e) {
+      console.error('Failed to load search history', e);
+    }
+  }, []);
+
+  // Save to search history
+  const saveSearchQuery = (query) => {
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    try {
+      const filtered = searchHistory.filter(item => item.toLowerCase() !== trimmed.toLowerCase());
+      const updated = [trimmed, ...filtered].slice(0, 8);
+      setSearchHistory(updated);
+      localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(updated));
+    } catch (e) {
+      console.error('Failed to save search history', e);
+    }
+  };
+
+  const removeHistoryItem = (e, itemToRemove) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const updated = searchHistory.filter(item => item !== itemToRemove);
+    setSearchHistory(updated);
+    try {
+      localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(updated));
+    } catch (err) { }
+  };
+
+  const clearAllHistory = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSearchHistory([]);
+    try {
+      localStorage.removeItem(SEARCH_HISTORY_KEY);
+    } catch (err) { }
+  };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      saveSearchQuery(searchQuery);
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
+      setIsHistoryOpen(false);
       setMobileMenuOpen(false);
     }
   };
+
+  const handleSelectHistoryItem = (item) => {
+    saveSearchQuery(item);
+    navigate(`/search?q=${encodeURIComponent(item)}`);
+    setSearchQuery('');
+    setIsHistoryOpen(false);
+    setMobileMenuOpen(false);
+  };
+
+  // Keyboard shortcut listener: Win+O, Alt+O, Ctrl+O, Ctrl+K, or Slash (/) to focus search input
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't intercept if user is typing in a textarea or input (unless it's an explicit modifier combo)
+      const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName);
+      const isOKey = e.key === 'o' || e.key === 'O' || e.code === 'KeyO';
+      const isKKey = e.key === 'k' || e.key === 'K' || e.code === 'KeyK';
+      const isSlash = e.key === '/' && !isTyping;
+
+      const isModifierO = isOKey && (e.altKey || e.metaKey || e.ctrlKey);
+      const isModifierK = isKKey && (e.ctrlKey || e.metaKey);
+
+      if (isModifierO || isModifierK || isSlash) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Focus navbar search or hero search if available
+        if (searchInputRef.current) {
+          searchInputRef.current.focus();
+          searchInputRef.current.select();
+        }
+        const heroInput = document.getElementById('hero-search-input');
+        if (heroInput && window.scrollY < 300) {
+          heroInput.focus();
+          heroInput.select();
+        }
+
+        setIsHistoryOpen(true);
+      } else if (e.key === 'Escape') {
+        setIsHistoryOpen(false);
+        setUserDropdownOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, []);
+
+  // Click outside to close search history
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
+        setIsHistoryOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Close dropdown on route change
   useEffect(() => {
     setUserDropdownOpen(false);
     setMobileMenuOpen(false);
+    setIsHistoryOpen(false);
   }, [location.pathname]);
 
   const isActive = (path) => location.pathname === path;
 
   return (
-    <header className="sticky top-0 z-40 w-full glass-panel border-b border-slate-800/80 bg-[#050811]/90 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 w-full backdrop-blur-2xl bg-zinc-950/75 border-b border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
 
-        {/* Brand Logo & Telemetry Indicator */}
-        <div className="flex items-center gap-4 shrink-0">
+        {/* Brand Logo */}
+        <div className="flex items-center gap-6 shrink-0">
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-sky-600 p-[1px] shadow-glow">
-              <div className="w-full h-full bg-dark-900 rounded-[7px] flex items-center justify-center relative overflow-hidden">
-                <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_#22d3ee]" />
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 p-[1px] shadow-[0_0_15px_rgba(99,102,241,0.35)]">
+              <div className="w-full h-full bg-zinc-950/80 backdrop-blur-md rounded-[11px] flex items-center justify-center text-indigo-400 group-hover:text-white transition-colors">
+                <Layers className="w-4 h-4" />
               </div>
             </div>
-            <div className="flex flex-col">
-              <span className="font-display font-bold text-lg tracking-tight text-white group-hover:text-cyan-300 transition-colors">
-                Aura<span className="text-cyan-400">Link</span>
-              </span>
-              <span className="text-[9px] font-mono text-cyan-400/80 tracking-widest hidden sm:inline uppercase">
-                HUB // v2.4
-              </span>
-            </div>
+            <span className="font-semibold text-base tracking-tight text-white group-hover:text-indigo-300 transition-colors">
+              AuraLink
+            </span>
           </Link>
 
-          {/* Live Node Signal Pill Widget */}
-          <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-950/40 border border-cyan-500/20 text-[10px] font-mono text-cyan-300">
-            <Radio className="w-3 h-3 text-cyan-400 animate-pulse" />
-            <span>ORBIT NET ONLINE</span>
-          </div>
+          {/* Desktop Navigation Glass Pills */}
+          <nav className="hidden md:flex items-center gap-1.5 text-xs font-medium text-zinc-400">
+            <Link
+              to="/"
+              className={`px-3 py-1.5 rounded-lg backdrop-blur-md transition-all ${isActive('/')
+                  ? 'bg-white/[0.1] text-white border border-white/[0.12] shadow-sm'
+                  : 'hover:text-white hover:bg-white/[0.05]'
+                }`}
+            >
+              Explore
+            </Link>
+
+            <Link
+              to="/collections"
+              className={`px-3 py-1.5 rounded-lg backdrop-blur-md transition-all ${isActive('/collections')
+                  ? 'bg-white/[0.1] text-white border border-white/[0.12] shadow-sm'
+                  : 'hover:text-white hover:bg-white/[0.05]'
+                }`}
+            >
+              Vaults
+            </Link>
+
+            <Link
+              to="/privacy"
+              className={`px-3 py-1.5 rounded-lg backdrop-blur-md transition-all ${isActive('/privacy')
+                  ? 'bg-white/[0.1] text-white border border-white/[0.12] shadow-sm'
+                  : 'hover:text-white hover:bg-white/[0.05]'
+                }`}
+            >
+              Safety
+            </Link>
+          </nav>
         </div>
 
-        {/* Global Search Bar with Sci-Fi Command Shortcut */}
-        <form onSubmit={handleSearchSubmit} className="hidden md:flex flex-1 max-w-md relative">
-          <input
-            type="text"
-            placeholder="Search resources, protocols, tags, domains..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#090e1d] text-xs text-slate-100 placeholder-slate-500 pl-9 pr-14 py-2 rounded-xl border border-slate-800 focus:border-cyan-400 outline-none transition-all"
-          />
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-dark-800 border border-slate-700/60 text-[9px] font-mono text-slate-400 pointer-events-none">
-            <Command className="w-2.5 h-2.5" />
-            <span>K</span>
-          </div>
-        </form>
+        {/* Global Glass Search Bar with History Dropdown */}
+        <div ref={searchContainerRef} className="hidden md:flex flex-1 max-w-md relative">
+          <form onSubmit={handleSearchSubmit} className="w-full relative">
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search links, tags, domains (Win+O)..."
+              value={searchQuery}
+              onFocus={() => setIsHistoryOpen(true)}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-zinc-900/60 backdrop-blur-xl text-xs text-zinc-100 placeholder-zinc-500 pl-9 pr-16 py-2 rounded-xl border border-white/[0.08] hover:border-white/[0.15] focus:border-indigo-500/80 outline-none transition-all shadow-inner"
+            />
+            <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
 
-        {/* Desktop Navigation Links */}
-        <nav className="hidden lg:flex items-center gap-1 text-xs font-medium text-slate-300">
-          <Link
-            to="/"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${isActive('/')
-                ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/30'
-                : 'hover:text-white hover:bg-slate-800/40'
-              }`}
-          >
-            <Compass className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Discovery Engine</span>
-          </Link>
+            {/* Shortcut Badge */}
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white/[0.06] border border-white/[0.08] text-[10px] font-mono text-zinc-400 pointer-events-none">
+              <span>Alt+O</span>
+            </div>
+          </form>
 
-          <Link
-            to="/collections"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${isActive('/collections')
-                ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/30'
-                : 'hover:text-white hover:bg-slate-800/40'
-              }`}
-          >
-            <FolderHeart className="w-3.5 h-3.5 text-sky-400" />
-            <span>Vaults</span>
-          </Link>
+          {/* Glass Search History & Quick Suggestions Dropdown */}
+          <AnimatePresence>
+            {isHistoryOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                transition={{ duration: 0.15 }}
+                className="absolute top-full left-0 right-0 mt-2 bg-zinc-900/90 backdrop-blur-2xl rounded-2xl border border-white/[0.12] shadow-2xl p-3 z-50 text-left space-y-3"
+              >
+                {searchHistory.length > 0 ? (
+                  <>
+                    <div className="flex items-center justify-between px-1 text-xs text-zinc-400">
+                      <span className="flex items-center gap-1.5 font-medium text-zinc-300">
+                        <Clock className="w-3.5 h-3.5 text-indigo-400" />
+                        <span>Recent Searches</span>
+                      </span>
+                      <button
+                        onClick={clearAllHistory}
+                        className="text-[11px] text-zinc-500 hover:text-rose-400 transition-colors cursor-pointer"
+                      >
+                        Clear All
+                      </button>
+                    </div>
 
-          <Link
-            to="/privacy"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${isActive('/privacy')
-                ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/30'
-                : 'hover:text-white hover:bg-slate-800/40'
-              }`}
-          >
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Protocols</span>
-          </Link>
-        </nav>
+                    <div className="space-y-1 max-h-48 overflow-y-auto scrollbar-none">
+                      {searchHistory.map((item, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => handleSelectHistoryItem(item)}
+                          className="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/[0.08] text-xs text-zinc-200 cursor-pointer group transition-colors"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Clock className="w-3 h-3 text-zinc-500 group-hover:text-indigo-400 shrink-0" />
+                            <span className="truncate">{item}</span>
+                          </div>
+                          <button
+                            onClick={(e) => removeHistoryItem(e, item)}
+                            title="Remove from history"
+                            className="p-1 text-zinc-500 hover:text-white rounded hover:bg-white/[0.1] opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="py-2 text-center text-xs text-zinc-400 space-y-1">
+                    <p className="text-zinc-300 font-medium">No recent searches</p>
+                    <p className="text-[11px] text-zinc-500">Type keywords, tags, or topics above</p>
+                  </div>
+                )}
+
+                {/* Popular Tags Quick Navigation */}
+                <div className="pt-2 border-t border-white/[0.06]">
+                  <p className="text-[11px] text-zinc-400 font-medium px-1 mb-1.5 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-indigo-400" /> Suggested topics:
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {['ai', 'developer-tools', 'design', 'react', 'music'].map((tag) => (
+                      <button
+                        key={tag}
+                        onClick={() => handleSelectHistoryItem(tag)}
+                        className="px-2 py-0.5 rounded-md bg-white/[0.05] hover:bg-indigo-600/30 hover:text-indigo-200 text-zinc-300 border border-white/[0.08] text-xs transition-colors cursor-pointer"
+                      >
+                        #{tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Actions & User Control Hub */}
         <div className="flex items-center gap-2.5">
@@ -138,11 +318,10 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
           <button
             onClick={toggleIncognito}
             title={isIncognito ? "Incognito Active: 18+ Channels Unlocked (Alt+I)" : "Safe Browsing Active: Click to unlock Incognito / 18+ mode (Alt+I)"}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer border ${
-              isIncognito
-                ? 'bg-purple-500/20 text-purple-300 border-purple-500/50 shadow-[0_0_12px_rgba(168,85,247,0.35)]'
-                : 'bg-[#090e1d] hover:bg-slate-800 text-slate-400 hover:text-slate-200 border-slate-800'
-            }`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium backdrop-blur-md transition-all cursor-pointer border ${isIncognito
+                ? 'bg-purple-950/50 text-purple-200 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.3)]'
+                : 'bg-zinc-900/60 hover:bg-white/[0.08] text-zinc-300 border-white/[0.08]'
+              }`}
           >
             {isIncognito ? (
               <>
@@ -151,60 +330,58 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
               </>
             ) : (
               <>
-                <Shield className="w-3.5 h-3.5 text-slate-400" />
-                <span className="hidden sm:inline text-slate-400">Safe Mode</span>
+                <Shield className="w-3.5 h-3.5 text-zinc-400" />
+                <span className="hidden sm:inline text-zinc-400">Safe Mode</span>
               </>
             )}
           </button>
 
           {/* Submit Action Button */}
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+          <button
             onClick={onOpenSubmitModal}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-cyan-500 to-sky-500 text-slate-950 shadow-glow transition-all cursor-pointer shrink-0"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)] transition-all cursor-pointer shrink-0"
           >
             <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span className="hidden sm:inline">Transmit Link</span>
-            <span className="sm:hidden">Transmit</span>
-          </motion.button>
+            <span className="hidden sm:inline">Submit Link</span>
+            <span className="sm:hidden">Submit</span>
+          </button>
 
           {/* User Account Session */}
           {user ? (
             <div className="relative">
               <button
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="flex items-center gap-2 p-1 rounded-xl border border-slate-800 hover:border-cyan-500/40 transition-colors bg-[#090e1d] cursor-pointer"
+                className="flex items-center gap-2 p-1 rounded-xl border border-white/[0.08] hover:border-white/[0.2] transition-colors bg-zinc-900/60 backdrop-blur-md cursor-pointer"
               >
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-400 to-indigo-500 flex items-center justify-center text-xs font-bold text-slate-950">
+                <div className="w-7 h-7 rounded-lg bg-indigo-600/30 text-indigo-300 flex items-center justify-center text-xs font-semibold">
                   {user.username.charAt(0).toUpperCase()}
                 </div>
               </button>
 
-              {/* Framer Motion Dropdown */}
+              {/* User Dropdown */}
               <AnimatePresence>
                 {userDropdownOpen && (
                   <motion.div
-                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                    initial={{ opacity: 0, y: 6, scale: 0.96 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                    exit={{ opacity: 0, y: 6, scale: 0.96 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-2 w-56 glass-modal rounded-2xl py-2 shadow-2xl border border-cyan-500/30 z-50 text-left"
+                    className="absolute right-0 mt-2 w-56 bg-zinc-900/90 backdrop-blur-2xl rounded-2xl py-2 shadow-2xl border border-white/[0.12] z-50 text-left"
                   >
-                    <div className="px-4 py-2 border-b border-slate-800">
-                      <p className="text-xs font-bold text-white">@{user.username}</p>
-                      <p className="text-[11px] text-slate-400 truncate">{user.email}</p>
-                      <span className="inline-block mt-1 px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-cyan-500/20 text-cyan-300 uppercase border border-cyan-500/30">
+                    <div className="px-4 py-2 border-b border-white/[0.06]">
+                      <p className="text-xs font-semibold text-white">@{user.username}</p>
+                      <p className="text-[11px] text-zinc-400 truncate">{user.email}</p>
+                      <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold bg-white/[0.08] text-zinc-300 uppercase">
                         {user.role}
                       </span>
                     </div>
 
                     <Link
                       to="/profile"
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-200 hover:bg-cyan-500/10 hover:text-cyan-300 transition-colors"
+                      className="flex items-center gap-2.5 px-4 py-2 text-xs text-zinc-200 hover:bg-white/[0.08] transition-colors"
                     >
-                      <User className="w-3.5 h-3.5 text-cyan-400" />
-                      <span>Saved & Transmissions</span>
+                      <User className="w-3.5 h-3.5 text-zinc-400" />
+                      <span>Saved Links</span>
                     </Link>
 
                     {(user.role === 'ADMIN' || user.role === 'MODERATOR') && (
@@ -213,7 +390,7 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
                         className="flex items-center gap-2.5 px-4 py-2 text-xs text-amber-300 hover:bg-amber-500/10 transition-colors"
                       >
                         <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
-                        <span>Command Center</span>
+                        <span>Admin Console</span>
                       </Link>
                     )}
 
@@ -222,10 +399,10 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
                         logout();
                         setUserDropdownOpen(false);
                       }}
-                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-rose-400 hover:bg-rose-950/20 transition-colors cursor-pointer text-left"
                     >
                       <LogOut className="w-3.5 h-3.5 text-rose-400" />
-                      <span>Terminate Session</span>
+                      <span>Sign Out</span>
                     </button>
                   </motion.div>
                 )}
@@ -235,17 +412,15 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
             <div className="hidden sm:flex items-center gap-1.5">
               <button
                 onClick={() => onOpenAuthModal('login')}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors cursor-pointer"
+                className="px-2.5 py-1.5 rounded-lg text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer"
               >
-                <LogIn className="w-3 h-3 text-cyan-400" />
-                <span>Log In</span>
+                Sign In
               </button>
               <button
                 onClick={() => onOpenAuthModal('register')}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-dark-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 transition-colors cursor-pointer"
+                className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white/[0.1] hover:bg-white/[0.15] text-white border border-white/[0.12] transition-colors cursor-pointer"
               >
-                <UserPlus className="w-3 h-3" />
-                <span>Register</span>
+                Register
               </button>
             </div>
           )}
@@ -253,7 +428,7 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
           {/* Mobile Menu Toggle */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-1.5 text-slate-300 hover:text-white cursor-pointer"
+            className="md:hidden p-1.5 text-zinc-400 hover:text-white cursor-pointer"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -267,7 +442,7 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden px-4 pt-2 pb-6 border-t border-slate-800 bg-[#050811]/98 backdrop-blur-2xl space-y-4"
+            className="md:hidden px-4 pt-2 pb-5 border-t border-white/[0.08] bg-zinc-950/95 backdrop-blur-2xl space-y-3 text-left"
           >
             <form onSubmit={handleSearchSubmit} className="relative">
               <input
@@ -275,53 +450,35 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
                 placeholder="Search links, tags..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#090e1d] text-xs text-slate-100 placeholder-slate-500 pl-9 pr-4 py-2 rounded-xl border border-slate-800 focus:border-cyan-400 outline-none"
+                className="w-full bg-zinc-900/80 text-xs text-zinc-100 placeholder-zinc-500 pl-8 pr-4 py-2 rounded-xl border border-white/[0.08] focus:border-indigo-500 outline-none"
               />
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
             </form>
 
-            {/* Mobile Incognito Toggle Switch */}
-            <button
-              onClick={() => { toggleIncognito(); }}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-xs font-mono font-semibold transition-all cursor-pointer ${
-                isIncognito
-                  ? 'bg-purple-950/40 border-purple-500/50 text-purple-300'
-                  : 'bg-[#090e1d] border-slate-800 text-slate-300'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                {isIncognito ? <Ghost className="w-4 h-4 text-purple-400" /> : <Shield className="w-4 h-4 text-slate-400" />}
-                <span>{isIncognito ? 'Incognito Mode: ACTIVE' : 'Safe Browsing: ACTIVE'}</span>
-              </div>
-              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${isIncognito ? 'bg-purple-500 text-slate-950' : 'bg-slate-800 text-slate-400'}`}>
-                {isIncognito ? '18+ ON' : '18+ OFF'}
-              </span>
-            </button>
-
-            <div className="flex flex-col gap-2 font-medium text-slate-200 text-xs">
-              <Link to="/" className="flex items-center gap-2 py-2 hover:text-cyan-300">
-                <Compass className="w-4 h-4 text-cyan-400" />
-                <span>Discovery Engine</span>
+            <div className="flex flex-col gap-1 text-xs font-medium text-zinc-300">
+              <Link to="/" className="flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-white/[0.06]">
+                <Compass className="w-4 h-4 text-zinc-400" />
+                <span>Explore</span>
               </Link>
-              <Link to="/collections" className="flex items-center gap-2 py-2 hover:text-cyan-300">
-                <FolderHeart className="w-4 h-4 text-sky-400" />
-                <span>Vaults & Collections</span>
+              <Link to="/collections" className="flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-white/[0.06]">
+                <FolderHeart className="w-4 h-4 text-zinc-400" />
+                <span>Vaults</span>
               </Link>
-              <Link to="/privacy" className="flex items-center gap-2 py-2 hover:text-cyan-300">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>Protocols & Safety</span>
+              <Link to="/privacy" className="flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-white/[0.06]">
+                <ShieldCheck className="w-4 h-4 text-zinc-400" />
+                <span>Safety & Protocols</span>
               </Link>
               {!user && (
-                <div className="flex gap-2 pt-2 border-t border-slate-800">
+                <div className="flex gap-2 pt-2 border-t border-white/[0.08]">
                   <button
                     onClick={() => { onOpenAuthModal('login'); setMobileMenuOpen(false); }}
-                    className="flex-1 py-2 rounded-xl bg-dark-800 text-xs font-semibold text-slate-200 border border-slate-700"
+                    className="flex-1 py-1.5 rounded-lg bg-zinc-900 text-xs font-medium text-zinc-200 border border-zinc-800"
                   >
-                    Log In
+                    Sign In
                   </button>
                   <button
                     onClick={() => { onOpenAuthModal('register'); setMobileMenuOpen(false); }}
-                    className="flex-1 py-2 rounded-xl bg-cyan-500 text-xs font-bold text-slate-950 shadow-glow"
+                    className="flex-1 py-1.5 rounded-lg bg-indigo-600 text-xs font-medium text-white shadow-sm"
                   >
                     Register
                   </button>
@@ -334,3 +491,4 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
     </header>
   );
 };
+

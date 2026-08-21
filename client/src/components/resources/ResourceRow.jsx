@@ -140,13 +140,12 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
-      className={`glass-card rounded-2xl overflow-hidden p-4 border transition-all flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 text-left group hud-bracket ${
-        isHidden
+      className={`glass-card rounded-2xl overflow-hidden p-4 border transition-all flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 text-left group hud-bracket ${isHidden
           ? 'border-rose-500/40 bg-rose-950/10'
           : isAdult
-          ? 'border-purple-500/30 hover:border-purple-400/60'
-          : 'border-slate-800 hover:border-cyan-500/40'
-      }`}
+            ? 'border-purple-500/30 hover:border-purple-400/60'
+            : 'border-slate-800 hover:border-cyan-500/40'
+        }`}
     >
       {/* Left Thumbnail Preview */}
       <Link to={`/resources/${resource._id}`} className="w-full sm:w-44 h-28 shrink-0 rounded-xl overflow-hidden bg-[#03050a] relative block">
@@ -154,9 +153,8 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
           <img
             src={resource.thumbnail}
             alt={resource.title}
-            className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-500 opacity-90 group-hover:opacity-100 ${
-              isBlurred ? 'blur-lg scale-110 opacity-40' : ''
-            }`}
+            className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-500 opacity-90 group-hover:opacity-100 ${isBlurred ? 'blur-lg scale-110 opacity-40' : ''
+              }`}
             onError={(e) => {
               e.target.src = `https://www.google.com/s2/favicons?domain=${resource.domain}&sz=128`;
             }}
@@ -241,11 +239,10 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
           <button
             onClick={handleCopyUrl}
             title={isCopied ? 'URL Copied!' : 'Copy Direct URL'}
-            className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-semibold border transition-all cursor-pointer ${
-              isCopied
+            className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-semibold border transition-all cursor-pointer ${isCopied
                 ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                 : 'bg-[#090e1d] hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-300 border-slate-800'
-            }`}
+              }`}
           >
             {isCopied ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5" />}
             <span>{isCopied ? 'Copied' : 'Copy URL'}</span>
@@ -298,11 +295,10 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
               </button>
               <button
                 onClick={handleAdminToggleHide}
-                className={`px-2 py-0.5 rounded text-[10px] font-semibold border transition-colors flex items-center gap-0.5 cursor-pointer ${
-                  isHidden
+                className={`px-2 py-0.5 rounded text-[10px] font-semibold border transition-colors flex items-center gap-0.5 cursor-pointer ${isHidden
                     ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
                     : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
-                }`}
+                  }`}
               >
                 {isHidden ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
                 <span>{isHidden ? 'Unhide' : 'Hide'}</span>
@@ -336,11 +332,10 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
           <button
             onClick={handleSaveToggle}
             title={isSaved ? 'Remove Bookmark' : 'Save Bookmark'}
-            className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
-              isSaved
+            className={`p-1.5 rounded-lg border transition-all cursor-pointer ${isSaved
                 ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
                 : 'bg-[#090e1d] hover:bg-slate-800 text-slate-400 hover:text-slate-200 border-slate-800'
-            }`}
+              }`}
           >
             <Bookmark className={`w-3.5 h-3.5 ${isSaved ? 'fill-cyan-300' : ''}`} />
           </button>

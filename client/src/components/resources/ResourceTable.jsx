@@ -165,9 +165,8 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
               return (
                 <tr
                   key={resource._id}
-                  className={`hover:bg-[#0e162c]/60 transition-colors group ${
-                    isHidden ? 'bg-rose-950/15 opacity-75' : isAdult ? 'bg-purple-950/10' : ''
-                  }`}
+                  className={`hover:bg-[#0e162c]/60 transition-colors group ${isHidden ? 'bg-rose-950/15 opacity-75' : isAdult ? 'bg-purple-950/10' : ''
+                    }`}
                 >
                   {/* Content & Title */}
                   <td className="py-3 px-4">
@@ -239,9 +238,8 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
                   <td className="py-3 px-3">
                     <div className="flex flex-col items-start gap-1">
                       {categoryName && (
-                        <span className={`px-2 py-0.5 rounded-md font-mono font-semibold text-[9px] uppercase tracking-wider ${
-                          isAdult ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/20'
-                        }`}>
+                        <span className={`px-2 py-0.5 rounded-md font-mono font-semibold text-[9px] uppercase tracking-wider ${isAdult ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/20'
+                          }`}>
                           {categoryName}
                         </span>
                       )}
@@ -257,11 +255,10 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={(e) => handleCopyUrl(e, resource)}
-                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border text-[10px] font-mono font-medium transition-all cursor-pointer ${
-                          isCopied
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border text-[10px] font-mono font-medium transition-all cursor-pointer ${isCopied
                             ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                             : 'bg-[#090e1d] hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300 border-slate-800'
-                        }`}
+                          }`}
                         title="Copy direct source URL"
                       >
                         {isCopied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
@@ -300,11 +297,10 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
                       <button
                         onClick={(e) => handleSaveToggle(e, resource._id)}
                         title={isSaved ? 'Remove Bookmark' : 'Save Bookmark'}
-                        className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
-                          isSaved
+                        className={`p-1.5 rounded-lg border transition-all cursor-pointer ${isSaved
                             ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
                             : 'bg-[#090e1d] hover:bg-slate-800 text-slate-400 hover:text-slate-200 border-slate-800'
-                        }`}
+                          }`}
                       >
                         <Bookmark className={`w-3.5 h-3.5 ${isSaved ? 'fill-cyan-300' : ''}`} />
                       </button>
@@ -345,11 +341,10 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
                           <button
                             onClick={(e) => handleAdminToggleHide(e, resource)}
                             title={isHidden ? 'Admin Unhide' : 'Admin Hide'}
-                            className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
-                              isHidden
+                            className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${isHidden
                                 ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
                                 : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
-                            }`}
+                              }`}
                           >
                             {isHidden ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
                           </button>
