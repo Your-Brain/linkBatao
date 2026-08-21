@@ -11,17 +11,6 @@ export const search = async (req, res, next) => {
     const limit = parseInt(req.query.limit, 10) || 12;
     const startIndex = (page - 1) * limit;
 
-    const hasFilter = q || req.query.category || req.query.resourceType;
-
-    if (!hasFilter) {
-      return res.json({
-        success: true,
-        data: [],
-        suggestions: [],
-        total: 0
-      });
-    }
-
     const searchQuery = { status: 'APPROVED' };
 
     // Incognito / NSFW Filtering
@@ -91,14 +80,14 @@ export const search = async (req, res, next) => {
     // Generate quick search suggestions from titles & tags
     const suggestionsRaw = await Resource.find(searchQuery)
       .select('title tags')
-      .limit(5);
+      .limit(10);
 
     const suggestionsSet = new Set();
     suggestionsRaw.forEach(item => {
-      if (item.title) suggestionsSet.add(item.title);
+      if (item.title && q) suggestionsSet.add(item.title);
       if (Array.isArray(item.tags)) {
         item.tags.forEach(t => {
-          if (t.toLowerCase().includes(q.toLowerCase())) {
+          if (!q || t.toLowerCase().includes(q.toLowerCase())) {
             suggestionsSet.add(`#${t}`);
           }
         });
