@@ -24,14 +24,44 @@ export const search = async (req, res, next) => {
 
     const searchQuery = { status: 'APPROVED' };
 
+    // Incognito / NSFW Filtering
+    const includeNsfw = req.query.includeNsfw === 'true' || req.query.nsfw === 'true';
+    const nsfwOnly = req.query.nsfwOnly === 'true';
+
+    const sexCat = await Category.findOne({ slug: 'sex' });
+    const sexCatId = sexCat ? sexCat._id : null;
+
+    if (nsfwOnly) {
+      if (sexCatId) {
+        searchQuery.$or = [{ isNsfw: true }, { category: sexCatId }];
+      } else {
+        searchQuery.isNsfw = true;
+      }
+    } else if (!includeNsfw) {
+      searchQuery.isNsfw = { $ne: true };
+      if (sexCatId && !req.query.category) {
+        searchQuery.category = { $ne: sexCatId };
+      }
+    }
+
     if (q) {
       const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
-      searchQuery.$or = [
+      const textConditions = [
         { title: regex },
         { description: regex },
         { tags: regex },
         { domain: regex }
       ];
+
+      if (searchQuery.$or) {
+        searchQuery.$and = [
+          { $or: searchQuery.$or },
+          { $or: textConditions }
+        ];
+        delete searchQuery.$or;
+      } else {
+        searchQuery.$or = textConditions;
+      }
     }
 
     // Apply optional category filter during search

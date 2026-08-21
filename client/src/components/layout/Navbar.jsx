@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
+import { useIncognito } from '../../context/IncognitoContext';
 import {
   Search,
   Plus,
@@ -17,11 +18,16 @@ import {
   ShieldAlert,
   Radio,
   Sparkles,
-  Command
+  Command,
+  Eye,
+  EyeOff,
+  Ghost,
+  Shield
 } from 'lucide-react';
 
 export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
   const { user, logout } = useAuth();
+  const { isIncognito, toggleIncognito } = useIncognito();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
@@ -128,6 +134,29 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
 
         {/* Actions & User Control Hub */}
         <div className="flex items-center gap-2.5">
+          {/* Incognito Stealth Mode Toggle Button */}
+          <button
+            onClick={toggleIncognito}
+            title={isIncognito ? "Incognito Active: 18+ Channels Unlocked (Alt+I)" : "Safe Browsing Active: Click to unlock Incognito / 18+ mode (Alt+I)"}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer border ${
+              isIncognito
+                ? 'bg-purple-500/20 text-purple-300 border-purple-500/50 shadow-[0_0_12px_rgba(168,85,247,0.35)]'
+                : 'bg-[#090e1d] hover:bg-slate-800 text-slate-400 hover:text-slate-200 border-slate-800'
+            }`}
+          >
+            {isIncognito ? (
+              <>
+                <Ghost className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
+                <span className="hidden sm:inline">Incognito: <strong className="text-purple-300">ON</strong></span>
+              </>
+            ) : (
+              <>
+                <Shield className="w-3.5 h-3.5 text-slate-400" />
+                <span className="hidden sm:inline text-slate-400">Safe Mode</span>
+              </>
+            )}
+          </button>
+
           {/* Submit Action Button */}
           <motion.button
             whileHover={{ scale: 1.02 }}
@@ -136,7 +165,8 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-cyan-500 to-sky-500 text-slate-950 shadow-glow transition-all cursor-pointer shrink-0"
           >
             <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>Transmit Link</span>
+            <span className="hidden sm:inline">Transmit Link</span>
+            <span className="sm:hidden">Transmit</span>
           </motion.button>
 
           {/* User Account Session */}
@@ -249,6 +279,24 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
               />
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             </form>
+
+            {/* Mobile Incognito Toggle Switch */}
+            <button
+              onClick={() => { toggleIncognito(); }}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-xs font-mono font-semibold transition-all cursor-pointer ${
+                isIncognito
+                  ? 'bg-purple-950/40 border-purple-500/50 text-purple-300'
+                  : 'bg-[#090e1d] border-slate-800 text-slate-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                {isIncognito ? <Ghost className="w-4 h-4 text-purple-400" /> : <Shield className="w-4 h-4 text-slate-400" />}
+                <span>{isIncognito ? 'Incognito Mode: ACTIVE' : 'Safe Browsing: ACTIVE'}</span>
+              </div>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${isIncognito ? 'bg-purple-500 text-slate-950' : 'bg-slate-800 text-slate-400'}`}>
+                {isIncognito ? '18+ ON' : '18+ OFF'}
+              </span>
+            </button>
 
             <div className="flex flex-col gap-2 font-medium text-slate-200 text-xs">
               <Link to="/" className="flex items-center gap-2 py-2 hover:text-cyan-300">

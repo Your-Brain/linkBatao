@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { useIncognito } from '../context/IncognitoContext';
 import { EmbeddedPlayer } from '../components/resources/EmbeddedPlayer';
 import { ResourceCard } from '../components/resources/ResourceCard';
 import { EditResourceModal } from '../components/resources/EditResourceModal';
@@ -24,13 +25,15 @@ import {
   Copy,
   Check,
   Radio,
-  Layers
+  Layers,
+  Ghost
 } from 'lucide-react';
 
 export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
   const { id } = useParams();
   const { user, savedIds, toggleSaveResource } = useAuth();
   const { showToast } = useToast();
+  const { isIncognito, enableIncognito, isAdultResource } = useIncognito();
   const navigate = useNavigate();
 
   const [resource, setResource] = useState(null);
@@ -140,8 +143,39 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
 
   const categoryName = getCategoryName(resource.category);
 
+  const isAdult = isAdultResource(resource);
+
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8 text-left">
+
+      {/* 18+ Adult Content Notice Banner */}
+      {isAdult && (
+        <div className={`p-4 rounded-2xl border flex flex-wrap items-center justify-between gap-4 ${
+          isIncognito ? 'bg-purple-950/30 border-purple-500/40 text-purple-200' : 'bg-rose-950/30 border-rose-500/40 text-rose-200'
+        }`}>
+          <div className="flex items-center gap-2.5">
+            <Ghost className="w-5 h-5 text-purple-400 shrink-0" />
+            <div>
+              <p className="text-xs font-mono font-bold uppercase tracking-wider">
+                18+ / NSFW Adult Signal
+              </p>
+              <p className="text-[11px] text-slate-400 font-mono">
+                {isIncognito
+                  ? 'Stealth mode active: Ephemeral private viewing mode engaged'
+                  : 'This resource contains adult/NSFW content. Incognito Mode is currently OFF.'}
+              </p>
+            </div>
+          </div>
+          {!isIncognito && (
+            <button
+              onClick={enableIncognito}
+              className="px-3.5 py-1.5 rounded-xl bg-purple-500 hover:bg-purple-400 text-slate-950 text-xs font-mono font-bold uppercase transition-colors cursor-pointer shadow-sm"
+            >
+              Unlock Incognito
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Admin / Owner Controls Banner */}
       {canManage && (
@@ -209,6 +243,11 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
             <span className="px-2.5 py-1 rounded-lg bg-[#090e1d] text-slate-300 border border-slate-800 font-mono text-[10px] uppercase">
               {resource.resourceType}
             </span>
+            {isAdult && (
+              <span className="px-2.5 py-1 rounded-lg bg-purple-950/90 text-purple-300 border border-purple-500/40 font-mono text-[10px] font-bold uppercase tracking-wider">
+                18+ NSFW
+              </span>
+            )}
             <span className="text-slate-600 font-mono">•</span>
             <span className="text-slate-400 flex items-center gap-1 font-mono text-[11px]">
               <Globe className="w-3.5 h-3.5 text-cyan-400" />

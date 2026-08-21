@@ -2,10 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import API from '../services/api';
+import { useIncognito } from '../context/IncognitoContext';
 import { ResourceGrid } from '../components/resources/ResourceGrid';
 import { Search, Filter, Sparkles, X, Radio, Terminal, Compass } from 'lucide-react';
 
 export const SearchPage = ({ categories = [], onReportResource, onAddToCollection }) => {
+  const { isIncognito } = useIncognito();
   const [searchParams, setSearchParams] = useSearchParams();
   const queryParam = searchParams.get('q') || '';
   const categoryParam = searchParams.get('category') || '';
@@ -21,7 +23,8 @@ export const SearchPage = ({ categories = [], onReportResource, onAddToCollectio
     setLoading(true);
     try {
       const params = {
-        limit: 16
+        limit: 16,
+        includeNsfw: isIncognito
       };
       if (queryParam) params.q = queryParam;
       if (categoryParam) params.category = categoryParam;
@@ -38,7 +41,7 @@ export const SearchPage = ({ categories = [], onReportResource, onAddToCollectio
     } finally {
       setLoading(false);
     }
-  }, [queryParam, categoryParam, typeParam]);
+  }, [queryParam, categoryParam, typeParam, isIncognito]);
 
   useEffect(() => {
     setInputQuery(queryParam);
@@ -136,19 +139,27 @@ export const SearchPage = ({ categories = [], onReportResource, onAddToCollectio
           >
             #ALL CHANNELS
           </button>
-          {(categories || []).map((cat) => (
-            <button
-              key={cat._id}
-              onClick={() => handleCategorySelect(cat.slug)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all shrink-0 cursor-pointer ${
-                categoryParam.toLowerCase() === cat.slug.toLowerCase()
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/60 shadow-sm'
-                  : 'bg-[#090e1d] text-slate-400 hover:text-slate-200 border border-slate-800'
-              }`}
-            >
-              #{cat.name.toUpperCase()}
-            </button>
-          ))}
+          {(categories || []).map((cat) => {
+            const isSexCat = cat.slug === 'sex' || cat.name?.toLowerCase() === 'sex';
+            const isSelected = categoryParam.toLowerCase() === cat.slug.toLowerCase();
+            return (
+              <button
+                key={cat._id}
+                onClick={() => handleCategorySelect(cat.slug)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all shrink-0 cursor-pointer ${
+                  isSelected
+                    ? isSexCat
+                      ? 'bg-purple-500/30 text-purple-200 border border-purple-400 shadow-sm'
+                      : 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/60 shadow-sm'
+                    : isSexCat
+                    ? 'bg-purple-950/20 text-purple-300/80 hover:text-purple-200 border border-purple-500/30'
+                    : 'bg-[#090e1d] text-slate-400 hover:text-slate-200 border border-slate-800'
+                }`}
+              >
+                #{cat.name.toUpperCase()}{isSexCat ? ' [18+]' : ''}
+              </button>
+            );
+          })}
         </div>
       )}
 

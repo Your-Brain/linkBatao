@@ -17,6 +17,26 @@ export const getResources = async (req, res, next) => {
 
     const query = { status: 'APPROVED' };
 
+    // Incognito / NSFW Filtering
+    const includeNsfw = req.query.includeNsfw === 'true' || req.query.nsfw === 'true';
+    const nsfwOnly = req.query.nsfwOnly === 'true';
+
+    const sexCat = await Category.findOne({ slug: 'sex' });
+    const sexCatId = sexCat ? sexCat._id : null;
+
+    if (nsfwOnly) {
+      if (sexCatId) {
+        query.$or = [{ isNsfw: true }, { category: sexCatId }];
+      } else {
+        query.isNsfw = true;
+      }
+    } else if (!includeNsfw) {
+      query.isNsfw = { $ne: true };
+      if (sexCatId && !req.query.category) {
+        query.category = { $ne: sexCatId };
+      }
+    }
+
     // Category Filter
     if (req.query.category) {
       if (req.query.category.match(/^[0-9a-fA-F]{24}$/)) {
@@ -158,7 +178,7 @@ export const previewMetadata = async (req, res, next) => {
 // @access  Public (Optional Auth)
 export const createResource = async (req, res, next) => {
   try {
-    const { url, title, description, category, tags, resourceType, thumbnail } = req.body;
+    const { url, title, description, category, tags, resourceType, thumbnail, isNsfw } = req.body;
 
     if (!url || !title || !category) {
       return res.status(400).json({ success: false, message: 'Please provide URL, title, and category' });
@@ -219,6 +239,11 @@ export const createResource = async (req, res, next) => {
     // Determine Resource Type
     const finalType = (resourceType || embedInfo.resourceType || 'WEBSITE').toUpperCase();
 
+    // Auto-detect NSFW if category is sex or tags contain adult keywords
+    const isAdultCategory = catObj && (catObj.slug === 'sex' || catObj.name.toLowerCase() === 'sex');
+    const hasNsfwTags = processedTags.some(t => ['nsfw', 'adult', '18+', 'xxx', 'porn', 'erotic', 'sex'].includes(t.toLowerCase()));
+    const finalIsNsfw = Boolean(isNsfw || isAdultCategory || hasNsfwTags);
+
     const newResource = await Resource.create({
       url,
       normalizedUrl,
@@ -228,6 +253,7 @@ export const createResource = async (req, res, next) => {
       category: catObj._id,
       tags: processedTags,
       resourceType: finalType,
+      isNsfw: finalIsNsfw,
       embedType: embedInfo.embedType,
       embedUrl: embedInfo.embedUrl,
       thumbnail: thumbnail || '',
@@ -290,11 +316,12 @@ export const updateResource = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Not authorized to edit this resource' });
     }
 
-    const { title, description, url, category, tags, resourceType, thumbnail, status } = req.body;
+    const { title, description, url, category, tags, resourceType, thumbnail, status, isNsfw } = req.body;
 
     if (title) resource.title = title.trim();
     if (description !== undefined) resource.description = description.trim();
     if (thumbnail !== undefined) resource.thumbnail = thumbnail;
+    if (isNsfw !== undefined) resource.isNsfw = Boolean(isNsfw);
 
     if (url && url !== resource.url) {
       const { normalizedUrl, domain } = normalizeUrl(url);

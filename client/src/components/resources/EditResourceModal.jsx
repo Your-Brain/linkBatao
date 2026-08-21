@@ -18,7 +18,8 @@ export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated
     resourceType: 'WEBSITE',
     status: 'APPROVED',
     thumbnail: '',
-    tags: ''
+    tags: '',
+    isNsfw: false
   });
 
   useEffect(() => {
@@ -45,7 +46,8 @@ export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated
         resourceType: resource.resourceType || 'WEBSITE',
         status: resource.status || 'APPROVED',
         thumbnail: resource.thumbnail || '',
-        tags: Array.isArray(resource.tags) ? resource.tags.join(', ') : (resource.tags || '')
+        tags: Array.isArray(resource.tags) ? resource.tags.join(', ') : (resource.tags || ''),
+        isNsfw: Boolean(resource.isNsfw)
       });
     }
   }, [resource]);
@@ -217,6 +219,29 @@ export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated
                 onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                 className="w-full px-3.5 py-2.5 rounded-xl bg-[#090e1d] border border-slate-800 text-white text-xs font-mono focus:border-cyan-400 focus:outline-none"
               />
+            </div>
+
+            {/* 18+ NSFW Adult Content Toggle */}
+            <div className={`p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+              formData.isNsfw ? 'bg-purple-950/30 border-purple-500/50' : 'bg-[#090e1d] border-slate-800'
+            }`}>
+              <div>
+                <p className={`text-xs font-mono font-bold ${formData.isNsfw ? 'text-purple-200' : 'text-slate-300'}`}>
+                  18+ / NSFW Adult Classification
+                </p>
+                <p className="text-[10px] text-slate-400 font-mono">
+                  {formData.isNsfw ? 'Visible exclusively in Incognito Mode' : 'Flag as adult/explicit content'}
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.isNsfw}
+                  onChange={(e) => setFormData({ ...formData, isNsfw: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-dark-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-500 border border-slate-700 peer-checked:border-purple-400"></div>
+              </label>
             </div>
 
           </div>

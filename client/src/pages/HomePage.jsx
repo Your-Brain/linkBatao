@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import API from '../services/api';
+import { useIncognito } from '../context/IncognitoContext';
 import { HeroSection } from '../components/layout/HeroSection';
 import { ResourceGrid } from '../components/resources/ResourceGrid';
-import { Flame, Clock, Bookmark, Eye, Filter, Sparkles, Radio, Layers, RefreshCw } from 'lucide-react';
+import { Flame, Clock, Bookmark, Eye, Filter, Sparkles, Radio, Layers, RefreshCw, Ghost } from 'lucide-react';
 
 export const HomePage = ({ categories = [], refreshKey = 0, onOpenSubmitModal, onReportResource, onAddToCollection }) => {
+  const { isIncognito } = useIncognito();
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('all');
@@ -17,7 +19,8 @@ export const HomePage = ({ categories = [], refreshKey = 0, onOpenSubmitModal, o
     try {
       const params = {
         sort: activeSort,
-        limit: 16
+        limit: 16,
+        includeNsfw: isIncognito
       };
       if (activeCategory !== 'all') {
         params.category = activeCategory;
@@ -35,7 +38,7 @@ export const HomePage = ({ categories = [], refreshKey = 0, onOpenSubmitModal, o
     } finally {
       setLoading(false);
     }
-  }, [activeCategory, activeSort, activeType]);
+  }, [activeCategory, activeSort, activeType, isIncognito]);
 
   useEffect(() => {
     fetchResources();
@@ -74,18 +77,26 @@ export const HomePage = ({ categories = [], refreshKey = 0, onOpenSubmitModal, o
               #ALL CHANNELS
             </button>
 
-            {(categories || []).map((cat) => (
-              <button
-                key={cat._id}
-                onClick={() => setActiveCategory(cat.slug)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all shrink-0 cursor-pointer ${activeCategory === cat.slug
-                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/60 shadow-sm'
-                    : 'bg-[#090e1d] text-slate-400 hover:text-slate-200 border border-slate-800'
+            {(categories || []).map((cat) => {
+              const isSexCat = cat.slug === 'sex' || cat.name?.toLowerCase() === 'sex';
+              return (
+                <button
+                  key={cat._id}
+                  onClick={() => setActiveCategory(cat.slug)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all shrink-0 cursor-pointer ${
+                    activeCategory === cat.slug
+                      ? isSexCat
+                        ? 'bg-purple-500/30 text-purple-200 border border-purple-400 shadow-sm'
+                        : 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/60 shadow-sm'
+                      : isSexCat
+                      ? 'bg-purple-950/20 text-purple-300/80 hover:text-purple-200 border border-purple-500/30'
+                      : 'bg-[#090e1d] text-slate-400 hover:text-slate-200 border border-slate-800'
                   }`}
-              >
-                #{cat.name.toUpperCase()}
-              </button>
-            ))}
+                >
+                  #{cat.name.toUpperCase()}{isSexCat ? ' [18+]' : ''}
+                </button>
+              );
+            })}
           </div>
         </div>
 

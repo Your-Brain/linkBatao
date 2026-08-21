@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate } from 'r
 import API from './services/api';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { IncognitoProvider, useIncognito } from './context/IncognitoContext';
 import { CanvasBackground } from './components/layout/CanvasBackground';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
@@ -40,6 +41,7 @@ export const DEFAULT_CATEGORIES = [
 export function AppContent() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isIncognito, filterCategories, disableIncognito } = useIncognito();
 
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -60,6 +62,8 @@ export function AppContent() {
     isOpen: false,
     resource: null
   });
+
+  const visibleCategories = filterCategories(categories);
 
   // -----------------------------------------
   // Initial App Loading
@@ -156,6 +160,33 @@ export function AppContent() {
         onOpenAuthModal={handleOpenAuthModal}
       />
 
+      {/* Incognito Stealth Active Banner */}
+      {isIncognito && (
+        <div className="bg-gradient-to-r from-purple-950/90 via-[#0a0718]/90 to-rose-950/90 border-b border-purple-500/30 px-4 py-1.5 z-30 backdrop-blur-md">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 text-xs font-mono">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="flex h-2 w-2 relative shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
+              </span>
+              <span className="font-bold text-[11px] uppercase tracking-wider text-purple-300 truncate">
+                🕶️ INCOGNITO STEALTH ACTIVE // 18+ ADULT CHANNELS UNLOCKED
+              </span>
+              <span className="hidden sm:inline text-[10px] text-purple-400/70">
+                (Alt+I or Shield Button to toggle)
+              </span>
+            </div>
+            <button
+              onClick={disableIncognito}
+              className="px-2.5 py-0.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-[10px] font-bold uppercase transition-colors shrink-0 cursor-pointer shadow-sm"
+              title="Instantly exit Incognito mode and shield adult content"
+            >
+              <span>Shield Content (Exit)</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Main Page Router */}
       <main className="flex-1 relative z-10">
         <Routes>
@@ -164,7 +195,7 @@ export function AppContent() {
             path="/"
             element={
               <HomePage
-                categories={categories}
+                categories={visibleCategories}
                 refreshKey={refreshKey}
                 onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
                 onReportResource={handleOpenReportModal}
@@ -187,7 +218,7 @@ export function AppContent() {
             path="/search"
             element={
               <SearchPage
-                categories={categories}
+                categories={visibleCategories}
                 refreshKey={refreshKey}
                 onReportResource={handleOpenReportModal}
                 onAddToCollection={handleOpenAddToCollectionModal}
@@ -253,7 +284,7 @@ export function AppContent() {
       <SubmitModal
         isOpen={isSubmitModalOpen}
         onClose={() => setIsSubmitModalOpen(false)}
-        categories={categories}
+        categories={visibleCategories}
         onResourceSubmitted={handleResourceSubmitted}
       />
 
@@ -299,7 +330,9 @@ export default function App() {
     <Router>
       <ToastProvider>
         <AuthProvider>
-          <AppContent />
+          <IncognitoProvider>
+            <AppContent />
+          </IncognitoProvider>
         </AuthProvider>
       </ToastProvider>
     </Router>

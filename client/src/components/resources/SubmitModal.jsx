@@ -51,6 +51,7 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
   const [tags, setTags] = useState('');
   const [resourceType, setResourceType] = useState('WEBSITE');
   const [thumbnail, setThumbnail] = useState('');
+  const [isNsfw, setIsNsfw] = useState(false);
 
   const [fetchingPreview, setFetchingPreview] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -61,6 +62,14 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
       setCategory(activeCategories[0]._id);
     }
   }, [activeCategories, category]);
+
+  const handleCategoryChange = (newCatId) => {
+    setCategory(newCatId);
+    const selectedCat = activeCategories.find(c => c._id === newCatId || c.slug === newCatId);
+    if (selectedCat && (selectedCat.slug === 'sex' || selectedCat.name?.toLowerCase() === 'sex')) {
+      setIsNsfw(true);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -110,7 +119,8 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
         category,
         tags: tags ? tags.split(',').map(t => t.trim()) : [],
         resourceType,
-        thumbnail
+        thumbnail,
+        isNsfw
       });
 
       if (res.data.success) {
@@ -122,6 +132,7 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
         setTitle('');
         setDescription('');
         setTags('');
+        setIsNsfw(false);
         setPreviewData(null);
       }
     } catch (err) {
@@ -254,13 +265,13 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
               </label>
               <select
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) => handleCategoryChange(e.target.value)}
                 className="w-full bg-[#090e1d] text-xs font-mono text-slate-100 px-3.5 py-2.5 rounded-xl border border-slate-800 focus:border-cyan-400 outline-none cursor-pointer"
               >
                 <option value="">Select Channel</option>
                 {activeCategories.map((cat) => (
                   <option key={cat._id} value={cat._id}>
-                    {cat.name}
+                    {cat.name} {cat.slug === 'sex' || cat.name?.toLowerCase() === 'sex' ? '(18+ NSFW)' : ''}
                   </option>
                 ))}
               </select>
@@ -283,6 +294,36 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
                 <option value="OTHER">Other Media</option>
               </select>
             </div>
+          </div>
+
+          {/* 18+ NSFW Adult Content Toggle */}
+          <div className={`p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+            isNsfw ? 'bg-purple-950/30 border-purple-500/50' : 'bg-[#090e1d] border-slate-800'
+          }`}>
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 border ${
+                isNsfw ? 'bg-purple-500/20 text-purple-300 border-purple-500/40' : 'bg-dark-800 text-slate-400 border-slate-700'
+              }`}>
+                <Shield className="w-3.5 h-3.5" />
+              </div>
+              <div className="min-w-0">
+                <p className={`text-xs font-mono font-bold truncate ${isNsfw ? 'text-purple-200' : 'text-slate-300'}`}>
+                  18+ / NSFW Adult Signal
+                </p>
+                <p className="text-[10px] text-slate-400 font-mono truncate">
+                  {isNsfw ? 'Visible only in Incognito Mode' : 'Flag as adult / explicit material'}
+                </p>
+              </div>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer shrink-0">
+              <input
+                type="checkbox"
+                checked={isNsfw}
+                onChange={(e) => setIsNsfw(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-9 h-5 bg-dark-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-500 border border-slate-700 peer-checked:border-purple-400"></div>
+            </label>
           </div>
 
           {/* Tags */}

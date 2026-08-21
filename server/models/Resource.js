@@ -57,6 +57,11 @@ const resourceSchema = new mongoose.Schema(
       enum: ['YOUTUBE', 'VIMEO', 'SOUNDCLOUD', 'SPOTIFY', 'DIRECT_VIDEO', 'DIRECT_IMAGE', 'NONE'],
       default: 'NONE'
     },
+    isNsfw: {
+      type: Boolean,
+      default: false,
+      index: true
+    },
     embedUrl: {
       type: String,
       default: ''

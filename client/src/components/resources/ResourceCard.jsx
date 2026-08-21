@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import API from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useIncognito } from '../../context/IncognitoContext';
 import { EditResourceModal } from './EditResourceModal';
 import {
   Play,
@@ -22,17 +23,20 @@ import {
   FolderPlus,
   ShieldAlert,
   Copy,
-  Check
+  Check,
+  Ghost
 } from 'lucide-react';
 
 export const ResourceCard = ({ resource: initialResource, onReport, onAddToCollection, onResourceDeleted }) => {
   const { user, savedIds, toggleSaveResource } = useAuth();
   const { showToast } = useToast();
+  const { isAdultResource, blurNsfw } = useIncognito();
 
   const [resource, setResource] = useState(initialResource);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [isRevealed, setIsRevealed] = useState(false);
 
   if (!resource || isDeleted) return null;
 
@@ -129,13 +133,20 @@ export const ResourceCard = ({ resource: initialResource, onReport, onAddToColle
 
   const categoryName = getCategoryName(resource.category);
 
+  const isAdult = isAdultResource(resource);
+  const isBlurred = isAdult && blurNsfw && !isRevealed;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       className={`glass-card rounded-2xl overflow-hidden flex flex-col justify-between group h-full border text-left hud-bracket ${
-        isHidden ? 'border-rose-500/40 bg-rose-950/10' : 'border-slate-800 hover:border-cyan-500/40'
+        isHidden
+          ? 'border-rose-500/40 bg-rose-950/10'
+          : isAdult
+          ? 'border-purple-500/30 hover:border-purple-400/60'
+          : 'border-slate-800 hover:border-cyan-500/40'
       }`}
     >
       {/* Card Header & Thumbnail */}
@@ -144,7 +155,9 @@ export const ResourceCard = ({ resource: initialResource, onReport, onAddToColle
           <img
             src={resource.thumbnail}
             alt={resource.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
+            className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-500 opacity-90 group-hover:opacity-100 ${
+              isBlurred ? 'blur-lg scale-110 opacity-40' : ''
+            }`}
             onError={(e) => {
               e.target.src = `https://www.google.com/s2/favicons?domain=${resource.domain}&sz=128`;
             }}
@@ -158,10 +171,18 @@ export const ResourceCard = ({ resource: initialResource, onReport, onAddToColle
 
         {/* Top Badges Overlay */}
         <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none z-10">
-          <span className="px-2 py-0.5 rounded-lg bg-[#050811]/90 backdrop-blur-md text-[9px] font-mono font-bold text-cyan-300 border border-cyan-400/25 uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
-            {renderResourceTypeIcon(resource.resourceType)}
-            <span>{resource.resourceType}</span>
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="px-2 py-0.5 rounded-lg bg-[#050811]/90 backdrop-blur-md text-[9px] font-mono font-bold text-cyan-300 border border-cyan-400/25 uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
+              {renderResourceTypeIcon(resource.resourceType)}
+              <span>{resource.resourceType}</span>
+            </span>
+
+            {isAdult && (
+              <span className="px-2 py-0.5 rounded-lg bg-purple-950/90 backdrop-blur-md text-[9px] font-mono font-bold text-purple-300 border border-purple-500/40 uppercase tracking-wider shadow-sm">
+                18+ NSFW
+              </span>
+            )}
+          </div>
 
           {categoryName && (
             <span className="px-2 py-0.5 rounded-lg bg-[#050811]/90 backdrop-blur-md text-[9px] font-mono text-slate-300 border border-slate-700/80">
@@ -169,6 +190,27 @@ export const ResourceCard = ({ resource: initialResource, onReport, onAddToColle
             </span>
           )}
         </div>
+
+        {/* 18+ Sensitive Blur Overlay */}
+        {isBlurred && (
+          <div className="absolute inset-0 z-20 bg-[#03050a]/80 backdrop-blur-sm flex flex-col items-center justify-center p-3 text-center pointer-events-auto">
+            <span className="px-2.5 py-1 rounded-lg bg-purple-500/20 text-purple-300 border border-purple-500/40 text-[10px] font-mono font-bold uppercase tracking-wider mb-2 flex items-center gap-1 shadow-sm">
+              <Ghost className="w-3 h-3 text-purple-400" />
+              <span>18+ Sensitive Media</span>
+            </span>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsRevealed(true);
+              }}
+              className="px-3 py-1 rounded-lg bg-dark-800 hover:bg-dark-700 text-slate-200 border border-slate-700 text-[10px] font-mono font-semibold transition-colors cursor-pointer flex items-center gap-1 shadow-md"
+            >
+              <Eye className="w-3 h-3 text-cyan-400" />
+              <span>Click to Reveal</span>
+            </button>
+          </div>
+        )}
 
         {/* Status Hidden Overlay */}
         {isHidden && (
@@ -181,7 +223,7 @@ export const ResourceCard = ({ resource: initialResource, onReport, onAddToColle
         )}
 
         {/* Play Overlay for Videos */}
-        {resource.embedType !== 'NONE' && !isHidden && (
+        {resource.embedType !== 'NONE' && !isHidden && !isBlurred && (
           <div className="absolute inset-0 bg-dark-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             <div className="w-10 h-10 rounded-full bg-cyan-400 text-slate-950 flex items-center justify-center shadow-glow transform scale-90 group-hover:scale-100 transition-transform">
               <Play className="w-4 h-4 fill-current ml-0.5" />

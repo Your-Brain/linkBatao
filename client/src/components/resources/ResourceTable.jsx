@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import API from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useIncognito } from '../../context/IncognitoContext';
 import { EditResourceModal } from './EditResourceModal';
 import {
   ExternalLink,
@@ -22,12 +23,14 @@ import {
   Globe,
   Music,
   FolderPlus,
-  ShieldAlert
+  ShieldAlert,
+  Ghost
 } from 'lucide-react';
 
 export const ResourceTable = ({ resources, onReport, onAddToCollection, onResourceDeleted }) => {
   const { user, savedIds, toggleSaveResource } = useAuth();
   const { showToast } = useToast();
+  const { isAdultResource } = useIncognito();
 
   const [copiedUrlId, setCopiedUrlId] = useState(null);
   const [editingResource, setEditingResource] = useState(null);
@@ -155,6 +158,7 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
             {activeResources.map((resource) => {
               const isSaved = savedIds.has(resource._id);
               const isHidden = hiddenResourceIds.has(resource._id) || resource.status === 'REMOVED' || resource.status === 'REJECTED';
+              const isAdult = isAdultResource(resource);
               const categoryName = getCategoryName(resource.category);
               const isCopied = copiedUrlId === resource._id;
 
@@ -162,7 +166,7 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
                 <tr
                   key={resource._id}
                   className={`hover:bg-[#0e162c]/60 transition-colors group ${
-                    isHidden ? 'bg-rose-950/15 opacity-75' : ''
+                    isHidden ? 'bg-rose-950/15 opacity-75' : isAdult ? 'bg-purple-950/10' : ''
                   }`}
                 >
                   {/* Content & Title */}
@@ -202,6 +206,11 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
                         )}
                         {Array.isArray(resource.tags) && resource.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-1">
+                            {isAdult && (
+                              <span className="text-[9px] font-mono text-purple-300 bg-purple-950/40 px-1.5 py-0.2 rounded border border-purple-500/40">
+                                18+ NSFW
+                              </span>
+                            )}
                             {resource.tags.slice(0, 2).map((t, idx) => (
                               <span key={idx} className="text-[9px] font-mono text-slate-400 bg-[#070c1b] px-1.5 py-0.2 rounded border border-slate-800">
                                 #{t}
@@ -230,7 +239,9 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
                   <td className="py-3 px-3">
                     <div className="flex flex-col items-start gap-1">
                       {categoryName && (
-                        <span className="px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-300 font-mono font-semibold border border-cyan-500/20 text-[9px] uppercase tracking-wider">
+                        <span className={`px-2 py-0.5 rounded-md font-mono font-semibold text-[9px] uppercase tracking-wider ${
+                          isAdult ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/20'
+                        }`}>
                           {categoryName}
                         </span>
                       )}
