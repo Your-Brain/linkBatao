@@ -71,21 +71,35 @@ export function ShareTargetPage({ categories = [], onResourceSubmitted }) {
 
   // Listen for PWA beforeinstallprompt event
   useEffect(() => {
+    // Check if prompt was already captured by index.html
+    if (window.deferredPWAInstallPrompt) {
+      setDeferredPrompt(window.deferredPWAInstallPrompt);
+    }
+
     const handleBeforeInstall = (e) => {
       e.preventDefault();
+      window.deferredPWAInstallPrompt = e;
       setDeferredPrompt(e);
+    };
+
+    const handleCustomInstallable = () => {
+      if (window.deferredPWAInstallPrompt) {
+        setDeferredPrompt(window.deferredPWAInstallPrompt);
+      }
     };
 
     const handleAppInstalled = () => {
       setIsPwaInstalled(true);
       setDeferredPrompt(null);
+      window.deferredPWAInstallPrompt = null;
       showToast('AuraLink PWA installed successfully!', 'success');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    window.addEventListener('pwa-installable', handleCustomInstallable);
     window.addEventListener('appinstalled', handleAppInstalled);
 
-    if (window.matchMedia('(display-mode: standalone)').matches) {
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
       setIsPwaInstalled(true);
     }
 
@@ -93,20 +107,33 @@ export function ShareTargetPage({ categories = [], onResourceSubmitted }) {
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.removeEventListener('pwa-installable', handleCustomInstallable);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, [showToast]);
 
   const handleInstallPwa = async () => {
-    if (!deferredPrompt) {
+    const promptEvent = deferredPrompt || window.deferredPWAInstallPrompt;
+    if (promptEvent) {
+      try {
+        await promptEvent.prompt();
+        const choiceResult = await promptEvent.userChoice;
+        if (choiceResult && choiceResult.outcome === 'accepted') {
+          setIsPwaInstalled(true);
+          setDeferredPrompt(null);
+          window.deferredPWAInstallPrompt = null;
+          showToast('AuraLink installed to your device!', 'success');
+        }
+      } catch (err) {
+        console.warn('Install error:', err);
+        setActiveTab('guide');
+        setShowGuide(true);
+      }
+    } else {
+      // In iOS Safari or mobile Chrome without beforeinstallprompt active
+      setActiveTab('guide');
       setShowGuide(true);
-      return;
-    }
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setIsPwaInstalled(true);
-      setDeferredPrompt(null);
+      showToast('Tap browser menu (⋮) -> "Install App" or "Add to Home screen"', 'info');
     }
   };
 
@@ -276,15 +303,10 @@ export function ShareTargetPage({ categories = [], onResourceSubmitted }) {
   };
 
   // -------------------------------------------------------------
-  // Save Resource to Database
+  // Save Resource to Database (Supports Anonymous & Authenticated)
   // -------------------------------------------------------------
   const handleSaveResource = async (e) => {
     e?.preventDefault();
-
-    if (!user) {
-      showToast('Please sign in to save this resource', 'info');
-      return;
-    }
 
     if (!title.trim()) {
       showToast('Please provide a title for the resource', 'error');
@@ -312,7 +334,7 @@ export function ShareTargetPage({ categories = [], onResourceSubmitted }) {
 
       const res = await API.post('/resources', payload);
       if (res.data?.success) {
-        showToast('Resource saved to AuraLink library!', 'success');
+        showToast(user ? 'Resource saved to your AuraLink library!' : 'Resource shared anonymously to AuraLink!', 'success');
         if (onResourceSubmitted) {
           onResourceSubmitted(res.data.data);
         } else {
@@ -758,17 +780,23 @@ export function ShareTargetPage({ categories = [], onResourceSubmitted }) {
 
                   {/* Actions Bar */}
                   <div className="pt-2 flex items-center justify-between gap-3 border-t border-zinc-800/80">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id="share-nsfw"
-                        checked={isNsfw}
-                        onChange={(e) => setIsNsfw(e.target.checked)}
-                        className="rounded border-zinc-700 bg-zinc-900 text-purple-600 focus:ring-purple-500"
-                      />
-                      <label htmlFor="share-nsfw" className="text-xs text-zinc-400 cursor-pointer">
-                        Mark as 18+ / Sensitive
-                      </label>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="share-nsfw"
+                          checked={isNsfw}
+                          onChange={(e) => setIsNsfw(e.target.checked)}
+                          className="rounded border-zinc-700 bg-zinc-900 text-purple-600 focus:ring-purple-500"
+                        />
+                        <label htmlFor="share-nsfw" className="text-xs text-zinc-400 cursor-pointer">
+                          Mark 18+
+                        </label>
+                      </div>
+
+                      <span className="text-[11px] px-2 py-0.5 rounded-md bg-zinc-800/80 text-zinc-400 border border-zinc-700/50">
+                        {user ? `Posting as @${user.username}` : '⚡ Anonymous Share (No sign-in needed)'}
+                      </span>
                     </div>
 
                     <button
@@ -779,12 +807,12 @@ export function ShareTargetPage({ categories = [], onResourceSubmitted }) {
                       {isSubmitting ? (
                         <>
                           <RefreshCw className="w-4 h-4 animate-spin" />
-                          Saving...
+                          Sharing...
                         </>
                       ) : (
                         <>
                           <FolderPlus className="w-4 h-4" />
-                          Save to AuraLink
+                          Share to AuraLink
                         </>
                       )}
                     </button>
