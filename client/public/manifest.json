@@ -1,5 +1,6 @@
 {
-  "name": "AuraLink — Anonymous Link & Media Discovery",
+  "id": "/",
+  "name": "AuraLink — Media Discovery",
   "short_name": "AuraLink",
   "description": "Discover, share, organize, and bookmark public videos, articles, media, and tools anonymously.",
   "start_url": "/",
@@ -8,19 +9,32 @@
   "orientation": "portrait-primary",
   "background_color": "#050811",
   "theme_color": "#050811",
+  "prefer_related_applications": false,
   "categories": ["utilities", "productivity", "entertainment", "social"],
   "icons": [
     {
-      "src": "/favicon.svg",
-      "sizes": "48x48 72x72 96x96 128x128 192x192 256x256 512x512",
-      "type": "image/svg+xml",
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/favicon.svg",
-      "sizes": "192x192 512x512",
-      "type": "image/svg+xml",
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ],
   "shortcuts": [
@@ -29,21 +43,21 @@
       "short_name": "Share",
       "description": "Open the universal share target to receive and parse content",
       "url": "/share-target",
-      "icons": [{ "src": "/favicon.svg", "sizes": "192x192" }]
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Explore Links",
       "short_name": "Explore",
       "description": "Browse trending resources and videos",
       "url": "/",
-      "icons": [{ "src": "/favicon.svg", "sizes": "192x192" }]
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Search AuraLink",
       "short_name": "Search",
       "description": "Search topics, tools, and media",
       "url": "/search",
-      "icons": [{ "src": "/favicon.svg", "sizes": "192x192" }]
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ],
   "share_target": {
