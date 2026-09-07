@@ -19,6 +19,7 @@ import { CollectionsPage } from './pages/CollectionsPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { PrivacyTermsPage } from './pages/PrivacyTermsPage';
+import { ShareTargetPage } from './pages/ShareTargetPage';
 
 import { HomeLoader } from './components/layout/HomeLoader';
 
@@ -304,6 +305,26 @@ export function AppContent() {
           <Route
             path="/privacy"
             element={<PrivacyTermsPage />}
+          />
+
+          <Route
+            path="/share-target"
+            element={
+              <ShareTargetPage
+                categories={visibleCategories}
+                onResourceSubmitted={handleResourceSubmitted}
+              />
+            }
+          />
+
+          <Route
+            path="/share"
+            element={
+              <ShareTargetPage
+                categories={visibleCategories}
+                onResourceSubmitted={handleResourceSubmitted}
+              />
+            }
           />
 
           {/* Invalid route → Home */}

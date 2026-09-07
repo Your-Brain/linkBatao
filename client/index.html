@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AuraLink — Anonymous Link & Media Discovery Platform</title>
     <meta name="description" content="Discover, share, organize, and bookmark publicly available videos, articles, images, and tools on an anonymous media discovery engine." />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#050811" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="AuraLink" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
     <!-- Google Fonts: Space Grotesk, Inter, JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,5 +20,18 @@
   <body class="bg-[#050811] text-slate-100 font-sans antialiased selection:bg-cyan-500 selection:text-slate-950 min-h-screen">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('[AuraLink] Service Worker registered with scope:', registration.scope);
+            })
+            .catch((error) => {
+              console.warn('[AuraLink] Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
   </body>
 </html>

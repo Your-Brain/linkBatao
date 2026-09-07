@@ -22,7 +22,8 @@ import {
   Clock,
   Trash2,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Share2
 } from 'lucide-react';
 
 const SEARCH_HISTORY_KEY = 'auralink_search_history';
@@ -212,6 +213,17 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
                 }`}
             >
               Safety
+            </Link>
+
+            <Link
+              to="/share-target"
+              className={`px-3 py-1.5 rounded-lg backdrop-blur-md transition-all flex items-center gap-1.5 ${isActive('/share-target')
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-sm'
+                  : 'hover:text-cyan-300 hover:bg-cyan-500/10 text-zinc-300'
+                }`}
+            >
+              <Share2 className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Share Target</span>
             </Link>
           </nav>
         </div>
@@ -467,6 +479,10 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
               <Link to="/privacy" className="flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-white/[0.06]">
                 <ShieldCheck className="w-4 h-4 text-zinc-400" />
                 <span>Safety & Protocols</span>
+              </Link>
+              <Link to="/share-target" className="flex items-center gap-2 px-2.5 py-2 rounded-lg bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+                <Share2 className="w-4 h-4 text-cyan-400" />
+                <span>Web Share Target</span>
               </Link>
               {!user && (
                 <div className="flex gap-2 pt-2 border-t border-white/[0.08]">
