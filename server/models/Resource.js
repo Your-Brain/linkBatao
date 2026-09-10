@@ -54,7 +54,27 @@ const resourceSchema = new mongoose.Schema(
     ],
     embedType: {
       type: String,
-      enum: ['YOUTUBE', 'VIMEO', 'SOUNDCLOUD', 'SPOTIFY', 'DIRECT_VIDEO', 'DIRECT_IMAGE', 'NONE'],
+      enum: [
+        'YOUTUBE',
+        'VIMEO',
+        'SOUNDCLOUD',
+        'SPOTIFY',
+        'PORNHUB',
+        'XVIDEOS',
+        'XNXX',
+        'XHAMSTER',
+        'REDTUBE',
+        'YOUPORN',
+        'SPANKBANG',
+        'EPORNER',
+        'CHATURBATE',
+        'STRIPCHAT',
+        'HANIME',
+        'IFRAME',
+        'DIRECT_VIDEO',
+        'DIRECT_IMAGE',
+        'NONE'
+      ],
       default: 'NONE'
     },
     isNsfw: {

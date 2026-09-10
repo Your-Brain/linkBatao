@@ -165,7 +165,8 @@ export const previewMetadata = async (req, res, next) => {
         title: fetchedMeta.title,
         description: fetchedMeta.description,
         thumbnail: fetchedMeta.thumbnail,
-        resourceType: embedInfo.resourceType || fetchedMeta.resourceType
+        resourceType: embedInfo.resourceType || fetchedMeta.resourceType,
+        isNsfw: fetchedMeta.isNsfw || false
       }
     });
   } catch (err) {

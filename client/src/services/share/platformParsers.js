@@ -14,6 +14,12 @@ export const PLATFORM_TYPES = {
   PINTEREST: 'pinterest',
   SPOTIFY: 'spotify',
   GITHUB: 'github',
+  PORNHUB: 'pornhub',
+  XVIDEOS: 'xvideos',
+  XHAMSTER: 'xhamster',
+  SPANKBANG: 'spankbang',
+  REDTUBE: 'redtube',
+  ADULT_MEDIA: 'adult_media',
   GENERIC_WEB: 'generic_web'
 };
 
@@ -516,7 +522,254 @@ export const githubParser = {
 };
 
 /**
- * 11. Generic Web Parser (Default Fallback)
+ * 11. Pornhub Parser
+ * Supports: pornhub.com/view_video.php?viewkey=..., /embed/..., rt.pornhub.com
+ */
+export const pornhubParser = {
+  name: 'Pornhub',
+  platform: PLATFORM_TYPES.PORNHUB,
+  color: '#FF9900',
+  brandBg: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
+  icon: 'PlayCircle',
+  resourceType: 'VIDEO',
+  suggestedCategory: 'sex',
+  isNsfw: true,
+
+  canHandle(url) {
+    if (!url) return false;
+    try {
+      const hostname = new URL(url).hostname.toLowerCase();
+      return hostname.includes('pornhub.com') || hostname.includes('pornhubpremium.com') || hostname.includes('phncdn.com');
+    } catch {
+      return false;
+    }
+  },
+
+  parse(rawUrl) {
+    try {
+      const parsed = new URL(rawUrl);
+      let viewkey = parsed.searchParams.get('viewkey');
+      if (!viewkey && parsed.pathname.includes('/embed/')) {
+        viewkey = parsed.pathname.split('/embed/')[1]?.split('?')[0]?.split('/')[0];
+      }
+
+      const cleanKey = viewkey ? viewkey.replace(/[^a-zA-Z0-9_-]/g, '') : null;
+      const embedUrl = cleanKey ? `https://www.pornhub.com/embed/${cleanKey}` : null;
+
+      return {
+        platform: PLATFORM_TYPES.PORNHUB,
+        platformName: 'Pornhub',
+        isSupported: true,
+        videoId: cleanKey,
+        viewkey: cleanKey,
+        embedUrl,
+        thumbnail: '', // Let auto-fetch or player provide clean content thumbnail, never the site logo
+        resourceType: 'VIDEO',
+        isNsfw: true,
+        suggestedCategory: 'sex',
+        tags: ['pornhub', 'video', 'adult', 'nsfw', '18+']
+      };
+    } catch (err) {
+      return null;
+    }
+  }
+};
+
+/**
+ * 12. XVideos & XNXX Parser
+ */
+export const xvideosParser = {
+  name: 'XVideos',
+  platform: PLATFORM_TYPES.XVIDEOS,
+  color: '#E0245E',
+  brandBg: 'bg-rose-500/10 border-rose-500/30 text-rose-400',
+  icon: 'PlayCircle',
+  resourceType: 'VIDEO',
+  suggestedCategory: 'sex',
+  isNsfw: true,
+
+  canHandle(url) {
+    if (!url) return false;
+    try {
+      const hostname = new URL(url).hostname.toLowerCase();
+      return hostname.includes('xvideos.com') || hostname.includes('xvideos2.com') || hostname.includes('xvideos.es') || hostname.includes('xnxx.com') || hostname.includes('xnxx2.com');
+    } catch {
+      return false;
+    }
+  },
+
+  parse(rawUrl) {
+    try {
+      const parsed = new URL(rawUrl);
+      const isXnxx = parsed.hostname.includes('xnxx');
+      const match = parsed.pathname.match(/\/video[\.-]?(\d+)/i) || parsed.pathname.match(/\/embedframe\/(\d+)/i);
+      const videoId = match ? match[1] : null;
+      const embedUrl = videoId ? (isXnxx ? `https://www.xnxx.com/embedframe/${videoId}` : `https://www.xvideos.com/embedframe/${videoId}`) : null;
+
+      return {
+        platform: isXnxx ? 'xnxx' : PLATFORM_TYPES.XVIDEOS,
+        platformName: isXnxx ? 'XNXX' : 'XVideos',
+        isSupported: true,
+        videoId,
+        embedUrl,
+        thumbnail: '',
+        resourceType: 'VIDEO',
+        isNsfw: true,
+        suggestedCategory: 'sex',
+        tags: [isXnxx ? 'xnxx' : 'xvideos', 'video', 'adult', 'nsfw', '18+']
+      };
+    } catch {
+      return null;
+    }
+  }
+};
+
+/**
+ * 13. xHamster Parser
+ */
+export const xhamsterParser = {
+  name: 'xHamster',
+  platform: PLATFORM_TYPES.XHAMSTER,
+  color: '#438AFE',
+  brandBg: 'bg-blue-500/10 border-blue-500/30 text-blue-400',
+  icon: 'PlayCircle',
+  resourceType: 'VIDEO',
+  suggestedCategory: 'sex',
+  isNsfw: true,
+
+  canHandle(url) {
+    if (!url) return false;
+    try {
+      const hostname = new URL(url).hostname.toLowerCase();
+      return hostname.includes('xhamster.com') || hostname.includes('xhamster.desi') || hostname.includes('xhamster.one') || hostname.includes('xhwide.com');
+    } catch {
+      return false;
+    }
+  },
+
+  parse(rawUrl) {
+    try {
+      const parsed = new URL(rawUrl);
+      const match = parsed.pathname.match(/\/videos\/[^\/]+-(\w+)/i) || parsed.pathname.match(/\/videos\/(\w+)/i) || parsed.searchParams.get('video');
+      const videoId = typeof match === 'object' && match ? match[1] : match;
+      const embedUrl = videoId ? `https://xhamster.com/xembed.php?video=${videoId}` : null;
+
+      return {
+        platform: PLATFORM_TYPES.XHAMSTER,
+        platformName: 'xHamster',
+        isSupported: true,
+        videoId,
+        embedUrl,
+        thumbnail: '',
+        resourceType: 'VIDEO',
+        isNsfw: true,
+        suggestedCategory: 'sex',
+        tags: ['xhamster', 'video', 'adult', 'nsfw', '18+']
+      };
+    } catch {
+      return null;
+    }
+  }
+};
+
+/**
+ * 14. SpankBang Parser
+ */
+export const spankbangParser = {
+  name: 'SpankBang',
+  platform: PLATFORM_TYPES.SPANKBANG,
+  color: '#EC4899',
+  brandBg: 'bg-pink-500/10 border-pink-500/30 text-pink-400',
+  icon: 'PlayCircle',
+  resourceType: 'VIDEO',
+  suggestedCategory: 'sex',
+  isNsfw: true,
+
+  canHandle(url) {
+    if (!url) return false;
+    try {
+      const hostname = new URL(url).hostname.toLowerCase();
+      return hostname.includes('spankbang.com') || hostname.includes('spankbang.party');
+    } catch {
+      return false;
+    }
+  },
+
+  parse(rawUrl) {
+    try {
+      const parsed = new URL(rawUrl);
+      const match = parsed.pathname.match(/\/([a-zA-Z0-9]+)\/video\//i) || parsed.pathname.match(/\/([a-zA-Z0-9]+)\/embed\//i);
+      const videoId = match ? match[1] : null;
+      const embedUrl = videoId ? `https://spankbang.com/${videoId}/embed/` : null;
+
+      return {
+        platform: PLATFORM_TYPES.SPANKBANG,
+        platformName: 'SpankBang',
+        isSupported: true,
+        videoId,
+        embedUrl,
+        thumbnail: '',
+        resourceType: 'VIDEO',
+        isNsfw: true,
+        suggestedCategory: 'sex',
+        tags: ['spankbang', 'video', 'adult', 'nsfw', '18+']
+      };
+    } catch {
+      return null;
+    }
+  }
+};
+
+/**
+ * 15. General Adult Media Parser
+ */
+export const adultMediaParser = {
+  name: 'Adult Media',
+  platform: PLATFORM_TYPES.ADULT_MEDIA,
+  color: '#A855F7',
+  brandBg: 'bg-purple-500/10 border-purple-500/30 text-purple-400',
+  icon: 'Shield',
+  resourceType: 'VIDEO',
+  suggestedCategory: 'sex',
+  isNsfw: true,
+
+  canHandle(url) {
+    if (!url) return false;
+    try {
+      const hostname = new URL(url).hostname.toLowerCase();
+      const adultKeywords = [
+        'redtube.com', 'youporn.com', 'eporner.com', 'chaturbate.com',
+        'stripchat.com', 'onlyfans.com', 'fansly.com', 'manyvids.com',
+        'brazzers.com', 'naughtyamerica.com', 'hqporner.com', 'beeg.com',
+        'hanime.tv', 'rule34.xxx', 'gelbooru.com', 'e-hentai.org'
+      ];
+      return adultKeywords.some(kw => hostname.includes(kw));
+    } catch {
+      return false;
+    }
+  },
+
+  parse(rawUrl) {
+    try {
+      const parsed = new URL(rawUrl);
+      const hostname = parsed.hostname.replace(/^www\./, '');
+      return {
+        platform: PLATFORM_TYPES.ADULT_MEDIA,
+        platformName: hostname,
+        hostname,
+        resourceType: 'VIDEO',
+        isNsfw: true,
+        suggestedCategory: 'sex',
+        tags: [hostname.split('.')[0], 'adult', 'nsfw', '18+']
+      };
+    } catch {
+      return null;
+    }
+  }
+};
+
+/**
+ * 16. Generic Web Parser (Default Fallback)
  */
 export const genericWebParser = {
   name: 'Website',
@@ -574,7 +827,12 @@ const PARSERS = [
   linkedinParser,
   pinterestParser,
   spotifyParser,
-  githubParser
+  githubParser,
+  pornhubParser,
+  xvideosParser,
+  xhamsterParser,
+  spankbangParser,
+  adultMediaParser
 ];
 
 /**

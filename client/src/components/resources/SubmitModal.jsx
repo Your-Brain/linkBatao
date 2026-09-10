@@ -89,6 +89,11 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
         if (p.metadata.description) setDescription(p.metadata.description);
         if (p.metadata.thumbnail) setThumbnail(p.metadata.thumbnail);
         if (p.metadata.resourceType) setResourceType(p.metadata.resourceType);
+        if (p.metadata.isNsfw) {
+          setIsNsfw(true);
+          const sexCat = activeCategories.find(c => c.slug === 'sex' || c.name?.toLowerCase() === 'sex');
+          if (sexCat) setCategory(sexCat._id);
+        }
 
         if (p.isDuplicate) {
           showToast('Notice: This signal is already registered on AuraLink', 'info');
