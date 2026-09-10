@@ -121,11 +121,11 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
 
   const renderResourceTypeIcon = (type) => {
     switch (type) {
-      case 'VIDEO': return <Video className="w-3.5 h-3.5 text-cyan-400" />;
+      case 'VIDEO': return <Video className="w-3.5 h-3.5 text-purple-400" />;
       case 'IMAGE': return <ImageIcon className="w-3.5 h-3.5 text-emerald-400" />;
       case 'ARTICLE': return <FileText className="w-3.5 h-3.5 text-amber-400" />;
-      case 'AUDIO': return <Music className="w-3.5 h-3.5 text-purple-400" />;
-      default: return <Globe className="w-3.5 h-3.5 text-sky-400" />;
+      case 'AUDIO': return <Music className="w-3.5 h-3.5 text-indigo-400" />;
+      default: return <Globe className="w-3.5 h-3.5 text-purple-300" />;
     }
   };
 
@@ -141,11 +141,11 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
   const activeResources = (resources || []).filter(r => !deletedResourceIds.has(r._id));
 
   return (
-    <div className="w-full overflow-hidden rounded-2xl border border-slate-800 glass-card text-left hud-bracket">
+    <div className="w-full overflow-hidden rounded-2xl border border-purple-900/30 glass-card text-left hud-bracket">
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs text-slate-300 border-collapse">
+        <table className="w-full text-left text-xs text-purple-200/80 border-collapse">
           <thead>
-            <tr className="border-b border-slate-800 bg-[#070c1b] text-slate-400 font-mono font-semibold uppercase tracking-wider text-[10px]">
+            <tr className="border-b border-purple-900/30 bg-[#0d081e] text-purple-300/70 font-mono font-semibold uppercase tracking-wider text-[10px]">
               <th className="py-3 px-4 min-w-[280px]">Resource & Title</th>
               <th className="py-3 px-3 min-w-[130px]">Source Domain</th>
               <th className="py-3 px-3 min-w-[120px]">Type / Class</th>
@@ -154,7 +154,7 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
               <th className="py-3 px-4 text-right min-w-[170px]">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/60 font-sans">
+          <tbody className="divide-y divide-purple-900/20 font-sans">
             {activeResources.map((resource) => {
               const isSaved = savedIds.has(resource._id);
               const isHidden = hiddenResourceIds.has(resource._id) || resource.status === 'REMOVED' || resource.status === 'REJECTED';
@@ -165,7 +165,7 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
               return (
                 <tr
                   key={resource._id}
-                  className={`hover:bg-[#0e162c]/60 transition-colors group ${isHidden ? 'bg-rose-950/15 opacity-75' : isAdult ? 'bg-purple-950/10' : ''
+                  className={`hover:bg-[#140d2e]/60 transition-colors group ${isHidden ? 'bg-rose-950/15 opacity-75' : isAdult ? 'bg-purple-950/20' : ''
                     }`}
                 >
                   {/* Content & Title */}
@@ -173,7 +173,7 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
                     <div className="flex items-center gap-3">
                       <Link
                         to={`/resources/${resource._id}`}
-                        className="w-12 h-9 rounded-lg overflow-hidden bg-[#03050a] shrink-0 border border-slate-800 relative block group-hover:border-cyan-500/40 transition-colors"
+                        className="w-12 h-9 rounded-lg overflow-hidden bg-[#07040f] shrink-0 border border-purple-900/40 relative block group-hover:border-purple-500/50 transition-colors"
                       >
                         {resource.thumbnail ? (
                           <img
@@ -185,7 +185,7 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
                             }}
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-dark-900">
+                          <div className="w-full h-full flex items-center justify-center bg-[#0d081e]">
                             {renderResourceTypeIcon(resource.resourceType)}
                           </div>
                         )}
@@ -194,24 +194,24 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
                       <div className="min-w-0 max-w-sm">
                         <Link
                           to={`/resources/${resource._id}`}
-                          className="font-semibold text-slate-100 group-hover:text-cyan-300 transition-colors line-clamp-1 block text-xs sm:text-sm font-display"
+                          className="font-semibold text-slate-100 group-hover:text-purple-300 transition-colors line-clamp-1 block text-xs sm:text-sm font-display"
                         >
                           {resource.title}
                         </Link>
                         {resource.description && (
-                          <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">
+                          <p className="text-[11px] text-purple-300/60 line-clamp-1 mt-0.5">
                             {resource.description}
                           </p>
                         )}
                         {Array.isArray(resource.tags) && resource.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-1">
                             {isAdult && (
-                              <span className="text-[9px] font-mono text-purple-300 bg-purple-950/40 px-1.5 py-0.2 rounded border border-purple-500/40">
+                              <span className="text-[9px] font-mono text-purple-200 bg-purple-950/60 px-1.5 py-0.2 rounded border border-purple-500/40">
                                 18+ NSFW
                               </span>
                             )}
                             {resource.tags.slice(0, 2).map((t, idx) => (
-                              <span key={idx} className="text-[9px] font-mono text-slate-400 bg-[#070c1b] px-1.5 py-0.2 rounded border border-slate-800">
+                              <span key={idx} className="text-[9px] font-mono text-purple-300/70 bg-[#140d2e] px-1.5 py-0.2 rounded border border-purple-900/40">
                                 #{t}
                               </span>
                             ))}
@@ -223,7 +223,7 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
 
                   {/* Domain */}
                   <td className="py-3 px-3">
-                    <div className="flex items-center gap-1.5 text-xs text-slate-300 font-mono">
+                    <div className="flex items-center gap-1.5 text-xs text-purple-200/80 font-mono">
                       <img
                         src={`https://www.google.com/s2/favicons?domain=${resource.domain}&sz=64`}
                         alt=""
@@ -238,12 +238,12 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
                   <td className="py-3 px-3">
                     <div className="flex flex-col items-start gap-1">
                       {categoryName && (
-                        <span className={`px-2 py-0.5 rounded-md font-mono font-semibold text-[9px] uppercase tracking-wider ${isAdult ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/20'
+                        <span className={`px-2 py-0.5 rounded-md font-mono font-semibold text-[9px] uppercase tracking-wider ${isAdult ? 'bg-purple-600/20 text-purple-200 border border-purple-500/40' : 'bg-purple-600/15 text-purple-300 border border-purple-500/30'
                           }`}>
                           {categoryName}
                         </span>
                       )}
-                      <span className="inline-flex items-center gap-1 text-[9px] text-slate-400 font-mono uppercase">
+                      <span className="inline-flex items-center gap-1 text-[9px] text-purple-300/70 font-mono uppercase">
                         {renderResourceTypeIcon(resource.resourceType)}
                         <span>{resource.resourceType}</span>
                       </span>
@@ -257,7 +257,7 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
                         onClick={(e) => handleCopyUrl(e, resource)}
                         className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border text-[10px] font-mono font-medium transition-all cursor-pointer ${isCopied
                             ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                            : 'bg-[#090e1d] hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300 border-slate-800'
+                            : 'bg-[#140d2e] hover:bg-purple-600/20 text-purple-200 hover:text-white border-purple-900/40'
                           }`}
                         title="Copy direct source URL"
                       >
@@ -269,7 +269,7 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
                         href={resource.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-1 rounded-lg bg-[#090e1d] hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 transition-colors"
+                        className="p-1 rounded-lg bg-[#140d2e] hover:bg-purple-900/30 text-purple-300/70 hover:text-white border border-purple-900/40 transition-colors"
                         title="Open direct link in new tab"
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
@@ -279,13 +279,13 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
 
                   {/* Stats */}
                   <td className="py-3 px-3 text-center">
-                    <div className="flex items-center justify-center gap-2 text-[10px] font-mono text-slate-400">
+                    <div className="flex items-center justify-center gap-2 text-[10px] font-mono text-purple-300/70">
                       <span className="flex items-center gap-0.5" title="Views">
-                        <Eye className="w-3 h-3 text-slate-500" />
+                        <Eye className="w-3 h-3 text-purple-400/60" />
                         <span>{resource.views || 0}</span>
                       </span>
                       <span className="flex items-center gap-0.5" title="Saves">
-                        <Bookmark className={`w-3 h-3 ${isSaved ? 'text-cyan-400 fill-cyan-400' : 'text-slate-500'}`} />
+                        <Bookmark className={`w-3 h-3 ${isSaved ? 'text-purple-400 fill-purple-400' : 'text-purple-400/60'}`} />
                         <span>{resource.saves || 0}</span>
                       </span>
                     </div>
@@ -298,17 +298,17 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
                         onClick={(e) => handleSaveToggle(e, resource._id)}
                         title={isSaved ? 'Remove Bookmark' : 'Save Bookmark'}
                         className={`p-1.5 rounded-lg border transition-all cursor-pointer ${isSaved
-                            ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
-                            : 'bg-[#090e1d] hover:bg-slate-800 text-slate-400 hover:text-slate-200 border-slate-800'
+                            ? 'bg-purple-600/30 text-purple-200 border-purple-500/50 shadow-purple-glow-sm'
+                            : 'bg-[#140d2e] hover:bg-purple-900/30 text-purple-300/70 hover:text-purple-200 border-purple-900/40'
                           }`}
                       >
-                        <Bookmark className={`w-3.5 h-3.5 ${isSaved ? 'fill-cyan-300' : ''}`} />
+                        <Bookmark className={`w-3.5 h-3.5 ${isSaved ? 'fill-purple-300' : ''}`} />
                       </button>
 
                       <button
                         onClick={(e) => handleAddToCollection(e, resource)}
                         title="Add to Vault"
-                        className="p-1.5 rounded-lg bg-[#090e1d] hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-300 border border-slate-800 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg bg-[#140d2e] hover:bg-purple-600/20 text-purple-300/70 hover:text-purple-200 border border-purple-900/40 transition-colors cursor-pointer"
                       >
                         <FolderPlus className="w-3.5 h-3.5" />
                       </button>
@@ -316,7 +316,7 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
                       <button
                         onClick={(e) => handleSharePage(e, resource)}
                         title="Share Page Link"
-                        className="p-1.5 rounded-lg bg-[#090e1d] hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg bg-[#140d2e] hover:bg-purple-900/30 text-purple-300/70 hover:text-purple-200 border border-purple-900/40 transition-colors cursor-pointer"
                       >
                         <Share2 className="w-3.5 h-3.5" />
                       </button>
@@ -324,17 +324,17 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
                       <button
                         onClick={(e) => handleReportClick(e, resource)}
                         title="Report Link"
-                        className="p-1.5 rounded-lg bg-[#090e1d] hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 border border-slate-800 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg bg-[#140d2e] hover:bg-rose-500/20 text-purple-300/70 hover:text-rose-300 border border-purple-900/40 transition-colors cursor-pointer"
                       >
                         <Flag className="w-3.5 h-3.5" />
                       </button>
 
                       {isAdminOrMod && (
-                        <div className="flex items-center gap-1 pl-1 border-l border-slate-800">
+                        <div className="flex items-center gap-1 pl-1 border-l border-purple-900/40">
                           <button
                             onClick={() => setEditingResource(resource)}
                             title="Admin Edit"
-                            className="p-1.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/40 transition-colors cursor-pointer"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>

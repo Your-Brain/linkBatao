@@ -813,6 +813,133 @@ export const genericWebParser = {
   }
 };
 
+export const ADULT_DOMAINS = [
+  'pornhub.com',
+  'pornhubpremium.com',
+  'rt.pornhub.com',
+  'phncdn.com',
+  'xvideos.com',
+  'xvideos2.com',
+  'xvideos.es',
+  'xvideos.in',
+  'xnxx.com',
+  'xnxx2.com',
+  'xnxx.tv',
+  'xhamster.com',
+  'xhamster.desi',
+  'xhamster.one',
+  'xhwide.com',
+  'spankbang.com',
+  'spankbang.party',
+  'redtube.com',
+  'youporn.com',
+  'eporner.com',
+  'tube8.com',
+  'chaturbate.com',
+  'stripchat.com',
+  'camsoda.com',
+  'bongacams.com',
+  'livejasmin.com',
+  'onlyfans.com',
+  'fansly.com',
+  'manyvids.com',
+  'clips4sale.com',
+  'brazzers.com',
+  'naughtyamerica.com',
+  'realitykings.com',
+  'hqporner.com',
+  'beeg.com',
+  'hanime.tv',
+  'rule34.xxx',
+  'gelbooru.com',
+  'e-hentai.org',
+  'nhentai.net',
+  'txxx.com',
+  'daftsex.com'
+];
+
+export const ADULT_KEYWORDS = [
+  'nsfw',
+  '18+',
+  'adult',
+  'xxx',
+  'porn',
+  'porno',
+  'sex',
+  'sexy',
+  'erotic',
+  'erotica',
+  'hentai',
+  'nude',
+  'nudes',
+  'boobs',
+  'tits',
+  'milf',
+  'blowjob',
+  'fetish',
+  'leaks',
+  'naked',
+  'spankbang',
+  'xvideos',
+  'pornhub',
+  'xhamster',
+  'xnxx'
+];
+
+/**
+ * Universal detector for adult / 18+ content across URLs, text, titles and tags
+ */
+export function detectIsAdultContent(url = '', title = '', text = '', tags = []) {
+  // 1. Check URL hostname & path
+  if (url) {
+    try {
+      const parsed = new URL(url.startsWith('http') ? url : `https://${url}`);
+      const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+      if (ADULT_DOMAINS.some(d => host === d || host.endsWith(`.${d}`))) {
+        return true;
+      }
+      const pathWords = parsed.pathname.toLowerCase().split(/[/_.-]+/);
+      if (pathWords.some(pw => ADULT_KEYWORDS.includes(pw))) {
+        return true;
+      }
+    } catch {
+      const lowerUrl = String(url).toLowerCase();
+      if (ADULT_DOMAINS.some(d => lowerUrl.includes(d))) return true;
+      if (ADULT_KEYWORDS.some(kw => lowerUrl.includes(kw))) return true;
+    }
+  }
+
+  // 2. Check tags array
+  if (Array.isArray(tags)) {
+    if (tags.some(t => {
+      const lt = String(t).toLowerCase().replace(/^#/, '').trim();
+      return ADULT_KEYWORDS.includes(lt);
+    })) {
+      return true;
+    }
+  }
+
+  // 3. Check combined text and title
+  const combined = `${title || ''} ${text || ''}`.toLowerCase();
+  const words = combined.split(/[\s,._\-#?!/]+/);
+  if (words.some(w => ADULT_KEYWORDS.includes(w))) {
+    return true;
+  }
+
+  return false;
+}
+
+export function getSuggestedAdultTags(platformOrDomain = '') {
+  const baseTags = ['18+', 'adult', 'nsfw'];
+  if (platformOrDomain) {
+    const clean = platformOrDomain.replace(/^www\./, '').split('.')[0].toLowerCase();
+    if (clean && !baseTags.includes(clean)) {
+      baseTags.push(clean);
+    }
+  }
+  return baseTags;
+}
+
 // -------------------------------------------------------------
 // Parser Registry
 // -------------------------------------------------------------
@@ -844,16 +971,33 @@ export function detectAndParseUrl(url) {
   for (const parser of PARSERS) {
     if (parser.canHandle(url)) {
       const parsedData = parser.parse(url);
+      const isAdult = parsedData?.isNsfw || detectIsAdultContent(url);
+      const enrichedTags = isAdult
+        ? [...new Set([...(parsedData?.tags || []), '18+', 'adult', 'nsfw'])]
+        : (parsedData?.tags || []);
+
       return {
         ...parsedData,
+        isNsfw: isAdult,
+        suggestedCategory: isAdult ? 'sex' : (parsedData?.suggestedCategory || 'other'),
+        tags: enrichedTags,
         matchedParser: parser
       };
     }
   }
 
   // Fallback to generic web parser
+  const genericData = genericWebParser.parse(url);
+  const isAdult = detectIsAdultContent(url);
+  const enrichedTags = isAdult
+    ? [...new Set([...(genericData?.tags || []), '18+', 'adult', 'nsfw'])]
+    : (genericData?.tags || []);
+
   return {
-    ...genericWebParser.parse(url),
+    ...genericData,
+    isNsfw: isAdult,
+    suggestedCategory: isAdult ? 'sex' : genericData.suggestedCategory,
+    tags: enrichedTags,
     matchedParser: genericWebParser
   };
 }

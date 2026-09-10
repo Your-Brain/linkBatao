@@ -167,29 +167,29 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <header className="sticky top-0 z-40 w-full backdrop-blur-2xl bg-zinc-950/75 border-b border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+    <header className="sticky top-0 z-40 w-full backdrop-blur-2xl bg-[#07040f]/80 border-b border-purple-900/30 shadow-[0_4px_30px_rgba(0,0,0,0.6)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
 
         {/* Brand Logo */}
         <div className="flex items-center gap-6 shrink-0">
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 p-[1px] shadow-[0_0_15px_rgba(99,102,241,0.35)]">
-              <div className="w-full h-full bg-zinc-950/80 backdrop-blur-md rounded-[11px] flex items-center justify-center text-indigo-400 group-hover:text-white transition-colors">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 p-[1px] shadow-purple-glow">
+              <div className="w-full h-full bg-[#0d081e] backdrop-blur-md rounded-[11px] flex items-center justify-center text-purple-400 group-hover:text-white transition-colors">
                 <Layers className="w-4 h-4" />
               </div>
             </div>
-            <span className="font-semibold text-base tracking-tight text-white group-hover:text-indigo-300 transition-colors">
-              AuraLink
+            <span className="font-bold text-base tracking-tight text-white group-hover:text-purple-300 transition-colors font-display">
+              Aura<span className="text-purple-400">Link</span>
             </span>
           </Link>
 
           {/* Desktop Navigation Glass Pills */}
-          <nav className="hidden md:flex items-center gap-1.5 text-xs font-medium text-zinc-400">
+          <nav className="hidden md:flex items-center gap-1.5 text-xs font-medium text-purple-200/70">
             <Link
               to="/"
-              className={`px-3 py-1.5 rounded-lg backdrop-blur-md transition-all ${isActive('/')
-                  ? 'bg-white/[0.1] text-white border border-white/[0.12] shadow-sm'
-                  : 'hover:text-white hover:bg-white/[0.05]'
+              className={`px-3 py-1.5 rounded-xl backdrop-blur-md transition-all ${isActive('/')
+                  ? 'bg-purple-600/20 text-purple-200 border border-purple-500/40 shadow-sm font-semibold'
+                  : 'hover:text-white hover:bg-purple-900/20'
                 }`}
             >
               Explore
@@ -197,9 +197,9 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
 
             <Link
               to="/collections"
-              className={`px-3 py-1.5 rounded-lg backdrop-blur-md transition-all ${isActive('/collections')
-                  ? 'bg-white/[0.1] text-white border border-white/[0.12] shadow-sm'
-                  : 'hover:text-white hover:bg-white/[0.05]'
+              className={`px-3 py-1.5 rounded-xl backdrop-blur-md transition-all ${isActive('/collections')
+                  ? 'bg-purple-600/20 text-purple-200 border border-purple-500/40 shadow-sm font-semibold'
+                  : 'hover:text-white hover:bg-purple-900/20'
                 }`}
             >
               Vaults
@@ -207,9 +207,9 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
 
             <Link
               to="/privacy"
-              className={`px-3 py-1.5 rounded-lg backdrop-blur-md transition-all ${isActive('/privacy')
-                  ? 'bg-white/[0.1] text-white border border-white/[0.12] shadow-sm'
-                  : 'hover:text-white hover:bg-white/[0.05]'
+              className={`px-3 py-1.5 rounded-xl backdrop-blur-md transition-all ${isActive('/privacy')
+                  ? 'bg-purple-600/20 text-purple-200 border border-purple-500/40 shadow-sm font-semibold'
+                  : 'hover:text-white hover:bg-purple-900/20'
                 }`}
             >
               Safety
@@ -217,12 +217,12 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
 
             <Link
               to="/share-target"
-              className={`px-3 py-1.5 rounded-lg backdrop-blur-md transition-all flex items-center gap-1.5 ${isActive('/share-target')
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-sm'
-                  : 'hover:text-cyan-300 hover:bg-cyan-500/10 text-zinc-300'
+              className={`px-3 py-1.5 rounded-xl backdrop-blur-md transition-all flex items-center gap-1.5 ${isActive('/share-target')
+                  ? 'bg-purple-600/20 text-purple-200 border border-purple-500/40 shadow-sm font-semibold'
+                  : 'hover:text-purple-300 hover:bg-purple-900/20 text-purple-300/80'
                 }`}
             >
-              <Share2 className="w-3.5 h-3.5 text-cyan-400" />
+              <Share2 className="w-3.5 h-3.5 text-purple-400" />
               <span>Share Target</span>
             </Link>
           </nav>
@@ -234,16 +234,16 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Search links, tags, domains (Win+O)..."
+              placeholder="Search links, tags, domains (Alt+O)..."
               value={searchQuery}
               onFocus={() => setIsHistoryOpen(true)}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-zinc-900/60 backdrop-blur-xl text-xs text-zinc-100 placeholder-zinc-500 pl-9 pr-16 py-2 rounded-xl border border-white/[0.08] hover:border-white/[0.15] focus:border-indigo-500/80 outline-none transition-all shadow-inner"
+              className="w-full bg-[#0d081e]/80 backdrop-blur-xl text-xs text-slate-100 placeholder-purple-300/40 pl-9 pr-16 py-2 rounded-xl border border-purple-900/30 hover:border-purple-500/30 focus:border-purple-500 outline-none transition-all shadow-inner"
             />
-            <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-3.5 h-3.5 text-purple-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
 
             {/* Shortcut Badge */}
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white/[0.06] border border-white/[0.08] text-[10px] font-mono text-zinc-400 pointer-events-none">
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-950/60 border border-purple-800/40 text-[10px] font-mono text-purple-300/70 pointer-events-none">
               <span>Alt+O</span>
             </div>
           </form>
@@ -256,18 +256,18 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 6, scale: 0.98 }}
                 transition={{ duration: 0.15 }}
-                className="absolute top-full left-0 right-0 mt-2 bg-zinc-900/90 backdrop-blur-2xl rounded-2xl border border-white/[0.12] shadow-2xl p-3 z-50 text-left space-y-3"
+                className="absolute top-full left-0 right-0 mt-2 bg-[#0d081e]/95 backdrop-blur-2xl rounded-2xl border border-purple-800/40 shadow-2xl p-3 z-50 text-left space-y-3"
               >
                 {searchHistory.length > 0 ? (
                   <>
-                    <div className="flex items-center justify-between px-1 text-xs text-zinc-400">
-                      <span className="flex items-center gap-1.5 font-medium text-zinc-300">
-                        <Clock className="w-3.5 h-3.5 text-indigo-400" />
+                    <div className="flex items-center justify-between px-1 text-xs text-purple-300/70">
+                      <span className="flex items-center gap-1.5 font-medium text-purple-200">
+                        <Clock className="w-3.5 h-3.5 text-purple-400" />
                         <span>Recent Searches</span>
                       </span>
                       <button
                         onClick={clearAllHistory}
-                        className="text-[11px] text-zinc-500 hover:text-rose-400 transition-colors cursor-pointer"
+                        className="text-[11px] text-purple-400/60 hover:text-rose-400 transition-colors cursor-pointer"
                       >
                         Clear All
                       </button>
@@ -278,16 +278,16 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
                         <div
                           key={idx}
                           onClick={() => handleSelectHistoryItem(item)}
-                          className="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/[0.08] text-xs text-zinc-200 cursor-pointer group transition-colors"
+                          className="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-purple-900/30 text-xs text-slate-200 cursor-pointer group transition-colors"
                         >
                           <div className="flex items-center gap-2 min-w-0">
-                            <Clock className="w-3 h-3 text-zinc-500 group-hover:text-indigo-400 shrink-0" />
+                            <Clock className="w-3 h-3 text-purple-400/60 group-hover:text-purple-300 shrink-0" />
                             <span className="truncate">{item}</span>
                           </div>
                           <button
                             onClick={(e) => removeHistoryItem(e, item)}
                             title="Remove from history"
-                            className="p-1 text-zinc-500 hover:text-white rounded hover:bg-white/[0.1] opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="p-1 text-purple-400/60 hover:text-white rounded hover:bg-purple-800/40 opacity-0 group-hover:opacity-100 transition-opacity"
                           >
                             <X className="w-3 h-3" />
                           </button>
@@ -296,23 +296,23 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
                     </div>
                   </>
                 ) : (
-                  <div className="py-2 text-center text-xs text-zinc-400 space-y-1">
-                    <p className="text-zinc-300 font-medium">No recent searches</p>
-                    <p className="text-[11px] text-zinc-500">Type keywords, tags, or topics above</p>
+                  <div className="py-2 text-center text-xs text-purple-300/70 space-y-1">
+                    <p className="text-purple-200 font-medium">No recent searches</p>
+                    <p className="text-[11px] text-purple-400/60">Type keywords, tags, or topics above</p>
                   </div>
                 )}
 
                 {/* Popular Tags Quick Navigation */}
-                <div className="pt-2 border-t border-white/[0.06]">
-                  <p className="text-[11px] text-zinc-400 font-medium px-1 mb-1.5 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-indigo-400" /> Suggested topics:
+                <div className="pt-2 border-t border-purple-900/30">
+                  <p className="text-[11px] text-purple-300/70 font-medium px-1 mb-1.5 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-purple-400" /> Suggested topics:
                   </p>
                   <div className="flex flex-wrap gap-1.5">
-                    {['ai', 'developer-tools', 'design', 'react', 'music'].map((tag) => (
+                    {['ai', 'developer-tools', 'design', 'react', 'music', 'shaders'].map((tag) => (
                       <button
                         key={tag}
                         onClick={() => handleSelectHistoryItem(tag)}
-                        className="px-2 py-0.5 rounded-md bg-white/[0.05] hover:bg-indigo-600/30 hover:text-indigo-200 text-zinc-300 border border-white/[0.08] text-xs transition-colors cursor-pointer"
+                        className="px-2 py-0.5 rounded-md bg-purple-950/50 hover:bg-purple-700/40 hover:text-purple-200 text-purple-300/80 border border-purple-800/40 text-xs transition-colors cursor-pointer"
                       >
                         #{tag}
                       </button>
@@ -331,8 +331,8 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
             onClick={toggleIncognito}
             title={isIncognito ? "Incognito Active: 18+ Channels Unlocked (Alt+I)" : "Safe Browsing Active: Click to unlock Incognito / 18+ mode (Alt+I)"}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium backdrop-blur-md transition-all cursor-pointer border ${isIncognito
-                ? 'bg-purple-950/50 text-purple-200 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.3)]'
-                : 'bg-zinc-900/60 hover:bg-white/[0.08] text-zinc-300 border-white/[0.08]'
+                ? 'bg-purple-950/60 text-purple-200 border-purple-500/60 shadow-purple-glow'
+                : 'bg-[#0d081e] hover:bg-purple-950/30 text-purple-200/80 border-purple-900/40'
               }`}
           >
             {isIncognito ? (
@@ -342,8 +342,8 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
               </>
             ) : (
               <>
-                <Shield className="w-3.5 h-3.5 text-zinc-400" />
-                <span className="hidden sm:inline text-zinc-400">Safe Mode</span>
+                <Shield className="w-3.5 h-3.5 text-purple-400/70" />
+                <span className="hidden sm:inline text-purple-300/70">Safe Mode</span>
               </>
             )}
           </button>
@@ -351,7 +351,7 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
           {/* Submit Action Button */}
           <button
             onClick={onOpenSubmitModal}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)] transition-all cursor-pointer shrink-0"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-glow transition-all cursor-pointer shrink-0"
           >
             <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
             <span className="hidden sm:inline">Submit Link</span>
@@ -363,9 +363,9 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
             <div className="relative">
               <button
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="flex items-center gap-2 p-1 rounded-xl border border-white/[0.08] hover:border-white/[0.2] transition-colors bg-zinc-900/60 backdrop-blur-md cursor-pointer"
+                className="flex items-center gap-2 p-1 rounded-xl border border-purple-900/40 hover:border-purple-500/50 transition-colors bg-[#0d081e] backdrop-blur-md cursor-pointer"
               >
-                <div className="w-7 h-7 rounded-lg bg-indigo-600/30 text-indigo-300 flex items-center justify-center text-xs font-semibold">
+                <div className="w-7 h-7 rounded-lg bg-purple-600/30 text-purple-300 flex items-center justify-center text-xs font-semibold">
                   {user.username.charAt(0).toUpperCase()}
                 </div>
               </button>
@@ -378,21 +378,21 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 6, scale: 0.96 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-2 w-56 bg-zinc-900/90 backdrop-blur-2xl rounded-2xl py-2 shadow-2xl border border-white/[0.12] z-50 text-left"
+                    className="absolute right-0 mt-2 w-56 bg-[#0d081e]/95 backdrop-blur-2xl rounded-2xl py-2 shadow-2xl border border-purple-800/40 z-50 text-left"
                   >
-                    <div className="px-4 py-2 border-b border-white/[0.06]">
+                    <div className="px-4 py-2 border-b border-purple-900/30">
                       <p className="text-xs font-semibold text-white">@{user.username}</p>
-                      <p className="text-[11px] text-zinc-400 truncate">{user.email}</p>
-                      <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold bg-white/[0.08] text-zinc-300 uppercase">
+                      <p className="text-[11px] text-purple-300/60 truncate">{user.email}</p>
+                      <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold bg-purple-950/60 text-purple-300 border border-purple-800/40 uppercase">
                         {user.role}
                       </span>
                     </div>
 
                     <Link
                       to="/profile"
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs text-zinc-200 hover:bg-white/[0.08] transition-colors"
+                      className="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-200 hover:bg-purple-900/30 transition-colors"
                     >
-                      <User className="w-3.5 h-3.5 text-zinc-400" />
+                      <User className="w-3.5 h-3.5 text-purple-400" />
                       <span>Saved Links</span>
                     </Link>
 
@@ -411,7 +411,7 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
                         logout();
                         setUserDropdownOpen(false);
                       }}
-                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-rose-400 hover:bg-rose-950/20 transition-colors cursor-pointer text-left"
+                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-rose-400 hover:bg-rose-950/30 transition-colors cursor-pointer text-left"
                     >
                       <LogOut className="w-3.5 h-3.5 text-rose-400" />
                       <span>Sign Out</span>
@@ -424,13 +424,13 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
             <div className="hidden sm:flex items-center gap-1.5">
               <button
                 onClick={() => onOpenAuthModal('login')}
-                className="px-2.5 py-1.5 rounded-lg text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer"
+                className="px-2.5 py-1.5 rounded-lg text-xs font-medium text-purple-200/80 hover:text-white hover:bg-purple-900/30 transition-colors cursor-pointer"
               >
                 Sign In
               </button>
               <button
                 onClick={() => onOpenAuthModal('register')}
-                className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white/[0.1] hover:bg-white/[0.15] text-white border border-white/[0.12] transition-colors cursor-pointer"
+                className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-500/40 transition-colors cursor-pointer"
               >
                 Register
               </button>
@@ -440,7 +440,7 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
           {/* Mobile Menu Toggle */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-1.5 text-zinc-400 hover:text-white cursor-pointer"
+            className="md:hidden p-1.5 text-purple-300 hover:text-white cursor-pointer"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -454,7 +454,7 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden px-4 pt-2 pb-5 border-t border-white/[0.08] bg-zinc-950/95 backdrop-blur-2xl space-y-3 text-left"
+            className="md:hidden px-4 pt-2 pb-5 border-t border-purple-900/30 bg-[#07040f]/95 backdrop-blur-2xl space-y-3 text-left"
           >
             <form onSubmit={handleSearchSubmit} className="relative">
               <input
@@ -462,39 +462,39 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
                 placeholder="Search links, tags..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-zinc-900/80 text-xs text-zinc-100 placeholder-zinc-500 pl-8 pr-4 py-2 rounded-xl border border-white/[0.08] focus:border-indigo-500 outline-none"
+                className="w-full bg-[#0d081e] text-xs text-slate-100 placeholder-purple-300/40 pl-8 pr-4 py-2 rounded-xl border border-purple-900/40 focus:border-purple-500 outline-none"
               />
-              <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-purple-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             </form>
 
-            <div className="flex flex-col gap-1 text-xs font-medium text-zinc-300">
-              <Link to="/" className="flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-white/[0.06]">
-                <Compass className="w-4 h-4 text-zinc-400" />
+            <div className="flex flex-col gap-1 text-xs font-medium text-purple-200/80">
+              <Link to="/" className="flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-purple-900/20">
+                <Compass className="w-4 h-4 text-purple-400" />
                 <span>Explore</span>
               </Link>
-              <Link to="/collections" className="flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-white/[0.06]">
-                <FolderHeart className="w-4 h-4 text-zinc-400" />
+              <Link to="/collections" className="flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-purple-900/20">
+                <FolderHeart className="w-4 h-4 text-purple-400" />
                 <span>Vaults</span>
               </Link>
-              <Link to="/privacy" className="flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-white/[0.06]">
-                <ShieldCheck className="w-4 h-4 text-zinc-400" />
+              <Link to="/privacy" className="flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-purple-900/20">
+                <ShieldCheck className="w-4 h-4 text-purple-400" />
                 <span>Safety & Protocols</span>
               </Link>
-              <Link to="/share-target" className="flex items-center gap-2 px-2.5 py-2 rounded-lg bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
-                <Share2 className="w-4 h-4 text-cyan-400" />
+              <Link to="/share-target" className="flex items-center gap-2 px-2.5 py-2 rounded-lg bg-purple-600/15 text-purple-200 border border-purple-500/30">
+                <Share2 className="w-4 h-4 text-purple-400" />
                 <span>Web Share Target</span>
               </Link>
               {!user && (
-                <div className="flex gap-2 pt-2 border-t border-white/[0.08]">
+                <div className="flex gap-2 pt-2 border-t border-purple-900/30">
                   <button
                     onClick={() => { onOpenAuthModal('login'); setMobileMenuOpen(false); }}
-                    className="flex-1 py-1.5 rounded-lg bg-zinc-900 text-xs font-medium text-zinc-200 border border-zinc-800"
+                    className="flex-1 py-1.5 rounded-lg bg-[#0d081e] text-xs font-medium text-purple-200 border border-purple-900/40"
                   >
                     Sign In
                   </button>
                   <button
                     onClick={() => { onOpenAuthModal('register'); setMobileMenuOpen(false); }}
-                    className="flex-1 py-1.5 rounded-lg bg-indigo-600 text-xs font-medium text-white shadow-sm"
+                    className="flex-1 py-1.5 rounded-lg bg-purple-600 text-xs font-medium text-white shadow-purple-glow"
                   >
                     Register
                   </button>

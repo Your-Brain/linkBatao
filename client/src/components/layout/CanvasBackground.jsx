@@ -46,9 +46,9 @@ export const CanvasBackground = () => {
             ctx.beginPath();
             ctx.moveTo(nodes[i].x, nodes[i].y);
             ctx.lineTo(nodes[j].x, nodes[j].y);
-            const lineAlpha = (1 - dist / 140) * 0.12;
-            ctx.strokeStyle = `rgba(6, 182, 212, ${lineAlpha})`;
-            ctx.lineWidth = 0.65;
+            const lineAlpha = (1 - dist / 140) * 0.15;
+            ctx.strokeStyle = `rgba(139, 92, 246, ${lineAlpha})`;
+            ctx.lineWidth = 0.75;
             ctx.stroke();
           }
         }
@@ -61,7 +61,7 @@ export const CanvasBackground = () => {
 
         ctx.beginPath();
         ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(34, 211, 238, ${Math.max(0.05, currentAlpha)})`;
+        ctx.fillStyle = `rgba(167, 139, 250, ${Math.max(0.08, currentAlpha)})`;
         ctx.fill();
 
         if (!prefersReducedMotion) {

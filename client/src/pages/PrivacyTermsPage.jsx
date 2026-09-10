@@ -83,21 +83,21 @@ export const PrivacyTermsPage = () => {
 
   const renderIcon = (iconName) => {
     const IconComp = ICON_MAP[iconName] || ShieldCheck;
-    return <IconComp className="w-5 h-5 text-indigo-400 shrink-0" />;
+    return <IconComp className="w-5 h-5 text-purple-400 shrink-0" />;
   };
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 space-y-8 text-left">
       
       {/* Header Banner */}
-      <div className="bg-zinc-900 rounded-3xl p-8 border border-zinc-800 space-y-3 relative overflow-hidden shadow-sm">
+      <div className="bg-[#0d081e] rounded-3xl p-8 border border-purple-900/40 space-y-3 relative overflow-hidden shadow-xl hud-bracket">
         
         {/* Admin Quick Edit Button */}
         {isAdminOrMod && (
           <div className="absolute top-6 right-6">
             <Link
               to="/admin"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 text-xs font-medium transition-colors"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#140d2e] hover:bg-[#1a1138] text-purple-200 border border-purple-900/40 text-xs font-mono font-medium transition-all hover:border-purple-500"
               title="Edit policy in Admin Panel"
             >
               <Edit3 className="w-3.5 h-3.5" />
@@ -106,28 +106,28 @@ export const PrivacyTermsPage = () => {
           </div>
         )}
 
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-600/15 text-indigo-300 text-xs font-medium border border-indigo-500/30">
-          <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-600/15 text-purple-300 text-xs font-mono border border-purple-500/30">
+          <Sparkles className="w-3.5 h-3.5 text-purple-400" />
           <span>{policy.badge || 'Security & Privacy Policy'}</span>
         </div>
         
-        <h1 className="font-bold text-2xl sm:text-4xl text-white">
+        <h1 className="font-display font-bold text-2xl sm:text-4xl text-white">
           {policy.title || 'Privacy Policy & Safety Standards'}
         </h1>
         
-        <p className="text-xs sm:text-sm text-zinc-400">
+        <p className="text-xs sm:text-sm text-purple-200/70 font-mono">
           {policy.subtitle}
         </p>
       </div>
 
       {/* Article Sections */}
       {loading ? (
-        <div className="p-12 text-center text-zinc-400 flex items-center justify-center gap-2 text-xs">
-          <RefreshCw className="w-4 h-4 animate-spin text-indigo-400" />
+        <div className="p-12 text-center text-purple-300 flex items-center justify-center gap-2 text-xs font-mono">
+          <RefreshCw className="w-4 h-4 animate-spin text-purple-400" />
           <span>Loading policy data...</span>
         </div>
       ) : (
-        <div className="space-y-4 text-sm text-zinc-300 leading-relaxed">
+        <div className="space-y-4 text-sm text-purple-200 leading-relaxed">
           {policy.sections && policy.sections.map((section, idx) => (
             <motion.section 
               key={section._id || idx} 
@@ -135,13 +135,13 @@ export const PrivacyTermsPage = () => {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: idx * 0.05 }}
-              className="bg-zinc-900/80 rounded-2xl p-6 border border-zinc-800 space-y-2.5 hover:border-zinc-700 transition-colors shadow-sm"
+              className="bg-[#0d081e] rounded-3xl p-6 sm:p-7 border border-purple-900/40 space-y-2.5 hover:border-purple-600/50 transition-all shadow-md hud-bracket"
             >
-              <h2 className="font-semibold text-base sm:text-lg text-white flex items-center gap-2.5">
+              <h2 className="font-display font-semibold text-base sm:text-lg text-white flex items-center gap-2.5">
                 {renderIcon(section.icon)}
                 <span>{section.title}</span>
               </h2>
-              <div className="text-zinc-400 leading-relaxed whitespace-pre-line text-xs sm:text-sm">
+              <div className="text-purple-300/80 leading-relaxed whitespace-pre-line text-xs sm:text-sm">
                 {section.content}
               </div>
             </motion.section>

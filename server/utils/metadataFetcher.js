@@ -467,10 +467,18 @@ export async function fetchUrlMetadata(urlString) {
       validThumbnail = `https://www.google.com/s2/favicons?domain=${host}&sz=128`;
     }
 
+    // Check adult content via domain and content keywords
+    const adultKeywords = ['nsfw', '18+', 'adult', 'xxx', 'porn', 'porno', 'sex', 'sexy', 'erotic', 'erotica', 'hentai', 'nude', 'nudes', 'boobs', 'tits', 'spankbang', 'xvideos', 'pornhub', 'xhamster', 'xnxx'];
+    const textToCheck = `${title} ${description} ${$('meta[name="keywords"]').attr('content') || ''}`.toLowerCase();
+    const finalIsAdult = Boolean(isAdult || adultKeywords.some(kw => {
+      const regex = new RegExp(`\\b${kw}\\b`, 'i');
+      return regex.test(textToCheck);
+    }));
+
     // Infer Resource Type from Open Graph or Meta tags
     const ogType = $('meta[property="og:type"]').attr('content') || '';
     let resourceType = 'WEBSITE';
-    if (ogType.includes('video') || isAdult || $('video').length > 0) {
+    if (ogType.includes('video') || finalIsAdult || $('video').length > 0) {
       resourceType = 'VIDEO';
     } else if (ogType.includes('article')) {
       resourceType = 'ARTICLE';
@@ -484,7 +492,7 @@ export async function fetchUrlMetadata(urlString) {
       thumbnail: validThumbnail || '',
       resourceType,
       domain: host,
-      isNsfw: isAdult
+      isNsfw: finalIsAdult
     };
   } catch (err) {
     let targetUrl = String(urlString || '').trim();

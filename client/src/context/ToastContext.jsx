@@ -32,23 +32,23 @@ export const ToastProvider = ({ children }) => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 15, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className={`pointer-events-auto flex items-center justify-between gap-3 px-4 py-3 rounded-2xl glass-panel shadow-2xl border text-left hud-bracket ${
+              className={`pointer-events-auto flex items-center justify-between gap-3 px-4 py-3 rounded-2xl shadow-2xl border text-left hud-bracket ${
                 toast.type === 'success'
                   ? 'border-emerald-500/40 text-emerald-300 bg-[#070e1b]/95'
                   : toast.type === 'error'
                   ? 'border-rose-500/40 text-rose-300 bg-[#12070e]/95'
-                  : 'border-cyan-500/40 text-cyan-300 bg-[#070e1b]/95'
+                  : 'border-purple-500/40 text-purple-200 bg-[#0d081e]/95 shadow-[0_0_15px_rgba(147,51,234,0.2)]'
               }`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 {toast.type === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />}
                 {toast.type === 'error' && <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />}
-                {toast.type === 'info' && <Radio className="w-4 h-4 text-cyan-400 shrink-0 animate-pulse" />}
+                {toast.type === 'info' && <Radio className="w-4 h-4 text-purple-400 shrink-0 animate-pulse" />}
                 <span className="text-xs font-mono font-medium truncate">{toast.message}</span>
               </div>
               <button
                 onClick={() => removeToast(toast.id)}
-                className="text-slate-400 hover:text-white transition-colors cursor-pointer shrink-0"
+                className="text-purple-400/60 hover:text-white transition-colors cursor-pointer shrink-0"
               >
                 <X className="w-3.5 h-3.5" />
               </button>

@@ -19,8 +19,8 @@ export const ResourceGrid = ({ resources, loading, onReport, onAddToCollection, 
     return (
       <div className="space-y-4 text-left">
         {!hideLayoutToggle && (
-          <div className="flex justify-end border-b border-zinc-800/80 pb-3">
-            <div className="h-8 w-32 bg-zinc-900 rounded-lg animate-pulse border border-zinc-800" />
+          <div className="flex justify-end border-b border-purple-900/30 pb-3">
+            <div className="h-8 w-32 bg-[#0d081e] rounded-lg animate-pulse border border-purple-900/40" />
           </div>
         )}
         {viewMode === 'table' ? (
@@ -44,12 +44,12 @@ export const ResourceGrid = ({ resources, loading, onReport, onAddToCollection, 
 
   if (!resources || resources.length === 0) {
     return (
-      <div className="bg-zinc-900/90 rounded-2xl p-12 text-center max-w-md mx-auto my-12 border border-zinc-800 space-y-4 shadow-sm">
-        <div className="w-12 h-12 rounded-xl bg-zinc-800 text-zinc-400 mx-auto flex items-center justify-center border border-zinc-700">
+      <div className="bg-[#0d081e]/90 backdrop-blur-md rounded-2xl p-12 text-center max-w-md mx-auto my-12 border border-purple-900/40 space-y-4 shadow-xl">
+        <div className="w-12 h-12 rounded-xl bg-purple-950/60 text-purple-400 mx-auto flex items-center justify-center border border-purple-800/40 shadow-purple-glow-sm">
           <SearchX className="w-6 h-6" />
         </div>
-        <h3 className="text-base font-semibold text-zinc-100">No Links Found</h3>
-        <p className="text-xs text-zinc-400 leading-relaxed">
+        <h3 className="text-base font-bold text-white font-display">No Links Found</h3>
+        <p className="text-xs text-purple-200/60 leading-relaxed">
           No resources found matching your current filter. Try selecting a different category or search term.
         </p>
       </div>
@@ -61,19 +61,19 @@ export const ResourceGrid = ({ resources, loading, onReport, onAddToCollection, 
 
       {/* Top Layout View Mode Switcher */}
       {!hideLayoutToggle && (
-        <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
-          <span className="text-xs text-zinc-400">
-            Showing <strong className="text-zinc-200">{resources.length}</strong> {resources.length === 1 ? 'item' : 'items'}
+        <div className="flex items-center justify-between border-b border-purple-900/30 pb-3">
+          <span className="text-xs text-purple-300/70">
+            Showing <strong className="text-purple-200">{resources.length}</strong> {resources.length === 1 ? 'item' : 'items'}
           </span>
 
-          <div className="flex items-center gap-1 bg-zinc-900 p-1 rounded-xl border border-zinc-800">
+          <div className="flex items-center gap-1 bg-[#0d081e] p-1 rounded-xl border border-purple-900/40 shadow-inner">
             {/* Grid Toggle */}
             <button
               onClick={() => handleLayoutChange('grid')}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                 viewMode === 'grid'
-                  ? 'bg-zinc-800 text-white shadow-sm font-semibold'
-                  : 'text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-purple-600 text-white shadow-purple-glow-sm font-semibold'
+                  : 'text-purple-300/70 hover:text-white hover:bg-purple-900/20'
               }`}
               title="Grid View (Cards)"
             >
@@ -86,8 +86,8 @@ export const ResourceGrid = ({ resources, loading, onReport, onAddToCollection, 
               onClick={() => handleLayoutChange('list')}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                 viewMode === 'list'
-                  ? 'bg-zinc-800 text-white shadow-sm font-semibold'
-                  : 'text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-purple-600 text-white shadow-purple-glow-sm font-semibold'
+                  : 'text-purple-300/70 hover:text-white hover:bg-purple-900/20'
               }`}
               title="List View (Rows)"
             >
@@ -100,8 +100,8 @@ export const ResourceGrid = ({ resources, loading, onReport, onAddToCollection, 
               onClick={() => handleLayoutChange('table')}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                 viewMode === 'table'
-                  ? 'bg-zinc-800 text-white shadow-sm font-semibold'
-                  : 'text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-purple-600 text-white shadow-purple-glow-sm font-semibold'
+                  : 'text-purple-300/70 hover:text-white hover:bg-purple-900/20'
               }`}
               title="Table View (Data Grid)"
             >

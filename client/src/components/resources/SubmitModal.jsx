@@ -4,22 +4,19 @@ import { motion } from 'framer-motion';
 import API from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { detectIsAdultContent, getSuggestedAdultTags } from '../../services/share/platformParsers';
 import {
   X,
   Link2,
   Sparkles,
   AlertTriangle,
-  CheckCircle2,
   RefreshCw,
-  Globe,
-  Video,
-  Image as ImageIcon,
-  FileText,
-  Music,
-  UserCheck,
   Shield,
   Send,
-  Radio
+  Radio,
+  Layers,
+  FileText,
+  Tag
 } from 'lucide-react';
 
 const FALLBACK_CATEGORIES = [
@@ -63,11 +60,41 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
     }
   }, [activeCategories, category]);
 
+  // Helper to append tags without duplicates
+  const appendTags = (newTagList) => {
+    setTags(prev => {
+      const current = prev ? prev.split(',').map(t => t.trim().toLowerCase()).filter(Boolean) : [];
+      const combined = [...new Set([...current, ...newTagList.map(t => t.toLowerCase())])];
+      return combined.join(', ');
+    });
+  };
+
+  const handleUrlChange = (newUrl) => {
+    setUrl(newUrl);
+    if (newUrl && detectIsAdultContent(newUrl)) {
+      setIsNsfw(true);
+      const sexCat = activeCategories.find(c => c.slug === 'sex' || c.name?.toLowerCase() === 'sex');
+      if (sexCat) setCategory(sexCat._id);
+      const suggested = getSuggestedAdultTags(newUrl);
+      appendTags(suggested);
+    }
+  };
+
   const handleCategoryChange = (newCatId) => {
     setCategory(newCatId);
     const selectedCat = activeCategories.find(c => c._id === newCatId || c.slug === newCatId);
     if (selectedCat && (selectedCat.slug === 'sex' || selectedCat.name?.toLowerCase() === 'sex')) {
       setIsNsfw(true);
+      appendTags(['18+', 'adult', 'nsfw']);
+    }
+  };
+
+  const handleNsfwToggle = (checked) => {
+    setIsNsfw(checked);
+    if (checked) {
+      const sexCat = activeCategories.find(c => c.slug === 'sex' || c.name?.toLowerCase() === 'sex');
+      if (sexCat) setCategory(sexCat._id);
+      appendTags(['18+', 'adult', 'nsfw']);
     }
   };
 
@@ -89,10 +116,19 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
         if (p.metadata.description) setDescription(p.metadata.description);
         if (p.metadata.thumbnail) setThumbnail(p.metadata.thumbnail);
         if (p.metadata.resourceType) setResourceType(p.metadata.resourceType);
-        if (p.metadata.isNsfw) {
+
+        // Auto-detect 18+ adult content from preview metadata
+        const isAdult = Boolean(
+          p.metadata.isNsfw ||
+          detectIsAdultContent(url, p.metadata.title, p.metadata.description)
+        );
+
+        if (isAdult) {
           setIsNsfw(true);
           const sexCat = activeCategories.find(c => c.slug === 'sex' || c.name?.toLowerCase() === 'sex');
           if (sexCat) setCategory(sexCat._id);
+          const suggested = getSuggestedAdultTags(p.domain || url);
+          appendTags(suggested);
         }
 
         if (p.isDuplicate) {
@@ -122,7 +158,7 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
         title: title.trim(),
         description: description.trim(),
         category,
-        tags: tags ? tags.split(',').map(t => t.trim()) : [],
+        tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [],
         resourceType,
         thumbnail,
         isNsfw
@@ -148,42 +184,42 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#03050a]/85 backdrop-blur-xl overflow-y-auto">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#07040f]/85 backdrop-blur-xl overflow-y-auto">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 8 }}
         transition={{ duration: 0.2 }}
-        className="relative w-full max-w-xl glass-modal rounded-3xl p-6 sm:p-8 shadow-2xl border border-cyan-500/30 my-8 hud-bracket text-left"
+        className="relative w-full max-w-xl bg-[#0d081e] rounded-3xl p-6 sm:p-8 shadow-2xl border border-purple-900/40 my-8 hud-bracket text-left"
       >
         {/* Modal Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-1.5 text-slate-400 hover:text-white rounded-xl bg-[#090e1d] border border-slate-800 transition-colors cursor-pointer"
+          className="absolute top-5 right-5 p-2 text-purple-300 hover:text-white rounded-xl bg-[#140d2e] border border-purple-900/40 hover:border-purple-500/50 transition-all cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
 
         {/* Modal Header */}
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-sky-600 p-[1px] shadow-glow flex items-center justify-center">
-            <div className="w-full h-full bg-[#050811] rounded-[11px] flex items-center justify-center text-cyan-400">
-              <Link2 className="w-4 h-4" />
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 p-[1px] shadow-[0_0_15px_rgba(147,51,234,0.35)] flex items-center justify-center">
+            <div className="w-full h-full bg-[#0d081e] rounded-[15px] flex items-center justify-center text-purple-400">
+              <Link2 className="w-5 h-5" />
             </div>
           </div>
           <div>
             <h2 className="font-display font-bold text-lg text-white">Transmit New Link Signal</h2>
-            <p className="text-[11px] font-mono text-slate-400">Public resource indexing & telemetry discovery</p>
+            <p className="text-[11px] font-mono text-purple-300/70">Public resource indexing & telemetry discovery</p>
           </div>
         </div>
 
         {/* Identity Indicator */}
-        <div className="mb-5 px-3.5 py-2 rounded-xl bg-[#090e1d] border border-slate-800 flex items-center justify-between text-xs font-mono">
+        <div className="mb-5 px-3.5 py-2.5 rounded-xl bg-[#140d2e]/80 border border-purple-900/30 flex items-center justify-between text-xs font-mono">
           <div className="flex items-center gap-2">
-            <Radio className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-            <span className="text-slate-400">TRANSMISSION ORIGIN:</span>
+            <Radio className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
+            <span className="text-purple-300/70">TRANSMISSION ORIGIN:</span>
           </div>
-          <span className="font-bold text-cyan-300">
+          <span className="font-bold text-purple-300">
             {user ? `@${user.username}` : `ANONYMOUS (AUTO IDENTIFIER)`}
           </span>
         </div>
@@ -193,7 +229,7 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
 
           {/* URL Input with Auto-Fetch */}
           <div>
-            <label className="block text-[11px] font-mono font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-[11px] font-mono font-semibold text-purple-200 uppercase tracking-wider mb-1.5">
               Resource URL *
             </label>
             <div className="flex gap-2">
@@ -202,20 +238,20 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
                 required
                 placeholder="https://youtube.com/watch?v=... or https://example.com"
                 value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                className="flex-1 bg-[#090e1d] text-xs text-slate-100 placeholder-slate-500 px-3.5 py-2.5 rounded-xl border border-slate-800 focus:border-cyan-400 outline-none font-mono"
+                onChange={(e) => handleUrlChange(e.target.value)}
+                className="flex-1 bg-[#090515] text-xs text-purple-100 placeholder-purple-400/40 px-3.5 py-2.5 rounded-xl border border-purple-900/40 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 outline-none font-mono transition-all"
               />
               <button
                 type="button"
                 onClick={handleFetchPreview}
                 disabled={fetchingPreview}
-                className="px-3.5 py-2.5 rounded-xl bg-[#0e162c] hover:bg-slate-700 text-cyan-300 font-mono font-semibold text-xs border border-cyan-500/30 flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
+                className="px-3.5 py-2.5 rounded-xl bg-[#1a1138] hover:bg-purple-900/40 text-purple-200 font-mono font-semibold text-xs border border-purple-700/40 flex items-center gap-1.5 shrink-0 transition-all cursor-pointer hover:border-purple-500/60 disabled:opacity-50"
               >
                 {fetchingPreview ? (
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-cyan-400" />
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-purple-400" />
                 ) : (
                   <>
-                    <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                    <Sparkles className="w-3.5 h-3.5 text-purple-400" />
                     <span>Auto-Fetch</span>
                   </>
                 )}
@@ -235,86 +271,87 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
 
           {/* Title */}
           <div>
-            <label className="block text-[11px] font-mono font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-[11px] font-mono font-semibold text-purple-200 uppercase tracking-wider mb-1.5">
               Title *
             </label>
             <input
               type="text"
               required
-              placeholder="e.g. Free Interactive WebGL Shaders & Effects"
+              placeholder="Descriptive resource title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-[#090e1d] text-xs text-slate-100 placeholder-slate-500 px-3.5 py-2.5 rounded-xl border border-slate-800 focus:border-cyan-400 outline-none"
+              className="w-full bg-[#090515] text-xs text-purple-100 placeholder-purple-400/40 px-3.5 py-2.5 rounded-xl border border-purple-900/40 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 outline-none transition-all"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-[11px] font-mono font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-              Description (Optional)
+            <label className="block text-[11px] font-mono font-semibold text-purple-200 uppercase tracking-wider mb-1.5">
+              Description
             </label>
             <textarea
               rows={2}
-              placeholder="What makes this link valuable? Provide context for the network..."
+              placeholder="Brief description of the link or tool..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-[#090e1d] text-xs text-slate-100 placeholder-slate-500 px-3.5 py-2.5 rounded-xl border border-slate-800 focus:border-cyan-400 outline-none resize-none"
+              className="w-full bg-[#090515] text-xs text-purple-100 placeholder-purple-400/40 px-3.5 py-2.5 rounded-xl border border-purple-900/40 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 outline-none transition-all resize-none"
             />
           </div>
 
           {/* Category & Type Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-mono font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                Channel / Category
+              <label className="block text-[11px] font-mono font-semibold text-purple-200 uppercase tracking-wider mb-1.5">
+                Category *
               </label>
               <select
                 value={category}
                 onChange={(e) => handleCategoryChange(e.target.value)}
-                className="w-full bg-[#090e1d] text-xs font-mono text-slate-100 px-3.5 py-2.5 rounded-xl border border-slate-800 focus:border-cyan-400 outline-none cursor-pointer"
+                className="w-full bg-[#090515] text-xs font-mono text-purple-100 px-3.5 py-2.5 rounded-xl border border-purple-900/40 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 outline-none cursor-pointer transition-all capitalize"
               >
-                <option value="">Select Channel</option>
-                {activeCategories.map((cat) => (
-                  <option key={cat._id} value={cat._id}>
-                    {cat.name} {cat.slug === 'sex' || cat.name?.toLowerCase() === 'sex' ? '(18+ NSFW)' : ''}
+                {activeCategories.map((c) => (
+                  <option key={c._id} value={c._id} className="bg-[#0d081e] text-purple-200">
+                    {c.name} {c.slug === 'sex' || c.name?.toLowerCase() === 'sex' ? '(18+ NSFW)' : ''}
                   </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-[11px] font-mono font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                Media Class
+              <label className="block text-[11px] font-mono font-semibold text-purple-200 uppercase tracking-wider mb-1.5">
+                Resource Type
               </label>
               <select
                 value={resourceType}
                 onChange={(e) => setResourceType(e.target.value)}
-                className="w-full bg-[#090e1d] text-xs font-mono text-slate-100 px-3.5 py-2.5 rounded-xl border border-slate-800 focus:border-cyan-400 outline-none cursor-pointer"
+                className="w-full bg-[#090515] text-xs font-mono text-purple-100 px-3.5 py-2.5 rounded-xl border border-purple-900/40 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 outline-none cursor-pointer transition-all"
               >
-                <option value="VIDEO">Video / Stream</option>
-                <option value="WEBSITE">Website / Tool</option>
-                <option value="ARTICLE">Article / Paper</option>
-                <option value="IMAGE">Image / Graphic</option>
-                <option value="AUDIO">Audio / Track</option>
-                <option value="OTHER">Other Media</option>
+                <option value="WEBSITE" className="bg-[#0d081e]">Website / Tool</option>
+                <option value="VIDEO" className="bg-[#0d081e]">Video / Stream</option>
+                <option value="ARTICLE" className="bg-[#0d081e]">Article / Paper</option>
+                <option value="IMAGE" className="bg-[#0d081e]">Image / Graphic</option>
+                <option value="MUSIC" className="bg-[#0d081e]">Audio / Track</option>
+                <option value="OTHER" className="bg-[#0d081e]">Other Media</option>
               </select>
             </div>
           </div>
 
           {/* 18+ NSFW Adult Content Toggle */}
-          <div className={`p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 ${isNsfw ? 'bg-purple-950/30 border-purple-500/50' : 'bg-[#090e1d] border-slate-800'
-            }`}>
+          <div className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+            isNsfw ? 'bg-purple-950/40 border-purple-600/50 shadow-[0_0_15px_rgba(168,85,247,0.15)]' : 'bg-[#140d2e]/60 border-purple-900/30'
+          }`}>
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 border ${isNsfw ? 'bg-purple-500/20 text-purple-300 border-purple-500/40' : 'bg-dark-800 text-slate-400 border-slate-700'
-                }`}>
-                <Shield className="w-3.5 h-3.5" />
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${
+                isNsfw ? 'bg-purple-600/20 text-purple-300 border-purple-500/40' : 'bg-[#090515] text-purple-400 border-purple-900/40'
+              }`}>
+                <Shield className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <p className={`text-xs font-mono font-bold truncate ${isNsfw ? 'text-purple-200' : 'text-slate-300'}`}>
+                <p className={`text-xs font-mono font-bold truncate ${isNsfw ? 'text-purple-200' : 'text-purple-300'}`}>
                   18+ / NSFW Adult Signal
                 </p>
-                <p className="text-[10px] text-slate-400 font-mono truncate">
-                  {isNsfw ? 'Visible only in Incognito Mode' : 'Flag as adult / explicit material'}
+                <p className="text-[10px] text-purple-400/80 font-mono truncate">
+                  {isNsfw ? 'Categorized under Adult network partition (18+ Active)' : 'Flag as mature content'}
                 </p>
               </div>
             </div>
@@ -322,16 +359,16 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
               <input
                 type="checkbox"
                 checked={isNsfw}
-                onChange={(e) => setIsNsfw(e.target.checked)}
+                onChange={(e) => handleNsfwToggle(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-9 h-5 bg-dark-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-500 border border-slate-700 peer-checked:border-purple-400"></div>
+              <div className="w-10 h-5 bg-[#090515] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600 border border-purple-800 peer-checked:border-purple-400"></div>
             </label>
           </div>
 
           {/* Tags */}
           <div>
-            <label className="block text-[11px] font-mono font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-[11px] font-mono font-semibold text-purple-200 uppercase tracking-wider mb-1.5">
               Tags (Comma separated)
             </label>
             <input
@@ -339,16 +376,16 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
               placeholder="react, webdev, shaders, javascript"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
-              className="w-full bg-[#090e1d] text-xs font-mono text-slate-100 placeholder-slate-500 px-3.5 py-2.5 rounded-xl border border-slate-800 focus:border-cyan-400 outline-none"
+              className="w-full bg-[#090515] text-xs font-mono text-purple-100 placeholder-purple-400/40 px-3.5 py-2.5 rounded-xl border border-purple-900/40 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 outline-none transition-all"
             />
           </div>
 
           {/* Submit Action Buttons */}
-          <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-slate-800">
+          <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-purple-900/30">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-mono text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-mono text-purple-300/70 hover:text-white transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -357,7 +394,7 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={submitting}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-sky-500 text-slate-950 font-bold font-mono text-xs uppercase tracking-wider shadow-glow transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold font-mono text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(147,51,234,0.35)] transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
               {submitting ? (
                 <>

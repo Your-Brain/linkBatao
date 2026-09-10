@@ -65,19 +65,19 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-12 space-y-6 animate-pulse">
-        <div className="w-full aspect-video bg-[#090e1d] rounded-3xl border border-slate-800" />
-        <div className="h-8 bg-[#090e1d] rounded w-2/3" />
-        <div className="h-4 bg-[#090e1d] rounded w-1/3" />
+        <div className="w-full aspect-video bg-[#0d081e] rounded-3xl border border-purple-900/30" />
+        <div className="h-8 bg-[#0d081e] rounded-xl w-2/3" />
+        <div className="h-4 bg-[#0d081e] rounded-xl w-1/3" />
       </div>
     );
   }
 
   if (!resource) {
     return (
-      <div className="max-w-xl mx-auto px-4 py-20 text-center space-y-4 glass-panel rounded-3xl border border-slate-800 p-8 hud-bracket">
+      <div className="max-w-xl mx-auto px-4 py-20 text-center space-y-4 bg-[#0d081e] rounded-3xl border border-purple-900/40 p-8 hud-bracket">
         <h2 className="font-display text-2xl font-bold text-white">Transmission Not Detected</h2>
-        <p className="text-slate-400 text-xs">The requested resource does not exist or has been removed from the platform index.</p>
-        <Link to="/" className="inline-block px-5 py-2.5 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-glow">
+        <p className="text-purple-300/70 text-xs font-mono">The requested resource does not exist or has been removed from the platform index.</p>
+        <Link to="/" className="inline-block px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(147,51,234,0.35)]">
           Return to Discovery Engine
         </Link>
       </div>
@@ -151,15 +151,15 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
       {/* 18+ Adult Content Notice Banner */}
       {isAdult && (
         <div className={`p-4 rounded-2xl border flex flex-wrap items-center justify-between gap-4 ${
-          isIncognito ? 'bg-purple-950/30 border-purple-500/40 text-purple-200' : 'bg-rose-950/30 border-rose-500/40 text-rose-200'
+          isIncognito ? 'bg-purple-950/40 border-purple-500/40 text-purple-200' : 'bg-purple-950/20 border-purple-800/40 text-purple-300'
         }`}>
           <div className="flex items-center gap-2.5">
             <Ghost className="w-5 h-5 text-purple-400 shrink-0" />
             <div>
-              <p className="text-xs font-mono font-bold uppercase tracking-wider">
+              <p className="text-xs font-mono font-bold uppercase tracking-wider text-purple-200">
                 18+ / NSFW Adult Signal
               </p>
-              <p className="text-[11px] text-slate-400 font-mono">
+              <p className="text-[11px] text-purple-300/70 font-mono">
                 {isIncognito
                   ? 'Stealth mode active: Ephemeral private viewing mode engaged'
                   : 'This resource contains adult/NSFW content. Incognito Mode is currently OFF.'}
@@ -169,7 +169,7 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
           {!isIncognito && (
             <button
               onClick={enableIncognito}
-              className="px-3.5 py-1.5 rounded-xl bg-purple-500 hover:bg-purple-400 text-slate-950 text-xs font-mono font-bold uppercase transition-colors cursor-pointer shadow-sm"
+              className="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-mono font-bold uppercase transition-all cursor-pointer shadow-sm"
             >
               Unlock Incognito
             </button>
@@ -179,14 +179,14 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
 
       {/* Admin / Owner Controls Banner */}
       {canManage && (
-        <div className="glass-panel p-4 rounded-2xl border border-amber-500/30 flex flex-wrap items-center justify-between gap-4">
+        <div className="bg-[#0d081e] p-4 rounded-2xl border border-amber-500/30 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0" />
             <div>
               <h4 className="text-xs font-mono font-bold text-amber-300 uppercase tracking-wider">
                 {isAdminOrMod ? 'MODERATOR COMMAND PANEL' : 'TRANSMISSION OWNER CONTROLS'}
               </h4>
-              <p className="text-[11px] font-mono text-slate-400">
+              <p className="text-[11px] font-mono text-purple-300/70">
                 STATUS: <strong className={isHidden ? 'text-rose-400' : 'text-emerald-400'}>{resource.status}</strong>
               </p>
             </div>
@@ -195,7 +195,7 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsEditModalOpen(true)}
-              className="px-3 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-xs font-mono font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="px-3.5 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 text-purple-200 border border-purple-500/40 text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <Edit3 className="w-3.5 h-3.5" />
               <span>Edit Details</span>
@@ -204,7 +204,7 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
             {isAdminOrMod && (
               <button
                 onClick={handleToggleHide}
-                className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold border transition-colors flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
                   isHidden
                     ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
                     : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
@@ -217,7 +217,7 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
 
             <button
               onClick={handleDelete}
-              className="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-mono font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="px-3.5 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
               <span>Delete</span>
@@ -230,27 +230,27 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
       <EmbeddedPlayer resource={resource} />
 
       {/* Main Content Details Panel */}
-      <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6 hud-bracket">
+      <div className="bg-[#0d081e] rounded-3xl p-6 sm:p-8 border border-purple-900/40 space-y-6 hud-bracket shadow-xl">
 
         {/* Title & Domain Header */}
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2 text-xs">
             {categoryName && (
-              <span className="px-3 py-1 rounded-lg bg-cyan-500/10 text-cyan-300 font-mono font-semibold border border-cyan-500/25 uppercase tracking-wider text-[10px]">
+              <span className="px-3 py-1 rounded-xl bg-purple-600/20 text-purple-300 font-mono font-semibold border border-purple-500/30 uppercase tracking-wider text-[10px]">
                 {categoryName}
               </span>
             )}
-            <span className="px-2.5 py-1 rounded-lg bg-[#090e1d] text-slate-300 border border-slate-800 font-mono text-[10px] uppercase">
+            <span className="px-2.5 py-1 rounded-xl bg-[#140d2e] text-purple-200 border border-purple-900/40 font-mono text-[10px] uppercase">
               {resource.resourceType}
             </span>
             {isAdult && (
-              <span className="px-2.5 py-1 rounded-lg bg-purple-950/90 text-purple-300 border border-purple-500/40 font-mono text-[10px] font-bold uppercase tracking-wider">
+              <span className="px-2.5 py-1 rounded-xl bg-purple-950/90 text-purple-300 border border-purple-500/40 font-mono text-[10px] font-bold uppercase tracking-wider">
                 18+ NSFW
               </span>
             )}
-            <span className="text-slate-600 font-mono">•</span>
-            <span className="text-slate-400 flex items-center gap-1 font-mono text-[11px]">
-              <Globe className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="text-purple-900 font-mono">•</span>
+            <span className="text-purple-300/80 flex items-center gap-1.5 font-mono text-[11px]">
+              <Globe className="w-3.5 h-3.5 text-purple-400" />
               {resource.domain}
             </span>
           </div>
@@ -259,26 +259,26 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
             {resource.title}
           </h1>
 
-          <div className="flex items-center gap-4 text-xs font-mono text-slate-400">
-            <span className="flex items-center gap-1">
-              <Eye className="w-3.5 h-3.5 text-slate-500" />
+          <div className="flex items-center gap-4 text-xs font-mono text-purple-400/70">
+            <span className="flex items-center gap-1.5">
+              <Eye className="w-3.5 h-3.5 text-purple-400" />
               {resource.views} views
             </span>
             <span>•</span>
-            <span className="flex items-center gap-1">
-              <Bookmark className="w-3.5 h-3.5 text-slate-500" />
+            <span className="flex items-center gap-1.5">
+              <Bookmark className="w-3.5 h-3.5 text-purple-400" />
               {resource.saves} saves
             </span>
           </div>
         </div>
 
         {/* Action Toolbar */}
-        <div className="flex flex-wrap items-center gap-2.5 pt-4 border-t border-b border-slate-800/80 py-4">
+        <div className="flex flex-wrap items-center gap-2.5 pt-4 border-t border-b border-purple-900/30 py-4">
           <a
             href={resource.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-sky-500 text-slate-950 font-bold text-xs shadow-glow hover:scale-105 transition-all"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-[0_0_20px_rgba(147,51,234,0.35)] transition-all cursor-pointer"
           >
             <span>Open Direct Source</span>
             <ExternalLink className="w-4 h-4" />
@@ -290,44 +290,44 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
             className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-mono font-semibold border transition-all cursor-pointer ${
               isCopiedUrl
                 ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                : 'bg-[#090e1d] text-slate-300 border-slate-800 hover:border-cyan-400 hover:text-cyan-300'
+                : 'bg-[#140d2e] text-purple-200 border-purple-900/40 hover:border-purple-500 hover:text-white'
             }`}
           >
-            {isCopiedUrl ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+            {isCopiedUrl ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-purple-400" />}
             <span>{isCopiedUrl ? 'URL Copied!' : 'Copy Direct URL'}</span>
           </button>
 
           <button
             onClick={() => toggleSaveResource(resource._id)}
-            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-mono font-semibold border transition-all cursor-pointer ${
               isSaved
-                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400/50'
-                : 'bg-[#090e1d] text-slate-300 border-slate-800 hover:border-cyan-400'
+                ? 'bg-purple-600/25 text-purple-200 border-purple-500/50 shadow-sm'
+                : 'bg-[#140d2e] text-purple-200 border-purple-900/40 hover:border-purple-500'
             }`}
           >
-            <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-cyan-300' : ''}`} />
+            <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-purple-400 text-purple-400' : 'text-purple-400'}`} />
             <span>{isSaved ? 'Bookmarked' : 'Save Bookmark'}</span>
           </button>
 
           <button
             onClick={() => onAddToCollection && onAddToCollection(resource)}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#090e1d] text-slate-300 hover:text-cyan-300 border border-slate-800 hover:border-cyan-500/40 text-xs font-semibold transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#140d2e] text-purple-200 hover:text-white border border-purple-900/40 hover:border-purple-500 text-xs font-mono font-semibold transition-all cursor-pointer"
           >
-            <FolderPlus className="w-4 h-4 text-cyan-400" />
+            <FolderPlus className="w-4 h-4 text-purple-400" />
             <span>Save to Vault</span>
           </button>
 
           <button
             onClick={handleShare}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#090e1d] text-slate-300 hover:text-white border border-slate-800 text-xs font-semibold transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#140d2e] text-purple-200 hover:text-white border border-purple-900/40 hover:border-purple-500 text-xs font-mono font-semibold transition-all cursor-pointer"
           >
-            <Share2 className="w-4 h-4" />
+            <Share2 className="w-4 h-4 text-purple-400" />
             <span>Share</span>
           </button>
 
           <button
             onClick={() => onReportResource(resource)}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#090e1d] text-slate-400 hover:text-rose-300 border border-slate-800 hover:border-rose-500/30 text-xs font-semibold transition-colors ml-auto cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#140d2e] text-purple-300/70 hover:text-rose-300 border border-purple-900/40 hover:border-rose-500/40 text-xs font-mono font-semibold transition-all ml-auto cursor-pointer"
           >
             <Flag className="w-4 h-4" />
             <span>Report</span>
@@ -337,8 +337,8 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
         {/* Description */}
         {resource.description && (
           <div className="space-y-2">
-            <h3 className="text-xs font-mono font-semibold text-slate-400 uppercase tracking-wider">Telemetry Overview</h3>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed whitespace-pre-line">
+            <h3 className="text-xs font-mono font-semibold text-purple-300/70 uppercase tracking-wider">Telemetry Overview</h3>
+            <p className="text-xs sm:text-sm text-purple-200/80 leading-relaxed whitespace-pre-line">
               {resource.description}
             </p>
           </div>
@@ -347,8 +347,8 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
         {/* Tags */}
         {Array.isArray(resource.tags) && resource.tags.length > 0 && (
           <div className="space-y-2">
-            <h3 className="text-xs font-mono font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-              <Tag className="w-3.5 h-3.5 text-cyan-400" />
+            <h3 className="text-xs font-mono font-semibold text-purple-300/70 uppercase tracking-wider flex items-center gap-1">
+              <Tag className="w-3.5 h-3.5 text-purple-400" />
               <span>Resource Matrix Tags</span>
             </h3>
             <div className="flex flex-wrap gap-1.5">
@@ -356,7 +356,7 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
                 <Link
                   key={idx}
                   to={`/search?q=${encodeURIComponent(t)}`}
-                  className="px-2.5 py-1 rounded-lg bg-[#090e1d] text-slate-300 hover:text-cyan-300 border border-slate-800 text-xs font-mono transition-colors"
+                  className="px-3 py-1 rounded-xl bg-[#140d2e] text-purple-200 hover:text-white border border-purple-900/40 hover:border-purple-500 text-xs font-mono transition-all"
                 >
                   #{t}
                 </Link>
@@ -371,7 +371,7 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
       {related.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-cyan-400" />
+            <Sparkles className="w-4 h-4 text-purple-400" />
             <h2 className="font-display font-bold text-lg text-white">
               Related Transmission Signals
             </h2>

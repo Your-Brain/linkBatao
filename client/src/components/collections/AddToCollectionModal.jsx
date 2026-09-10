@@ -115,42 +115,42 @@ export const AddToCollectionModal = ({ isOpen, onClose, resource }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-md">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#07040f]/85 backdrop-blur-xl">
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 6 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 6 }}
         transition={{ duration: 0.15 }}
-        className="relative w-full max-w-md bg-zinc-900 rounded-2xl p-6 shadow-2xl border border-zinc-800 text-left space-y-4"
+        className="relative w-full max-w-md bg-[#0d081e] rounded-3xl p-6 sm:p-7 shadow-2xl border border-purple-900/40 text-left space-y-4 hud-bracket"
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 text-zinc-400 hover:text-white rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors cursor-pointer"
+          className="absolute top-5 right-5 p-2 text-purple-300 hover:text-white rounded-xl bg-[#140d2e] border border-purple-900/40 hover:border-purple-500/50 transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
 
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-600/15 text-indigo-400 border border-indigo-500/30 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-purple-600/20 text-purple-300 border border-purple-500/40 flex items-center justify-center shrink-0">
             <FolderPlus className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-semibold text-sm text-white">Save Link to Collection</h3>
-            <p className="text-xs text-zinc-400 truncate max-w-[260px]">{resource.title}</p>
+            <h3 className="font-display font-bold text-sm text-white">Save Link to Collection</h3>
+            <p className="text-xs font-mono text-purple-300/70 truncate max-w-[260px]">{resource.title}</p>
           </div>
         </div>
 
         {/* List of user's collections */}
         <div className="max-h-60 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
           {loading ? (
-            <div className="py-8 text-center text-zinc-400 flex items-center justify-center gap-2 text-xs">
-              <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+            <div className="py-8 text-center text-purple-300 flex items-center justify-center gap-2 text-xs font-mono">
+              <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
               <span>Loading your collections...</span>
             </div>
           ) : collections.length === 0 ? (
-            <div className="py-6 text-center text-zinc-400 text-xs space-y-1">
-              <p className="font-medium">No collections created yet.</p>
-              <p className="text-xs text-zinc-500">Create your first collection below.</p>
+            <div className="py-6 text-center text-purple-300/70 text-xs font-mono space-y-1">
+              <p className="font-medium text-purple-200">No collections created yet.</p>
+              <p className="text-[11px] text-purple-400/60">Create your first collection below.</p>
             </div>
           ) : (
             collections.map((col) => {
@@ -162,23 +162,23 @@ export const AddToCollectionModal = ({ isOpen, onClose, resource }) => {
                   key={col._id}
                   onClick={() => handleToggleCollection(col)}
                   disabled={isToggling}
-                  className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left cursor-pointer ${
+                  className={`w-full flex items-center justify-between p-3 rounded-2xl border transition-all text-left cursor-pointer ${
                     inCol
-                      ? 'bg-indigo-600/15 border-indigo-500/50 text-white'
-                      : 'bg-zinc-950 border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-800/50'
+                      ? 'bg-purple-600/20 border-purple-500/50 text-white shadow-[0_0_15px_rgba(147,51,234,0.15)]'
+                      : 'bg-[#090515] border-purple-900/30 text-purple-200 hover:border-purple-700/50 hover:bg-[#140d2e]'
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div
-                      className={`p-2 rounded-lg border ${
-                        inCol ? 'bg-indigo-600/20 border-indigo-500/40 text-indigo-300' : 'bg-zinc-900 border-zinc-800 text-zinc-400'
+                      className={`p-2 rounded-xl border ${
+                        inCol ? 'bg-purple-600/30 border-purple-500/50 text-purple-300' : 'bg-[#140d2e] border-purple-900/40 text-purple-400'
                       }`}
                     >
                       {col.visibility === 'PRIVATE' ? <Lock className="w-3.5 h-3.5" /> : <Globe className="w-3.5 h-3.5" />}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold truncate">{col.name}</p>
-                      <p className="text-[11px] text-zinc-400">
+                      <p className="text-xs font-semibold truncate font-display">{col.name}</p>
+                      <p className="text-[11px] text-purple-400/70 font-mono">
                         {col.items ? col.items.length : 0} items • {col.visibility}
                       </p>
                     </div>
@@ -186,11 +186,11 @@ export const AddToCollectionModal = ({ isOpen, onClose, resource }) => {
 
                   <div className="shrink-0 ml-2">
                     {isToggling ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+                      <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
                     ) : (
                       <div
-                        className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${
-                          inCol ? 'bg-indigo-600 border-indigo-500 text-white' : 'border-zinc-700 bg-zinc-900'
+                        className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                          inCol ? 'bg-purple-600 border-purple-500 text-white shadow-sm' : 'border-purple-900/50 bg-[#140d2e]'
                         }`}
                       >
                         {inCol && <Check className="w-3.5 h-3.5 stroke-[3]" />}
@@ -203,69 +203,54 @@ export const AddToCollectionModal = ({ isOpen, onClose, resource }) => {
           )}
         </div>
 
-        {/* Inline Create Collection toggle */}
-        <div className="pt-3 border-t border-zinc-800">
-          {showInlineCreate ? (
-            <form onSubmit={handleInlineCreate} className="space-y-3">
+        {/* Quick inline create collection */}
+        <div className="pt-2 border-t border-purple-900/30">
+          {!showInlineCreate ? (
+            <button
+              type="button"
+              onClick={() => setShowInlineCreate(true)}
+              className="w-full py-2.5 rounded-xl border border-dashed border-purple-900/50 hover:border-purple-500 text-purple-300 hover:text-white bg-[#140d2e]/50 hover:bg-[#140d2e] text-xs font-mono font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Create New Vault & Save</span>
+            </button>
+          ) : (
+            <form onSubmit={handleInlineCreate} className="space-y-2.5">
               <input
                 type="text"
-                autoFocus
+                required
                 placeholder="Collection name..."
                 value={newColName}
                 onChange={(e) => setNewColName(e.target.value)}
-                className="w-full bg-zinc-950 text-xs text-zinc-100 placeholder-zinc-500 px-3.5 py-2 rounded-xl border border-zinc-800 focus:border-indigo-500 outline-none"
+                className="w-full bg-[#090515] text-xs font-mono text-purple-100 placeholder-purple-400/40 px-3.5 py-2 rounded-xl border border-purple-900/40 focus:border-purple-500 outline-none"
               />
               <div className="flex items-center justify-between gap-2">
-                <div className="flex gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => setNewColVis('PUBLIC')}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-medium border cursor-pointer ${
-                      newColVis === 'PUBLIC'
-                        ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300 font-semibold'
-                        : 'bg-zinc-950 border-zinc-800 text-zinc-400'
-                    }`}
-                  >
-                    Public
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setNewColVis('PRIVATE')}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-medium border cursor-pointer ${
-                      newColVis === 'PRIVATE'
-                        ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-semibold'
-                        : 'bg-zinc-950 border-zinc-800 text-zinc-400'
-                    }`}
-                  >
-                    Private
-                  </button>
-                </div>
-                <div className="flex gap-2">
+                <select
+                  value={newColVis}
+                  onChange={(e) => setNewColVis(e.target.value)}
+                  className="bg-[#090515] text-xs font-mono text-purple-200 px-3 py-1.5 rounded-xl border border-purple-900/40 focus:border-purple-500 outline-none cursor-pointer"
+                >
+                  <option value="PUBLIC" className="bg-[#0d081e]">Public</option>
+                  <option value="PRIVATE" className="bg-[#0d081e]">Private</option>
+                </select>
+                <div className="flex items-center gap-1.5">
                   <button
                     type="button"
                     onClick={() => setShowInlineCreate(false)}
-                    className="px-3 py-1 rounded-lg text-xs text-zinc-400 hover:text-white cursor-pointer"
+                    className="px-3 py-1.5 rounded-xl text-xs font-mono text-purple-400/70 hover:text-white cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={creating}
-                    className="px-3.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs shadow-sm cursor-pointer"
+                    className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-mono font-bold shadow-sm transition-all disabled:opacity-50 cursor-pointer"
                   >
-                    {creating ? 'Creating...' : 'Create & Save'}
+                    {creating ? 'Creating...' : 'Create'}
                   </button>
                 </div>
               </div>
             </form>
-          ) : (
-            <button
-              onClick={() => setShowInlineCreate(true)}
-              className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 text-xs font-medium text-indigo-400 transition-colors cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Create New Collection</span>
-            </button>
           )}
         </div>
 
@@ -273,4 +258,3 @@ export const AddToCollectionModal = ({ isOpen, onClose, resource }) => {
     </div>
   );
 };
-

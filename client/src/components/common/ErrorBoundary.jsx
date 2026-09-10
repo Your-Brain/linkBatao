@@ -22,23 +22,23 @@ export class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-center space-y-4 shadow-2xl">
+        <div className="min-h-screen bg-[#07040f] text-purple-100 flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-[#0d081e] border border-purple-900/40 rounded-3xl p-6 sm:p-8 text-center space-y-4 shadow-2xl hud-bracket">
             <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/30 text-rose-400 mx-auto flex items-center justify-center">
               <AlertTriangle className="w-6 h-6" />
             </div>
-            <h2 className="text-lg font-bold text-white">Something went wrong</h2>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              An unexpected error occurred while rendering the page.
+            <h2 className="text-lg font-display font-bold text-white">Something went wrong</h2>
+            <p className="text-xs font-mono text-purple-300/70 leading-relaxed">
+              An unexpected error occurred while rendering the interface.
             </p>
             {this.state.error?.message && (
-              <pre className="text-[11px] font-mono bg-zinc-950 p-3 rounded-xl text-rose-300 text-left overflow-x-auto border border-zinc-800/80 max-h-32">
+              <pre className="text-[11px] font-mono bg-[#07040f] p-3 rounded-xl text-rose-300 text-left overflow-x-auto border border-purple-900/40 max-h-32">
                 {this.state.error.message}
               </pre>
             )}
             <button
               onClick={this.handleReload}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition-all cursor-pointer shadow-lg"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-mono font-bold rounded-xl transition-all cursor-pointer shadow-[0_0_20px_rgba(147,51,234,0.35)]"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Reload Application</span>

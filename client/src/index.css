@@ -2,76 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
-
-
 :root {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 body {
-  line-height: 1.7;
-}
-
-.myanimation {
-  display: inline-block;
-
-  background: linear-gradient(90deg,
-      #22d3ee,
-      #ffffff,
-      #38bdf8,
-      #a855f7,
-      #22d3ee);
-
-  background-size: 300% 100%;
-  background-clip: text;
-  -webkit-background-clip: text;
-
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-
-  animation:
-    textFlow 4s linear infinite,
-    textFloat 3s ease-in-out infinite;
-
-  filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.25));
-}
-
-@keyframes textFlow {
-  0% {
-    background-position: 0% center;
-  }
-
-  100% {
-    background-position: 300% center;
-  }
-}
-
-@keyframes textFloat {
-
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-3px);
-  }
+  line-height: 1.6;
 }
 
 @layer base {
   :root {
-    --bg-base: #050811;
-    --surface-1: #090e1d;
-    --surface-2: #0e1529;
-    --border-dim: rgba(255, 255, 255, 0.07);
-    --border-tech: rgba(6, 182, 212, 0.2);
-    --accent-cyan: #06b6d4;
-    --accent-sky: #0ea5e9;
+    --bg-base: #07040f;
+    --surface-1: #0d081e;
+    --surface-2: #140d2e;
+    --surface-3: #1c123f;
+    --border-dim: rgba(139, 92, 246, 0.12);
+    --border-hover: rgba(167, 139, 250, 0.35);
+    --accent-purple: #8b5cf6;
+    --accent-purple-dark: #6d28d9;
+    --accent-purple-light: #a78bfa;
   }
 
   body {
     background-color: var(--bg-base);
-    color: #e2e8f0;
+    color: #f1f5f9;
     overflow-x: hidden;
     font-family: 'Inter', system-ui, sans-serif;
   }
@@ -87,67 +41,48 @@ body {
   }
 }
 
-/* Subtle Sci-Fi Grid Overlay */
+/* Atmospheric Tech Grids */
 .cosmos-grid {
-  background-size: 40px 40px;
+  background-size: 36px 36px;
   background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    linear-gradient(to right, rgba(139, 92, 246, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
 }
 
-/* Futuristic Technical Surfaces */
+/* Glassmorphic Surfaces */
 .glass-panel {
-  background: rgba(9, 14, 29, 0.85);
+  background: rgba(13, 8, 30, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(139, 92, 246, 0.14);
+  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .glass-card {
-  background: rgba(9, 14, 29, 0.75);
+  background: rgba(13, 8, 30, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(139, 92, 246, 0.12);
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.5);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-card:hover {
-  background: rgba(14, 21, 41, 0.85);
-  border-color: rgba(6, 182, 212, 0.35);
+  background: rgba(20, 13, 46, 0.88);
+  border-color: rgba(167, 139, 250, 0.4);
   transform: translateY(-2px);
-  box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.6), 0 0 20px -3px rgba(6, 182, 212, 0.15);
+  box-shadow: 0 14px 32px -4px rgba(0, 0, 0, 0.7), 0 0 25px -4px rgba(139, 92, 246, 0.25);
 }
 
 .glass-modal {
-  background: rgba(7, 11, 23, 0.96);
+  background: rgba(10, 6, 23, 0.96);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(6, 182, 212, 0.25);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 35px -5px rgba(6, 182, 212, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85), 0 0 40px -5px rgba(124, 58, 237, 0.2);
 }
 
-/* Precision Tech HUD Badges & Telemetry */
-.tech-badge {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-}
-
-.text-gradient {
-  background: linear-gradient(135deg, #ffffff 20%, #38bdf8 65%, #06b6d4 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.text-gradient-cyan {
-  background: linear-gradient(135deg, #22d3ee 0%, #0ea5e9 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* Futuristic Corner Bracket Element */
+/* Futuristic Corner Brackets */
 .hud-bracket {
   position: relative;
 }
@@ -159,8 +94,8 @@ body {
   left: 0;
   width: 6px;
   height: 6px;
-  border-top: 1.5px solid #06b6d4;
-  border-left: 1.5px solid #06b6d4;
+  border-top: 1.5px solid #8b5cf6;
+  border-left: 1.5px solid #8b5cf6;
   pointer-events: none;
 }
 
@@ -171,9 +106,22 @@ body {
   right: 0;
   width: 6px;
   height: 6px;
-  border-bottom: 1.5px solid #06b6d4;
-  border-right: 1.5px solid #06b6d4;
+  border-bottom: 1.5px solid #8b5cf6;
+  border-right: 1.5px solid #8b5cf6;
   pointer-events: none;
+}
+
+/* Text Gradients */
+.hero-gradient {
+  background: linear-gradient(135deg, #ffffff 15%, #c4b5fd 50%, #8b5cf6 90%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-purple {
+  background: linear-gradient(135deg, #c4b5fd 0%, #8b5cf6 50%, #6d28d9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* Custom Tech Scrollbar */
@@ -183,29 +131,28 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #050811;
+  background: #07040f;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #1f1344;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #0ea5e9;
+  background: #7c3aed;
 }
 
 /* Interactive Input / Button Focus States */
 input:focus,
 textarea:focus,
 select:focus {
-  border-color: #06b6d4 !important;
-  box-shadow: 0 0 0 1px rgba(6, 182, 212, 0.4), 0 0 15px -3px rgba(6, 182, 212, 0.2) !important;
+  border-color: #8b5cf6 !important;
+  box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.4), 0 0 18px -3px rgba(139, 92, 246, 0.25) !important;
 }
 
 /* Reduced Motion Handling */
 @media (prefers-reduced-motion: reduce) {
-
   *,
   ::before,
   ::after {

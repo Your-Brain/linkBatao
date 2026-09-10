@@ -164,7 +164,7 @@ export function AppContent() {
   // -----------------------------------------
 
   return (
-    <div className="relative min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white bg-zinc-950 text-zinc-100">
+    <div className="relative min-h-screen flex flex-col justify-between selection:bg-purple-600 selection:text-white bg-[#07040f] text-purple-100">
 
       {/* Dynamic Ambient Background */}
       <CanvasBackground />

@@ -100,8 +100,8 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
     if (detailLoading) {
       return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-          <div className="h-6 bg-zinc-800 rounded w-28 animate-pulse" />
-          <div className="bg-zinc-900 rounded-3xl h-44 border border-zinc-800 animate-pulse" />
+          <div className="h-6 bg-[#0d081e] rounded-xl w-28 animate-pulse" />
+          <div className="bg-[#0d081e] rounded-3xl h-44 border border-purple-900/30 animate-pulse" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {Array.from({ length: 4 }).map((_, idx) => (
               <ResourceCardSkeleton key={idx} />
@@ -113,13 +113,13 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
 
     if (!collection) {
       return (
-        <div className="max-w-md mx-auto py-20 px-4 text-center space-y-4 bg-zinc-900 rounded-3xl border border-zinc-800 p-8 shadow-sm">
+        <div className="max-w-md mx-auto py-20 px-4 text-center space-y-4 bg-[#0d081e] rounded-3xl border border-purple-900/40 p-8 shadow-xl hud-bracket">
           <AlertCircle className="w-10 h-10 text-rose-400 mx-auto" />
-          <h2 className="text-lg font-semibold text-white">Vault Not Found</h2>
-          <p className="text-xs text-zinc-400">This collection does not exist or has been made private.</p>
+          <h2 className="text-lg font-display font-semibold text-white">Vault Not Found</h2>
+          <p className="text-xs font-mono text-purple-300/70">This collection does not exist or has been made private.</p>
           <Link
             to="/collections"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-mono font-medium text-xs transition-colors shadow-sm"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Vaults</span>
@@ -135,7 +135,7 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
         <div>
           <button
             onClick={() => navigate('/collections')}
-            className="inline-flex items-center gap-2 text-xs font-medium text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 text-xs font-mono text-purple-300/70 hover:text-white transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to All Vaults</span>
@@ -143,41 +143,41 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
         </div>
 
         {/* Collection Details Header Banner */}
-        <div className="bg-zinc-900 rounded-3xl p-6 sm:p-8 border border-zinc-800 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
+        <div className="bg-[#0d081e] rounded-3xl p-6 sm:p-8 border border-purple-900/40 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl hud-bracket">
           <div className="space-y-2.5 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2.5">
-              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-mono font-semibold border ${
                 collection.visibility === 'PRIVATE'
-                  ? 'bg-amber-950/40 text-amber-300 border-amber-800'
-                  : 'bg-indigo-950/40 text-indigo-300 border-indigo-800'
+                  ? 'bg-amber-950/40 text-amber-300 border-amber-800/60'
+                  : 'bg-purple-950/40 text-purple-300 border-purple-800/60'
               }`}>
                 {collection.visibility === 'PRIVATE' ? <Lock className="w-3 h-3" /> : <Globe className="w-3 h-3" />}
-                <span>{collection.visibility} Collection</span>
+                <span>{collection.visibility} Vault</span>
               </span>
 
               {isAdmin && !isOwner && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-purple-950 text-purple-300 border border-purple-800">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-xl text-[10px] font-mono font-bold bg-purple-950 text-purple-300 border border-purple-800">
                   <ShieldCheck className="w-3 h-3" />
                   <span>Admin</span>
                 </span>
               )}
 
-              <span className="text-xs text-zinc-400">
+              <span className="text-xs font-mono text-purple-400/70">
                 {collection.items ? collection.items.length : 0} items saved
               </span>
             </div>
 
-            <h1 className="font-bold text-2xl sm:text-3xl text-white leading-tight">
+            <h1 className="font-display font-bold text-2xl sm:text-3xl text-white leading-tight">
               {collection.name}
             </h1>
 
             {collection.description && (
-              <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
+              <p className="text-xs sm:text-sm text-purple-200/80 leading-relaxed">
                 {collection.description}
               </p>
             )}
 
-            <div className="flex items-center gap-2 pt-1 text-xs text-zinc-400">
+            <div className="flex items-center gap-2 pt-1 text-xs font-mono text-purple-400/60">
               <span>
                 {collection.ownerId ? `Curated by @${collection.ownerId.username || 'user'}` : 'Public Vault'}
               </span>
@@ -189,7 +189,7 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
             <div className="flex flex-wrap items-center gap-2.5 shrink-0">
               <button
                 onClick={() => setIsEditModalOpen(true)}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-200 text-xs font-medium transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#140d2e] hover:bg-[#1a1138] border border-purple-900/40 text-purple-200 text-xs font-mono font-medium transition-all cursor-pointer hover:border-purple-500"
               >
                 <Edit3 className="w-3.5 h-3.5" />
                 <span>Edit Vault</span>
@@ -198,7 +198,7 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
               <button
                 onClick={handleDeleteCollection}
                 disabled={deleting}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-950/70 border border-rose-800 text-rose-300 text-xs font-medium transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-950/70 border border-rose-800/60 text-rose-300 text-xs font-mono font-medium transition-colors cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>{deleting ? 'Deleting...' : 'Delete'}</span>
@@ -218,20 +218,20 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
         {/* Collection Items Grid */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-base text-zinc-100 flex items-center gap-2">
-              <Layers className="w-4 h-4 text-indigo-400" />
+            <h2 className="font-display font-semibold text-base text-purple-100 flex items-center gap-2">
+              <Layers className="w-4 h-4 text-purple-400" />
               <span>Saved Resources in Vault</span>
             </h2>
           </div>
 
           {!collection.items || collection.items.length === 0 ? (
-            <div className="bg-zinc-900 rounded-3xl p-12 text-center max-w-md mx-auto my-8 border border-zinc-800 space-y-3">
-              <FolderHeart className="w-10 h-10 text-zinc-600 mx-auto" />
-              <h3 className="text-base font-semibold text-zinc-100">Vault is Empty</h3>
-              <p className="text-xs text-zinc-400">No resources have been added to this vault collection yet.</p>
+            <div className="bg-[#0d081e] rounded-3xl p-12 text-center max-w-md mx-auto my-8 border border-purple-900/40 space-y-3 hud-bracket">
+              <FolderHeart className="w-10 h-10 text-purple-400/40 mx-auto" />
+              <h3 className="text-base font-display font-semibold text-white">Vault is Empty</h3>
+              <p className="text-xs font-mono text-purple-300/70">No resources have been added to this vault collection yet.</p>
               <Link
                 to="/"
-                className="inline-block px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs transition-colors"
+                className="inline-block px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-mono font-medium text-xs transition-colors shadow-sm"
               >
                 Browse Resources to Add
               </Link>
@@ -254,24 +254,24 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 text-left">
 
       {/* Header Banner */}
-      <div className="bg-zinc-900 rounded-3xl p-6 sm:p-8 border border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+      <div className="bg-[#0d081e] rounded-3xl p-6 sm:p-8 border border-purple-900/40 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl hud-bracket">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-600/15 text-indigo-300 text-xs font-medium border border-indigo-500/30">
-            <FolderHeart className="w-3.5 h-3.5 text-indigo-400" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-600/15 text-purple-300 text-xs font-mono border border-purple-500/30">
+            <FolderHeart className="w-3.5 h-3.5 text-purple-400" />
             <span>Curated Collections</span>
           </div>
-          <h1 className="font-bold text-2xl sm:text-3xl text-white">
+          <h1 className="font-display font-bold text-2xl sm:text-3xl text-white">
             Resource Vaults
           </h1>
-          <p className="text-xs sm:text-sm text-zinc-400 max-w-xl">
-            Explore curated topic vaults created across the community or assemble your own custom collections.
+          <p className="text-xs sm:text-sm text-purple-200/70 max-w-xl font-mono">
+            Explore curated topic vaults created across the network or assemble your own custom collections.
           </p>
         </div>
 
         {user && (
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs shadow-sm transition-colors shrink-0 cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-mono font-bold text-xs shadow-[0_0_20px_rgba(147,51,234,0.35)] transition-all shrink-0 cursor-pointer"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>Create Vault</span>
@@ -283,14 +283,14 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {Array.from({ length: 6 }).map((_, idx) => (
-            <div key={idx} className="bg-zinc-900 rounded-2xl h-44 animate-pulse border border-zinc-800 p-4" />
+            <div key={idx} className="bg-[#0d081e] rounded-3xl h-44 animate-pulse border border-purple-900/30 p-4" />
           ))}
         </div>
       ) : collections.length === 0 ? (
-        <div className="bg-zinc-900 rounded-3xl p-12 text-center max-w-md mx-auto my-8 border border-zinc-800 space-y-2 shadow-sm">
-          <FolderHeart className="w-10 h-10 text-zinc-600 mx-auto mb-2" />
-          <h3 className="text-base font-semibold text-white">No Vaults Found</h3>
-          <p className="text-xs text-zinc-400">Be the first to create a public resource vault!</p>
+        <div className="bg-[#0d081e] rounded-3xl p-12 text-center max-w-md mx-auto my-8 border border-purple-900/40 space-y-2 shadow-xl hud-bracket">
+          <FolderHeart className="w-10 h-10 text-purple-400/40 mx-auto mb-2" />
+          <h3 className="text-base font-display font-semibold text-white">No Vaults Found</h3>
+          <p className="text-xs font-mono text-purple-300/70">Be the first to create a public resource vault!</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -310,4 +310,3 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
     </div>
   );
 };
-
