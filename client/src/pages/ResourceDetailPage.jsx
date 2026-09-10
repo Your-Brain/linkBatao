@@ -41,6 +41,7 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isCopiedUrl, setIsCopiedUrl] = useState(false);
+  const [isRevealed, setIsRevealed] = useState(false);
 
   const fetchResource = async () => {
     setLoading(true);
@@ -59,6 +60,7 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
 
   useEffect(() => {
     fetchResource();
+    setIsRevealed(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [id]);
 
@@ -142,36 +144,49 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
   };
 
   const categoryName = getCategoryName(resource.category);
-
   const isAdult = isAdultResource(resource);
+  const shouldShieldAdultMedia = isAdult && !isIncognito && !isRevealed;
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8 text-left">
 
-      {/* 18+ Adult Content Notice Banner */}
+      {/* Adult Content Status Banner (only when unlocked/revealed or incognito) */}
       {isAdult && (
-        <div className={`p-4 rounded-2xl border flex flex-wrap items-center justify-between gap-4 ${
-          isIncognito ? 'bg-purple-950/40 border-purple-500/40 text-purple-200' : 'bg-purple-950/20 border-purple-800/40 text-purple-300'
+        <div className={`p-3.5 rounded-2xl border flex flex-wrap items-center justify-between gap-3 ${
+          isIncognito
+            ? 'bg-purple-950/40 border-purple-500/40 text-purple-200'
+            : isRevealed
+              ? 'bg-amber-950/30 border-amber-500/40 text-amber-200'
+              : 'bg-purple-950/20 border-purple-800/40 text-purple-300'
         }`}>
           <div className="flex items-center gap-2.5">
-            <Ghost className="w-5 h-5 text-purple-400 shrink-0" />
+            {isIncognito ? (
+              <Ghost className="w-4 h-4 text-purple-400 shrink-0" />
+            ) : isRevealed ? (
+              <Eye className="w-4 h-4 text-amber-400 shrink-0" />
+            ) : (
+              <ShieldAlert className="w-4 h-4 text-purple-400 shrink-0" />
+            )}
             <div>
-              <p className="text-xs font-mono font-bold uppercase tracking-wider text-purple-200">
-                18+ / NSFW Adult Signal
+              <p className="text-xs font-mono font-bold uppercase tracking-wider">
+                {isIncognito ? 'Incognito Active: 18+ Content Unlocked' : isRevealed ? 'Temporary Preview Revealed' : '18+ Adult Content Shielded'}
               </p>
               <p className="text-[11px] text-purple-300/70 font-mono">
                 {isIncognito
-                  ? 'Stealth mode active: Ephemeral private viewing mode engaged'
-                  : 'This resource contains adult/NSFW content. Incognito Mode is currently OFF.'}
+                  ? 'Stealth viewing mode engaged — No history or analytics recorded'
+                  : isRevealed
+                    ? 'Safe Browsing is still ON for feeds. Switch to Incognito for untracked session browsing.'
+                    : 'Safe Browsing is currently shielding this media preview.'}
               </p>
             </div>
           </div>
           {!isIncognito && (
             <button
               onClick={enableIncognito}
-              className="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-mono font-bold uppercase transition-all cursor-pointer shadow-sm"
+              className="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-mono font-bold uppercase transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
             >
-              Unlock Incognito
+              <Ghost className="w-3.5 h-3.5" />
+              <span>Turn On Incognito</span>
             </button>
           )}
         </div>
@@ -226,8 +241,55 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
         </div>
       )}
 
-      {/* Top Media Player Section */}
-      <EmbeddedPlayer resource={resource} />
+      {/* Top Media Player or 18+ Safe Gate */}
+      {shouldShieldAdultMedia ? (
+        <div className="w-full aspect-video min-h-[300px] sm:min-h-[420px] bg-[#0c081e] rounded-3xl border border-purple-900/50 flex flex-col items-center justify-center p-6 text-center space-y-4 hud-bracket relative overflow-hidden shadow-2xl">
+          <div className="w-16 h-16 rounded-3xl bg-purple-950/80 border border-purple-500/50 flex items-center justify-center text-purple-400 shadow-purple-glow">
+            <Ghost className="w-8 h-8 animate-pulse" />
+          </div>
+
+          <div className="max-w-md space-y-2">
+            <div className="flex items-center justify-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-purple-950/90 text-purple-200 border border-purple-500/50 shadow-sm">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-purple-500"></span>
+                </span>
+                <span>18+ NSFW Shielded</span>
+              </span>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-950/90 text-emerald-300 border border-emerald-500/40">
+                Safe Browsing Active
+              </span>
+            </div>
+            <h3 className="font-display font-bold text-lg sm:text-xl text-white">
+              Adult Transmission Protected
+            </h3>
+            <p className="text-xs font-mono text-purple-200/70 leading-relaxed">
+              This resource contains adult/NSFW material. Turn on Incognito Mode for private, untracked viewing, or reveal this preview once.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <button
+              onClick={enableIncognito}
+              className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-mono font-bold text-xs uppercase tracking-wider shadow-purple-glow transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <Ghost className="w-4 h-4" />
+              <span>Turn On Incognito & Unlock</span>
+            </button>
+
+            <button
+              onClick={() => setIsRevealed(true)}
+              className="px-4 py-2.5 rounded-xl bg-[#140d2e] hover:bg-[#1f1447] text-purple-200 border border-purple-800/60 font-mono text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <Eye className="w-4 h-4 text-purple-400" />
+              <span>Reveal Once</span>
+            </button>
+          </div>
+        </div>
+      ) : (
+        <EmbeddedPlayer resource={resource} />
+      )}
 
       {/* Main Content Details Panel */}
       <div className="bg-[#0d081e] rounded-3xl p-6 sm:p-8 border border-purple-900/40 space-y-6 hud-bracket shadow-xl">

@@ -23,14 +23,15 @@ import {
   Trash2,
   Sparkles,
   ArrowRight,
-  Share2
+  Share2,
+  HelpCircle
 } from 'lucide-react';
 
 const SEARCH_HISTORY_KEY = 'auralink_search_history';
 
 export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
   const { user, logout } = useAuth();
-  const { isIncognito, toggleIncognito } = useIncognito();
+  const { isIncognito, toggleIncognito, openExplainer } = useIncognito();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -39,9 +40,41 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [searchHistory, setSearchHistory] = useState([]);
+  const [showGlanceTooltip, setShowGlanceTooltip] = useState(false);
 
   const searchInputRef = useRef(null);
   const searchContainerRef = useRef(null);
+
+  // Auto show glance info tooltip for new users on initial load
+  useEffect(() => {
+    try {
+      const seen = localStorage.getItem('auralink_incognito_glance_seen');
+      if (!seen) {
+        const timer = setTimeout(() => {
+          setShowGlanceTooltip(true);
+        }, 1000);
+
+        const autoHideTimer = setTimeout(() => {
+          setShowGlanceTooltip(false);
+          try {
+            localStorage.setItem('auralink_incognito_glance_seen', 'true');
+          } catch (e) {}
+        }, 8500);
+
+        return () => {
+          clearTimeout(timer);
+          clearTimeout(autoHideTimer);
+        };
+      }
+    } catch (e) {}
+  }, []);
+
+  const dismissGlanceTooltip = () => {
+    setShowGlanceTooltip(false);
+    try {
+      localStorage.setItem('auralink_incognito_glance_seen', 'true');
+    } catch (e) {}
+  };
 
   // Load search history from localStorage
   useEffect(() => {
@@ -57,6 +90,7 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
 
   // Save to search history
   const saveSearchQuery = (query) => {
+    if (isIncognito) return; // Zero trace when Incognito is ON
     const trimmed = query.trim();
     if (!trimmed) return;
     try {
@@ -325,28 +359,108 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
         </div>
 
         {/* Actions & User Control Hub */}
-        <div className="flex items-center gap-2.5">
-          {/* Incognito Stealth Mode Toggle Button */}
-          <button
-            onClick={toggleIncognito}
-            title={isIncognito ? "Incognito Active: 18+ Channels Unlocked (Alt+I)" : "Safe Browsing Active: Click to unlock Incognito / 18+ mode (Alt+I)"}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium backdrop-blur-md transition-all cursor-pointer border ${isIncognito
-                ? 'bg-purple-950/60 text-purple-200 border-purple-500/60 shadow-purple-glow'
-                : 'bg-[#0d081e] hover:bg-purple-950/30 text-purple-200/80 border-purple-900/40'
-              }`}
-          >
-            {isIncognito ? (
-              <>
-                <Ghost className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
-                <span className="hidden sm:inline">Incognito: <strong className="text-purple-300">ON</strong></span>
-              </>
-            ) : (
-              <>
-                <Shield className="w-3.5 h-3.5 text-purple-400/70" />
-                <span className="hidden sm:inline text-purple-300/70">Safe Mode</span>
-              </>
-            )}
-          </button>
+        <div className="flex items-center gap-2">
+          {/* Incognito Stealth Mode Control Group with Relative Anchor for Glance Popover */}
+          <div className="relative">
+            <div className={`flex items-center rounded-xl bg-[#0d081e] border p-0.5 transition-all ${
+              isIncognito
+                ? 'border-purple-500/60 shadow-[0_0_15px_rgba(147,51,234,0.3)]'
+                : 'border-purple-900/40'
+            }`}>
+              <button
+                onClick={toggleIncognito}
+                title={isIncognito ? "Incognito Active: 18+ Channels Unlocked (Alt+I)" : "Safe Browsing Active: Click to unlock Incognito / 18+ mode (Alt+I)"}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium backdrop-blur-md transition-all cursor-pointer relative ${isIncognito
+                    ? 'bg-purple-950/80 text-purple-200 border border-purple-500/60 shadow-purple-glow'
+                    : 'hover:bg-purple-950/30 text-purple-200/80'
+                  }`}
+              >
+                {/* Blinking Beacon Indicator */}
+                <span className="relative flex h-2 w-2">
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                    isIncognito ? 'bg-purple-400' : 'bg-emerald-400'
+                  }`}></span>
+                  <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                    isIncognito ? 'bg-purple-500' : 'bg-emerald-500'
+                  }`}></span>
+                </span>
+
+                {isIncognito ? (
+                  <>
+                    <Ghost className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
+                    <span className="hidden sm:inline">Incognito: <strong className="text-purple-300">ON</strong></span>
+                  </>
+                ) : (
+                  <>
+                    <Shield className="w-3.5 h-3.5 text-purple-400/70" />
+                    <span className="hidden sm:inline text-purple-300/70">Safe Mode</span>
+                  </>
+                )}
+              </button>
+
+              {/* Quick Info / Explainer Trigger */}
+              <button
+                onClick={openExplainer}
+                title="What is Incognito & Safe Browsing?"
+                className="p-1.5 hover:bg-purple-900/40 text-purple-400 hover:text-purple-200 rounded-lg transition-colors cursor-pointer"
+              >
+                <HelpCircle className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Fast Visit Auto Glance Info Popover */}
+            <AnimatePresence>
+              {showGlanceTooltip && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute top-full right-0 mt-2.5 z-50 w-72 sm:w-80 bg-[#0c081e] border border-purple-500/60 shadow-[0_0_30px_rgba(147,51,234,0.35)] rounded-2xl p-3.5 text-left hud-bracket"
+                >
+                  <div className="flex items-start justify-between gap-2 mb-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      </span>
+                      <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-emerald-300">
+                        Safe Browsing Active
+                      </span>
+                    </div>
+                    <button
+                      onClick={dismissGlanceTooltip}
+                      className="text-purple-400 hover:text-white text-xs p-0.5 rounded cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <p className="text-xs text-purple-200/90 leading-relaxed font-sans mb-3">
+                    18+ adult resources are shielded by default. Press <kbd className="px-1.5 py-0.5 rounded bg-purple-950 border border-purple-800 text-white font-mono text-[10px] font-bold">Alt+I</kbd> or click here to toggle <strong>Incognito Stealth Mode</strong> with zero trace saved.
+                  </p>
+
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-purple-900/40">
+                    <button
+                      onClick={() => {
+                        openExplainer();
+                        dismissGlanceTooltip();
+                      }}
+                      className="text-[11px] font-mono font-semibold text-purple-400 hover:text-purple-200 underline cursor-pointer"
+                    >
+                      Learn More
+                    </button>
+                    <button
+                      onClick={dismissGlanceTooltip}
+                      className="px-3 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-mono font-bold transition-colors cursor-pointer"
+                    >
+                      Got it
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* Submit Action Button */}
           <button
@@ -484,6 +598,45 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
                 <Share2 className="w-4 h-4 text-purple-400" />
                 <span>Web Share Target</span>
               </Link>
+
+              {/* Mobile Incognito Switch */}
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#0d081e] border border-purple-900/40 my-1">
+                <div className="flex items-center gap-2">
+                  {isIncognito ? (
+                    <Ghost className="w-4 h-4 text-purple-400 animate-pulse" />
+                  ) : (
+                    <Shield className="w-4 h-4 text-emerald-400" />
+                  )}
+                  <div>
+                    <p className="text-xs font-mono font-bold text-white">
+                      {isIncognito ? 'Incognito Mode: ON' : 'Safe Browsing Active'}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        openExplainer();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="text-[10px] text-purple-400 hover:text-purple-300 underline font-mono cursor-pointer"
+                    >
+                      What is this feature?
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={toggleIncognito}
+                  className={`px-3 py-1 rounded-lg text-xs font-mono font-bold uppercase transition-all cursor-pointer ${
+                    isIncognito
+                      ? 'bg-purple-600 text-white shadow-purple-glow'
+                      : 'bg-purple-950/60 text-purple-300 border border-purple-800/40'
+                  }`}
+                >
+                  {isIncognito ? 'Disable' : 'Enable'}
+                </button>
+              </div>
+
               {!user && (
                 <div className="flex gap-2 pt-2 border-t border-purple-900/30">
                   <button

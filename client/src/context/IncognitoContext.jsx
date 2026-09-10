@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useToast } from './ToastContext';
+import { IncognitoExplainerModal } from '../components/common/IncognitoExplainerModal';
 
 const IncognitoContext = createContext();
 
@@ -26,6 +27,18 @@ export const isAdultResource = (resource) => {
   return false;
 };
 
+export const isAdultCollection = (collection) => {
+  if (!collection) return false;
+  const name = (collection.name || '').toLowerCase();
+  const desc = (collection.description || '').toLowerCase();
+  if (ADULT_KEYWORDS.some(kw => name.includes(kw) || desc.includes(kw))) return true;
+
+  if (Array.isArray(collection.items)) {
+    return collection.items.some(item => isAdultResource(item));
+  }
+  return false;
+};
+
 export const IncognitoProvider = ({ children }) => {
   // Ephemeral Incognito Mode - session based (starts false by default for safe browsing)
   const [isIncognito, setIsIncognito] = useState(() => {
@@ -45,7 +58,12 @@ export const IncognitoProvider = ({ children }) => {
     }
   });
 
+  const [isExplainerOpen, setIsExplainerOpen] = useState(false);
+
   const { showToast } = useToast();
+
+  const openExplainer = useCallback(() => setIsExplainerOpen(true), []);
+  const closeExplainer = useCallback(() => setIsExplainerOpen(false), []);
 
   const toggleIncognito = useCallback(() => {
     setIsIncognito((prev) => {
@@ -61,7 +79,7 @@ export const IncognitoProvider = ({ children }) => {
       }
 
       if (next) {
-        showToast('Incognito Stealth Active: 18+ Channels Unlocked (No trace saved)', 'info');
+        showToast('Incognito Stealth Active: 18+ Channels Unlocked (Zero trace saved)', 'info');
       } else {
         showToast('Safe Browsing Active: 18+ Channels Shielded', 'success');
       }
@@ -133,10 +151,15 @@ export const IncognitoProvider = ({ children }) => {
         toggleBlurNsfw,
         filterCategories,
         isAdultResource,
-        isAdultCategory
+        isAdultCategory,
+        isAdultCollection,
+        isExplainerOpen,
+        openExplainer,
+        closeExplainer
       }}
     >
       {children}
+      <IncognitoExplainerModal />
     </IncognitoContext.Provider>
   );
 };

@@ -4,11 +4,12 @@ import { motion } from 'framer-motion';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { useIncognito } from '../context/IncognitoContext';
 import { CollectionCard } from '../components/collections/CollectionCard';
 import { EditCollectionModal } from '../components/collections/EditCollectionModal';
 import { CreateCollectionModal } from '../components/collections/CreateCollectionModal';
 import { ResourceGrid } from '../components/resources/ResourceGrid';
-import { FolderHeart, Plus, Lock, Globe, ArrowLeft, Trash2, Edit3, User, Layers, AlertCircle, Sparkles, ShieldCheck } from 'lucide-react';
+import { FolderHeart, Plus, Lock, Globe, ArrowLeft, Trash2, Edit3, User, Layers, AlertCircle, Sparkles, ShieldCheck, Ghost, Shield } from 'lucide-react';
 import { ResourceCardSkeleton } from '../components/common/Skeleton';
 
 export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
@@ -16,6 +17,7 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { showToast } = useToast();
+  const { isIncognito, enableIncognito, isAdultCollection } = useIncognito();
 
   // All collections list state
   const [collections, setCollections] = useState([]);
@@ -32,7 +34,9 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
   const fetchCollections = async () => {
     setLoading(true);
     try {
-      const res = await API.get('/collections');
+      const res = await API.get('/collections', {
+        params: { includeNsfw: isIncognito }
+      });
       if (res.data.success) {
         setCollections(res.data.data);
       }
@@ -47,7 +51,9 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
   const fetchCollectionDetail = async (colId) => {
     setDetailLoading(true);
     try {
-      const res = await API.get(`/collections/${colId}`);
+      const res = await API.get(`/collections/${colId}`, {
+        params: { includeNsfw: isIncognito }
+      });
       if (res.data.success) {
         setCollection(res.data.data);
       }
@@ -66,7 +72,7 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
       fetchCollections();
       setCollection(null);
     }
-  }, [id]);
+  }, [id, isIncognito]);
 
   // Handle delete collection
   const handleDeleteCollection = async () => {
@@ -128,6 +134,8 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
       );
     }
 
+    const isAdultVault = isAdultCollection(collection);
+
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 text-left">
 
@@ -142,6 +150,36 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
           </button>
         </div>
 
+        {/* 18+ Adult Vault Notice Banner */}
+        {isAdultVault && (
+          <div className={`p-4 rounded-2xl border flex flex-wrap items-center justify-between gap-4 ${
+            isIncognito ? 'bg-purple-950/40 border-purple-500/40 text-purple-200' : 'bg-purple-950/20 border-purple-800/40 text-purple-300'
+          }`}>
+            <div className="flex items-center gap-2.5">
+              <Ghost className="w-5 h-5 text-purple-400 shrink-0" />
+              <div>
+                <p className="text-xs font-mono font-bold uppercase tracking-wider text-purple-200">
+                  18+ Adult Resource Vault
+                </p>
+                <p className="text-[11px] text-purple-300/70 font-mono">
+                  {isIncognito
+                    ? 'Stealth mode active: 18+ adult resources in this vault are unshielded'
+                    : 'This vault contains 18+ adult resources. Safe Browsing mode is currently active.'}
+                </p>
+              </div>
+            </div>
+            {!isIncognito && (
+              <button
+                onClick={enableIncognito}
+                className="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-mono font-bold uppercase transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
+              >
+                <Ghost className="w-3.5 h-3.5" />
+                <span>Turn On Incognito</span>
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Collection Details Header Banner */}
         <div className="bg-[#0d081e] rounded-3xl p-6 sm:p-8 border border-purple-900/40 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl hud-bracket">
           <div className="space-y-2.5 max-w-2xl">
@@ -154,6 +192,12 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
                 {collection.visibility === 'PRIVATE' ? <Lock className="w-3 h-3" /> : <Globe className="w-3 h-3" />}
                 <span>{collection.visibility} Vault</span>
               </span>
+
+              {isAdultVault && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-mono font-bold bg-purple-950/90 text-purple-200 border border-purple-500/50 uppercase tracking-wider shadow-sm">
+                  18+ Vault
+                </span>
+              )}
 
               {isAdmin && !isOwner && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-xl text-[10px] font-mono font-bold bg-purple-950 text-purple-300 border border-purple-800">

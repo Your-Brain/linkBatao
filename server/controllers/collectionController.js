@@ -27,12 +27,37 @@ export const createCollection = async (req, res, next) => {
   }
 };
 
+const ADULT_KEYWORDS = ['sex', 'nsfw', 'adult', '18+', 'xxx', 'porn', 'erotic', 'hentai'];
+
+const isAdultItem = (item) => {
+  if (!item) return false;
+  if (item.isNsfw === true) return true;
+  const catSlug = (item.category?.slug || item.category?.name || '').toLowerCase();
+  if (catSlug === 'sex' || ADULT_KEYWORDS.some(kw => catSlug.includes(kw))) return true;
+  if (Array.isArray(item.tags)) {
+    if (item.tags.some(t => ADULT_KEYWORDS.includes(String(t).toLowerCase().trim()))) return true;
+  }
+  return false;
+};
+
+const isAdultCollectionData = (col) => {
+  if (!col) return false;
+  const name = (col.name || '').toLowerCase();
+  const desc = (col.description || '').toLowerCase();
+  if (ADULT_KEYWORDS.some(kw => name.includes(kw) || desc.includes(kw))) return true;
+  if (Array.isArray(col.items)) {
+    return col.items.some(item => isAdultItem(item));
+  }
+  return false;
+};
+
 // @desc    Get current user's collections or public collections (Admins can view all)
 // @route   GET /api/collections
 // @access  Public (Optional Auth)
 export const getCollections = async (req, res, next) => {
   try {
     const isAdmin = req.user && (req.user.role === 'ADMIN' || req.user.role === 'MODERATOR');
+    const includeNsfw = req.query.includeNsfw === 'true' || req.query.nsfw === 'true';
     let query = { visibility: 'PUBLIC' };
     
     if (isAdmin) {
@@ -43,14 +68,19 @@ export const getCollections = async (req, res, next) => {
       };
     }
 
-    const collections = await Collection.find(query)
+    let collections = await Collection.find(query)
       .populate('ownerId', 'username avatar')
       .populate({
         path: 'items',
-        select: 'title thumbnail domain resourceType',
-        populate: { path: 'category', select: 'name' }
+        select: 'title thumbnail domain resourceType isNsfw category tags',
+        populate: { path: 'category', select: 'name slug icon' }
       })
       .sort({ createdAt: -1 });
+
+    // Filter adult collections if Incognito / includeNsfw is not active
+    if (!includeNsfw) {
+      collections = collections.filter(col => !isAdultCollectionData(col));
+    }
 
     res.json({
       success: true,
@@ -75,6 +105,7 @@ const canManageCollection = (user, collection) => {
 // @access  Public (Optional Auth)
 export const getCollectionById = async (req, res, next) => {
   try {
+    const includeNsfw = req.query.includeNsfw === 'true' || req.query.nsfw === 'true';
     const collection = await Collection.findById(req.params.id)
       .populate('ownerId', 'username avatar bio role')
       .populate({
@@ -92,9 +123,18 @@ export const getCollectionById = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'This collection is private' });
     }
 
+    const colObj = collection.toObject();
+
+    // If safe browsing is active (not including NSFW) and user is not managing, filter out adult items
+    if (!includeNsfw && !canManageCollection(req.user, collection)) {
+      if (Array.isArray(colObj.items)) {
+        colObj.items = colObj.items.filter(item => !isAdultItem(item));
+      }
+    }
+
     res.json({
       success: true,
-      data: collection
+      data: colObj
     });
   } catch (err) {
     next(err);

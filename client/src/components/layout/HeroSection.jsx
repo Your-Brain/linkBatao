@@ -12,33 +12,40 @@ import {
   Play
 } from 'lucide-react';
 
+import { useIncognito } from '../../context/IncognitoContext';
+
 const SEARCH_HISTORY_KEY = 'auralink_search_history';
 
 export const HeroSection = ({ onOpenSubmitModal }) => {
   const navigate = useNavigate();
+  const { isIncognito } = useIncognito();
   const [heroSearch, setHeroSearch] = useState('');
 
   const handleHeroSearch = (e) => {
     e.preventDefault();
     const trimmed = heroSearch.trim();
     if (trimmed) {
-      try {
-        const stored = localStorage.getItem(SEARCH_HISTORY_KEY);
-        const history = stored ? JSON.parse(stored) : [];
-        const filtered = history.filter(item => item.toLowerCase() !== trimmed.toLowerCase());
-        localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify([trimmed, ...filtered].slice(0, 8)));
-      } catch (err) {}
+      if (!isIncognito) {
+        try {
+          const stored = localStorage.getItem(SEARCH_HISTORY_KEY);
+          const history = stored ? JSON.parse(stored) : [];
+          const filtered = history.filter(item => item.toLowerCase() !== trimmed.toLowerCase());
+          localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify([trimmed, ...filtered].slice(0, 8)));
+        } catch (err) {}
+      }
       navigate(`/search?q=${encodeURIComponent(trimmed)}`);
     }
   };
 
   const handleQuickTagClick = (tag) => {
-    try {
-      const stored = localStorage.getItem(SEARCH_HISTORY_KEY);
-      const history = stored ? JSON.parse(stored) : [];
-      const filtered = history.filter(item => item.toLowerCase() !== tag.toLowerCase());
-      localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify([tag, ...filtered].slice(0, 8)));
-    } catch (err) {}
+    if (!isIncognito) {
+      try {
+        const stored = localStorage.getItem(SEARCH_HISTORY_KEY);
+        const history = stored ? JSON.parse(stored) : [];
+        const filtered = history.filter(item => item.toLowerCase() !== tag.toLowerCase());
+        localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify([tag, ...filtered].slice(0, 8)));
+      } catch (err) {}
+    }
     navigate(`/search?q=${encodeURIComponent(tag)}`);
   };
 

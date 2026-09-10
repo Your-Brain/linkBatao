@@ -113,17 +113,34 @@ export const search = async (req, res, next) => {
 // @access  Public
 export const getTags = async (req, res, next) => {
   try {
+    const includeNsfw = req.query.includeNsfw === 'true' || req.query.nsfw === 'true';
+    const matchQuery = { status: 'APPROVED' };
+
+    if (!includeNsfw) {
+      matchQuery.isNsfw = { $ne: true };
+    }
+
     const tags = await Resource.aggregate([
-      { $match: { status: 'APPROVED' } },
+      { $match: matchQuery },
       { $unwind: '$tags' },
       { $group: { _id: '$tags', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
-      { $limit: 30 }
+      { $limit: 40 }
     ]);
+
+    const adultKeywords = ['sex', 'nsfw', 'adult', '18+', 'xxx', 'porn', 'erotic', 'hentai'];
+    let filteredTags = tags.map(t => ({ tag: t._id, count: t.count }));
+
+    if (!includeNsfw) {
+      filteredTags = filteredTags.filter(item => {
+        const tagName = String(item.tag).toLowerCase().trim();
+        return !adultKeywords.includes(tagName);
+      });
+    }
 
     res.json({
       success: true,
-      data: tags.map(t => ({ tag: t._id, count: t.count }))
+      data: filteredTags.slice(0, 30)
     });
   } catch (err) {
     next(err);
