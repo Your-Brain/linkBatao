@@ -70,7 +70,8 @@ export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated
 
         if (p.metadata.title) updates.title = p.metadata.title;
         if (p.metadata.description) updates.description = p.metadata.description;
-        if (p.metadata.thumbnail) updates.thumbnail = p.metadata.thumbnail;
+        // Always assign the re-fetched thumbnail (replaces old logo/stale thumbnail)
+        updates.thumbnail = p.metadata.thumbnail || '';
         if (p.metadata.resourceType) updates.resourceType = p.metadata.resourceType;
         if (p.metadata.isNsfw !== undefined) {
           updates.isNsfw = Boolean(p.metadata.isNsfw);

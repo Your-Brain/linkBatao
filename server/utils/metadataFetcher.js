@@ -163,7 +163,7 @@ export async function fetchUrlMetadata(urlString) {
             return {
               title: (oembedRes.data.title || 'Pornhub Video').trim(),
               description: `Video on Pornhub by ${oembedRes.data.author_name || 'Community Creator'}`,
-              thumbnail: finalThumb || `https://www.google.com/s2/favicons?domain=${parsed.hostname}&sz=128`,
+              thumbnail: finalThumb || '',
               resourceType: 'VIDEO',
               domain: host,
               isNsfw: true
@@ -353,12 +353,10 @@ export async function fetchUrlMetadata(urlString) {
       resourceType = 'AUDIO';
     }
 
-    const favicon = `https://www.google.com/s2/favicons?domain=${parsed.hostname}&sz=128`;
-
     return {
       title: title || parsed.hostname,
       description: description.slice(0, 500) || `Resource from ${parsed.hostname}`,
-      thumbnail: validThumbnail || favicon,
+      thumbnail: validThumbnail || '',
       resourceType,
       domain: host,
       isNsfw: isAdult
@@ -371,7 +369,7 @@ export async function fetchUrlMetadata(urlString) {
     return {
       title: parsed.hostname,
       description: `Discovered link on ${parsed.hostname}`,
-      thumbnail: `https://www.google.com/s2/favicons?domain=${parsed.hostname}&sz=128`,
+      thumbnail: '',
       resourceType: isAdult ? 'VIDEO' : 'WEBSITE',
       domain: host,
       isNsfw: isAdult
