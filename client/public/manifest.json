@@ -1,16 +1,16 @@
 {
   "id": "/",
-  "name": "AuraLink — Media Discovery",
+  "name": "AuraLink — Media Discovery & Curated Vaults",
   "short_name": "AuraLink",
-  "description": "Discover, share, organize, and bookmark public videos, articles, media, and tools anonymously.",
+  "description": "Discover, share, organize, and bookmark public videos, media, and curated vaults with Safe Browsing and Incognito stealth mode.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#050811",
-  "theme_color": "#050811",
+  "background_color": "#07040f",
+  "theme_color": "#07040f",
   "prefer_related_applications": false,
-  "categories": ["utilities", "productivity", "entertainment", "social"],
+  "categories": ["utilities", "productivity", "entertainment", "social", "news"],
   "icons": [
     {
       "src": "/icon-192.png",
@@ -41,21 +41,28 @@
     {
       "name": "Share Content",
       "short_name": "Share",
-      "description": "Open the universal share target to receive and parse content",
+      "description": "Open universal share target to receive and parse links & media",
       "url": "/share-target",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Resource Vaults",
+      "short_name": "Vaults",
+      "description": "Browse curated topic vaults and collections",
+      "url": "/collections",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Explore Links",
       "short_name": "Explore",
-      "description": "Browse trending resources and videos",
+      "description": "Browse trending resources and media",
       "url": "/",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Search AuraLink",
       "short_name": "Search",
-      "description": "Search topics, tools, and media",
+      "description": "Search links, topics, tools, and media",
       "url": "/search",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
