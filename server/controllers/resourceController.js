@@ -324,7 +324,7 @@ export const updateResource = async (req, res, next) => {
     if (thumbnail !== undefined) resource.thumbnail = thumbnail;
     if (isNsfw !== undefined) resource.isNsfw = Boolean(isNsfw);
 
-    if (url && url !== resource.url) {
+    if (url) {
       const { normalizedUrl, domain } = normalizeUrl(url);
       const embedInfo = detectEmbed(url);
       resource.url = url;

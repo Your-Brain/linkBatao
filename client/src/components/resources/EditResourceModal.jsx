@@ -3,12 +3,13 @@ import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import API from '../../services/api';
 import { useToast } from '../../context/ToastContext';
-import { X, Save, Edit3 } from 'lucide-react';
+import { X, Save, Edit3, Sparkles, RefreshCw, Image as ImageIcon, ExternalLink } from 'lucide-react';
 
 export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated }) => {
   const { showToast } = useToast();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [fetchingPreview, setFetchingPreview] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -54,6 +55,41 @@ export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated
 
   if (!isOpen || !resource) return null;
 
+  const handleFetchPreview = async () => {
+    if (!formData.url || !formData.url.trim()) {
+      showToast('Please enter a valid URL to re-fetch metadata', 'info');
+      return;
+    }
+
+    setFetchingPreview(true);
+    try {
+      const res = await API.post('/resources/metadata-preview', { url: formData.url.trim() });
+      if (res.data.success) {
+        const p = res.data;
+        const updates = { ...formData };
+
+        if (p.metadata.title) updates.title = p.metadata.title;
+        if (p.metadata.description) updates.description = p.metadata.description;
+        if (p.metadata.thumbnail) updates.thumbnail = p.metadata.thumbnail;
+        if (p.metadata.resourceType) updates.resourceType = p.metadata.resourceType;
+        if (p.metadata.isNsfw !== undefined) {
+          updates.isNsfw = Boolean(p.metadata.isNsfw);
+          if (p.metadata.isNsfw) {
+            const sexCat = categories.find(c => c.slug === 'sex' || c.name?.toLowerCase() === 'sex');
+            if (sexCat) updates.category = sexCat._id;
+          }
+        }
+
+        setFormData(updates);
+        showToast('Telemetry & metadata re-fetched successfully!', 'success');
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Could not auto-fetch metadata for this URL.', 'error');
+    } finally {
+      setFetchingPreview(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.title || !formData.url) {
@@ -93,7 +129,7 @@ export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated
             </div>
             <div>
               <h3 className="font-semibold text-sm text-white">Edit Resource</h3>
-              <p className="text-xs text-zinc-400">Update resource metadata and moderation status</p>
+              <p className="text-xs text-zinc-400">Update resource metadata, re-fetch telemetry, or modify status</p>
             </div>
           </div>
           <button
@@ -109,6 +145,53 @@ export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden min-h-0">
           <div className="p-6 overflow-y-auto space-y-4 flex-1">
 
+            {/* Target URL with Re-fetch Action */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-medium text-zinc-300">Target URL *</label>
+                <button
+                  type="button"
+                  onClick={handleFetchPreview}
+                  disabled={fetchingPreview || !formData.url}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-[11px] font-medium transition-all cursor-pointer disabled:opacity-40"
+                  title="Re-fetch title, description, thumbnail, and media type from URL"
+                >
+                  {fetchingPreview ? (
+                    <>
+                      <RefreshCw className="w-3 h-3 animate-spin text-indigo-400" />
+                      <span>Re-fetching...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3 h-3 text-indigo-400" />
+                      <span>Re-fetch Metadata</span>
+                    </>
+                  )}
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  required
+                  value={formData.url}
+                  onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                  className="flex-1 px-3.5 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-white text-xs focus:border-indigo-500 focus:outline-none font-mono"
+                  placeholder="https://example.com"
+                />
+                {formData.url && (
+                  <a
+                    href={formData.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2.5 rounded-xl bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-white transition-colors flex items-center justify-center shrink-0"
+                    title="Open URL in new tab"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                )}
+              </div>
+            </div>
+
             {/* Title */}
             <div>
               <label className="block text-xs font-medium text-zinc-300 mb-1">Title *</label>
@@ -119,19 +202,6 @@ export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-white text-xs focus:border-indigo-500 focus:outline-none transition-colors"
                 placeholder="Resource title"
-              />
-            </div>
-
-            {/* Target URL */}
-            <div>
-              <label className="block text-xs font-medium text-zinc-300 mb-1">Target URL *</label>
-              <input
-                type="url"
-                required
-                value={formData.url}
-                onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-white text-xs focus:border-indigo-500 focus:outline-none font-mono"
-                placeholder="https://example.com"
               />
             </div>
 
@@ -159,7 +229,7 @@ export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated
                   <option value="">Select Category</option>
                   {categories.map((cat) => (
                     <option key={cat._id} value={cat._id}>
-                      {cat.name}
+                      {cat.name} {cat.slug === 'sex' || cat.name?.toLowerCase() === 'sex' ? '(18+ NSFW)' : ''}
                     </option>
                   ))}
                 </select>
@@ -177,6 +247,7 @@ export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated
                   <option value="ARTICLE">Article / Post</option>
                   <option value="IMAGE">Image / Graphic</option>
                   <option value="AUDIO">Audio / Track</option>
+                  <option value="OTHER">Other Media</option>
                 </select>
               </div>
             </div>
@@ -208,6 +279,34 @@ export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated
                 />
               </div>
             </div>
+
+            {/* Thumbnail Live Preview */}
+            {formData.thumbnail && (
+              <div className="p-2.5 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center gap-3">
+                <div className="w-14 h-10 rounded-lg overflow-hidden bg-zinc-900 border border-zinc-800 shrink-0 relative flex items-center justify-center">
+                  <img
+                    src={formData.thumbnail}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                  <ImageIcon className="w-4 h-4 text-zinc-600 absolute pointer-events-none" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-medium text-zinc-300 truncate">Thumbnail Live Preview</p>
+                  <p className="text-[10px] font-mono text-zinc-500 truncate">{formData.thumbnail}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, thumbnail: '' })}
+                  className="px-2 py-1 text-[10px] text-zinc-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-md transition-colors"
+                >
+                  Clear
+                </button>
+              </div>
+            )}
 
             {/* Tags */}
             <div>
@@ -272,4 +371,3 @@ export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated
     document.body
   );
 };
-
