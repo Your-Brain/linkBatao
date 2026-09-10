@@ -39,9 +39,9 @@ export const IncognitoProvider = ({ children }) => {
   const [blurNsfw, setBlurNsfw] = useState(() => {
     try {
       const stored = localStorage.getItem('auralink_blur_nsfw');
-      return stored !== null ? stored === 'true' : true;
+      return stored !== null ? stored === 'true' : false;
     } catch {
-      return true;
+      return false;
     }
   });
 

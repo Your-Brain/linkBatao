@@ -148,10 +148,10 @@ export const previewMetadata = async (req, res, next) => {
       .populate('category', 'name slug');
 
     // Run Embed Detection
-    const embedInfo = detectEmbed(url);
+    const embedInfo = detectEmbed(normalizedUrl);
 
     // Fetch safe Open Graph metadata
-    const fetchedMeta = await fetchUrlMetadata(url);
+    const fetchedMeta = await fetchUrlMetadata(normalizedUrl);
 
     res.json({
       success: true,

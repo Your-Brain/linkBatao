@@ -34,6 +34,22 @@ function isPrivateHost(hostname) {
 function isLogoOrGenericIcon(imgUrl) {
   if (!imgUrl) return true;
   const lower = imgUrl.toLowerCase();
+
+  // If it's a known video thumbnail CDN, it is NOT a generic icon
+  if (
+    lower.includes('ytimg.com') ||
+    lower.includes('youtube.com/vi/') ||
+    lower.includes('vimeocdn.com') ||
+    lower.includes('phncdn.com') ||
+    lower.includes('stripchat.com/preview') ||
+    lower.includes('highwebmedia.com') ||
+    lower.includes('spankbang.com') ||
+    lower.includes('xvideos-cdn.com') ||
+    lower.includes('xnxx-cdn.com')
+  ) {
+    return false;
+  }
+
   const logoPatterns = [
     'pornhub_logo',
     'ph_logo',
@@ -51,8 +67,6 @@ function isLogoOrGenericIcon(imgUrl) {
     'logo.png',
     'logo.jpg',
     'logo.webp',
-    'logo-share',
-    'logo_share',
     'site_logo',
     'header-logo',
     'footer-logo',
@@ -60,20 +74,12 @@ function isLogoOrGenericIcon(imgUrl) {
     'brand-logo',
     'watermark',
     'default_avatar',
-    'default_thumb',
     'avatar_default',
-    'default.png',
-    'placeholder',
-    'no-thumb',
     'blank.png',
-    's2/favicons',
-    'favicon.ico',
     'touch-icon',
     'apple-icon',
     'brand_logo',
-    'app_icon',
-    'logo_wide',
-    'logo_square'
+    'app_icon'
   ];
   return logoPatterns.some(pattern => lower.includes(pattern));
 }
@@ -129,7 +135,12 @@ const ADULT_DOMAINS = [
 
 export async function fetchUrlMetadata(urlString) {
   try {
-    const parsed = new URL(urlString);
+    let targetUrl = String(urlString || '').trim();
+    if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+      targetUrl = 'https://' + targetUrl;
+    }
+
+    const parsed = new URL(targetUrl);
 
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
       throw new Error('Unsupported protocol. Only HTTP and HTTPS URLs are permitted.');
@@ -142,7 +153,108 @@ export async function fetchUrlMetadata(urlString) {
     const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
     const isAdult = ADULT_DOMAINS.some(d => host === d || host.endsWith(`.${d}`));
 
-    // 1. Specialized fetcher for Pornhub oEmbed
+    // 1. Specialized fetcher for YouTube
+    if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtu.be') {
+      let videoId = null;
+      if (host === 'youtu.be') {
+        videoId = parsed.pathname.replace(/^\//, '').split('/')[0]?.split('?')[0];
+      } else if (parsed.pathname.startsWith('/shorts/')) {
+        videoId = parsed.pathname.split('/shorts/')[1]?.split('/')[0]?.split('?')[0];
+      } else if (parsed.pathname.startsWith('/embed/')) {
+        videoId = parsed.pathname.split('/embed/')[1]?.split('/')[0]?.split('?')[0];
+      } else {
+        videoId = parsed.searchParams.get('v');
+      }
+
+      let ytTitle = '';
+      let ytAuthor = '';
+      let ytThumb = videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : '';
+
+      try {
+        const oembedRes = await axios.get(`https://www.youtube.com/oembed?url=${encodeURIComponent(urlString)}&format=json`, {
+          timeout: 4000,
+          headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
+        if (oembedRes.data) {
+          ytTitle = oembedRes.data.title || '';
+          ytAuthor = oembedRes.data.author_name || '';
+          if (oembedRes.data.thumbnail_url) {
+            ytThumb = oembedRes.data.thumbnail_url;
+          }
+        }
+      } catch (err) {}
+
+      return {
+        title: ytTitle || (videoId ? `YouTube Video (${videoId})` : 'YouTube Video'),
+        description: ytAuthor ? `YouTube video by ${ytAuthor}` : 'Watch video on YouTube',
+        thumbnail: ytThumb,
+        resourceType: 'VIDEO',
+        domain: host,
+        isNsfw: false
+      };
+    }
+
+    // 2. Specialized fetcher for Vimeo
+    if (host === 'vimeo.com') {
+      try {
+        const oembedRes = await axios.get(`https://vimeo.com/api/oembed.json?url=${encodeURIComponent(urlString)}`, {
+          timeout: 4000,
+          headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
+        if (oembedRes.data) {
+          return {
+            title: oembedRes.data.title || 'Vimeo Video',
+            description: oembedRes.data.description || `Vimeo video by ${oembedRes.data.author_name || 'Creator'}`,
+            thumbnail: oembedRes.data.thumbnail_url || '',
+            resourceType: 'VIDEO',
+            domain: host,
+            isNsfw: false
+          };
+        }
+      } catch (err) {}
+    }
+
+    // 3. Specialized fetcher for Spotify
+    if (host === 'open.spotify.com') {
+      try {
+        const oembedRes = await axios.get(`https://open.spotify.com/oembed?url=${encodeURIComponent(urlString)}`, {
+          timeout: 4000,
+          headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
+        if (oembedRes.data) {
+          return {
+            title: oembedRes.data.title || 'Spotify Track',
+            description: `Listen on Spotify`,
+            thumbnail: oembedRes.data.thumbnail_url || '',
+            resourceType: 'AUDIO',
+            domain: host,
+            isNsfw: false
+          };
+        }
+      } catch (err) {}
+    }
+
+    // 4. Specialized fetcher for SoundCloud
+    if (host === 'soundcloud.com') {
+      try {
+        const oembedRes = await axios.get(`https://soundcloud.com/oembed?url=${encodeURIComponent(urlString)}&format=json`, {
+          timeout: 4000,
+          headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
+        if (oembedRes.data) {
+          return {
+            title: oembedRes.data.title || 'SoundCloud Track',
+            description: oembedRes.data.description || `SoundCloud audio by ${oembedRes.data.author_name || 'Artist'}`,
+            thumbnail: oembedRes.data.thumbnail_url || '',
+            resourceType: 'AUDIO',
+            domain: host,
+            isNsfw: false
+          };
+        }
+      } catch (err) {}
+    }
+
+    // 5. Specialized fetcher for Pornhub oEmbed
     if (host.includes('pornhub.com') || host.includes('pornhubpremium.com')) {
       const viewkey = parsed.searchParams.get('viewkey') || (parsed.pathname.includes('/embed/') ? parsed.pathname.split('/embed/')[1]?.split('/')[0] : null);
       if (viewkey) {
@@ -175,7 +287,7 @@ export async function fetchUrlMetadata(urlString) {
       }
     }
 
-    // 2. Specialized direct snapshot generators for Live Cam sites
+    // 6. Specialized direct snapshot generators for Live Cam sites
     if (host.includes('stripchat.com')) {
       const username = parsed.pathname.replace(/^\//, '').split('/')[0]?.split('?')[0];
       if (username && username !== 'embed') {
@@ -331,15 +443,28 @@ export async function fetchUrlMetadata(urlString) {
       }
     }
 
-    // Fallback: If all candidates looked like logos, use the first candidate or Google favicon
+    // Fallback: If all candidates were filtered, use the first valid candidate
     if (!validThumbnail && candidateImages.length > 0) {
-      let first = candidateImages[0];
-      if (first && !first.startsWith('http')) {
-        try {
-          first = new URL(first, urlString).toString();
-        } catch (e) {}
+      for (let candidate of candidateImages) {
+        if (!candidate || typeof candidate !== 'string') continue;
+        let c = candidate.trim();
+        if (!c.startsWith('http')) {
+          try {
+            c = new URL(c, urlString).toString();
+          } catch (e) {
+            continue;
+          }
+        }
+        if (c.startsWith('http')) {
+          validThumbnail = c;
+          break;
+        }
       }
-      validThumbnail = first || '';
+    }
+
+    // Final fallback to Google High-Res Favicon
+    if (!validThumbnail && host) {
+      validThumbnail = `https://www.google.com/s2/favicons?domain=${host}&sz=128`;
     }
 
     // Infer Resource Type from Open Graph or Meta tags
@@ -362,14 +487,34 @@ export async function fetchUrlMetadata(urlString) {
       isNsfw: isAdult
     };
   } catch (err) {
-    const parsed = new URL(urlString);
-    const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
-    const isAdult = ADULT_DOMAINS.some(d => host === d || host.endsWith(`.${d}`));
+    let targetUrl = String(urlString || '').trim();
+    if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+      targetUrl = 'https://' + targetUrl;
+    }
+
+    let host = '';
+    let isAdult = false;
+    let fallbackThumb = '';
+
+    try {
+      const parsed = new URL(targetUrl);
+      host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+      isAdult = ADULT_DOMAINS.some(d => host === d || host.endsWith(`.${d}`));
+
+      if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtu.be') {
+        const v = host === 'youtu.be' ? parsed.pathname.replace(/^\//, '').split('/')[0] : parsed.searchParams.get('v');
+        if (v) fallbackThumb = `https://i.ytimg.com/vi/${v}/hqdefault.jpg`;
+      } else if (host) {
+        fallbackThumb = `https://www.google.com/s2/favicons?domain=${host}&sz=128`;
+      }
+    } catch (e) {
+      host = targetUrl.replace(/^https?:\/\//, '').split('/')[0];
+    }
 
     return {
-      title: parsed.hostname,
-      description: `Discovered link on ${parsed.hostname}`,
-      thumbnail: '',
+      title: host || 'Discovered Resource',
+      description: `Resource from ${host || 'web'}`,
+      thumbnail: fallbackThumb,
       resourceType: isAdult ? 'VIDEO' : 'WEBSITE',
       domain: host,
       isNsfw: isAdult
