@@ -181,7 +181,7 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
                             alt=""
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform opacity-90"
                             onError={(e) => {
-                              e.target.src = `https://www.google.com/s2/favicons?domain=${resource.domain}&sz=64`;
+                              e.target.style.display = 'none';
                             }}
                           />
                         ) : (

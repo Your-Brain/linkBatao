@@ -19,7 +19,7 @@ export const EmbeddedPlayer = ({ resource }) => {
               src={thumbnail}
               alt={title}
               className="w-full h-full object-cover"
-              onError={(e) => { e.target.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`; }}
+              onError={(e) => { e.target.style.display = 'none'; }}
             />
           </div>
         )}

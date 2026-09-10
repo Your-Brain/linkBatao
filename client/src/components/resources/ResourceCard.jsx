@@ -37,6 +37,12 @@ export const ResourceCard = ({ resource: initialResource, onReport, onAddToColle
   const [isDeleted, setIsDeleted] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
+
+  useEffect(() => {
+    setResource(initialResource);
+    setImageFailed(false);
+  }, [initialResource]);
 
   if (!resource || isDeleted) return null;
 
@@ -150,20 +156,32 @@ export const ResourceCard = ({ resource: initialResource, onReport, onAddToColle
     >
       {/* Card Header & Thumbnail */}
       <Link to={`/resources/${resource._id}`} className="block relative aspect-video w-full overflow-hidden bg-[#03050a]">
-        {resource.thumbnail ? (
+        {resource.thumbnail && !imageFailed ? (
           <img
             src={resource.thumbnail}
             alt={resource.title}
             className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-500 opacity-90 group-hover:opacity-100 ${isBlurred ? 'blur-lg scale-110 opacity-40' : ''
               }`}
-            onError={(e) => {
-              e.target.src = `https://www.google.com/s2/favicons?domain=${resource.domain}&sz=128`;
-            }}
+            onError={() => setImageFailed(true)}
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#090e1d] to-[#0e1529] p-4 text-center">
-            <Globe className="w-8 h-8 text-cyan-400/50 mb-1" />
-            <span className="text-[11px] font-mono font-medium text-slate-400 truncate max-w-[150px]">{resource.domain}</span>
+          <div className={`w-full h-full flex flex-col items-center justify-center p-4 text-center transition-all ${
+            isAdult
+              ? 'bg-gradient-to-br from-purple-950/40 via-[#090e1d] to-[#04060c]'
+              : resource.resourceType === 'VIDEO'
+                ? 'bg-gradient-to-br from-amber-950/30 via-[#090e1d] to-[#0e1529]'
+                : 'bg-gradient-to-br from-[#090e1d] to-[#0e1529]'
+          }`}>
+            {resource.resourceType === 'VIDEO' ? (
+              <div className="w-11 h-11 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center mb-1.5 shadow-glow group-hover:scale-110 transition-transform">
+                <Play className="w-5 h-5 text-cyan-400 fill-cyan-400/20 ml-0.5" />
+              </div>
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-slate-800/40 border border-slate-700/50 flex items-center justify-center mb-1">
+                {renderResourceTypeIcon(resource.resourceType)}
+              </div>
+            )}
+            <span className="text-[11px] font-mono font-medium text-slate-300 truncate max-w-[170px]">{resource.domain}</span>
           </div>
         )}
 
