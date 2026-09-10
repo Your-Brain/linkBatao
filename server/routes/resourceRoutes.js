@@ -18,7 +18,7 @@ router.get('/', getResources);
 router.post('/metadata-preview', previewMetadata);
 router.post('/', optionalAuth, createResource);
 
-router.get('/:id', getResourceById);
+router.get('/:id', optionalAuth, getResourceById);
 router.put('/:id', protect, updateResource);
 router.delete('/:id', protect, deleteResource);
 

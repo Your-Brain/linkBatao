@@ -1,4 +1,6 @@
+import crypto from 'crypto';
 import Resource from '../models/Resource.js';
+import ResourceView from '../models/ResourceView.js';
 import Category from '../models/Category.js';
 import Report from '../models/Report.js';
 import User from '../models/User.js';
@@ -95,9 +97,9 @@ export const getResources = async (req, res, next) => {
   }
 };
 
-// @desc    Get single resource by ID & increment views
+// @desc    Get single resource by ID & track unique view count
 // @route   GET /api/resources/:id
-// @access  Public
+// @access  Public (Optional Auth)
 export const getResourceById = async (req, res, next) => {
   try {
     const resource = await Resource.findById(req.params.id)
@@ -108,9 +110,35 @@ export const getResourceById = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Resource not found' });
     }
 
-    // Increment view count
-    resource.views += 1;
-    await resource.save();
+    // Determine unique viewer identifier (User ID if logged in, or hashed IP + User-Agent fingerprint)
+    let viewerIdentifier = '';
+    if (req.user && req.user._id) {
+      viewerIdentifier = `user_${req.user._id}`;
+    } else {
+      const clientIp = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '127.0.0.1').split(',')[0].trim();
+      const userAgent = req.headers['user-agent'] || 'unknown';
+      const rawString = `${clientIp}_${userAgent}`;
+      viewerIdentifier = `anon_${crypto.createHash('sha256').update(rawString).digest('hex')}`;
+    }
+
+    // Deduplicate view count: only increment if viewer has not viewed within the 24-hour window
+    try {
+      // If viewer already viewed this resource in last 24h, this throws E11000 duplicate key error
+      const isNewView = await ResourceView.create({
+        resource: resource._id,
+        viewerIdentifier
+      });
+
+      if (isNewView) {
+        resource.views += 1;
+        await resource.save();
+      }
+    } catch (viewErr) {
+      // E11000 duplicate key error means user already viewed in last 24h -> view count remains unchanged (real unique count)
+      if (viewErr.code !== 11000) {
+        console.warn('View tracking notice:', viewErr.message);
+      }
+    }
 
     // Fetch related resources in same category
     const related = await Resource.find({
