@@ -31,7 +31,7 @@ export const HeroSection = ({ onOpenSubmitModal }) => {
           const history = stored ? JSON.parse(stored) : [];
           const filtered = history.filter(item => item.toLowerCase() !== trimmed.toLowerCase());
           localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify([trimmed, ...filtered].slice(0, 8)));
-        } catch (err) {}
+        } catch (err) { }
       }
       navigate(`/search?q=${encodeURIComponent(trimmed)}`);
     }
@@ -44,7 +44,7 @@ export const HeroSection = ({ onOpenSubmitModal }) => {
         const history = stored ? JSON.parse(stored) : [];
         const filtered = history.filter(item => item.toLowerCase() !== tag.toLowerCase());
         localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify([tag, ...filtered].slice(0, 8)));
-      } catch (err) {}
+      } catch (err) { }
     }
     navigate(`/search?q=${encodeURIComponent(tag)}`);
   };
@@ -102,19 +102,21 @@ export const HeroSection = ({ onOpenSubmitModal }) => {
               placeholder="Search links, articles, videos, or tools..."
               value={heroSearch}
               onChange={(e) => setHeroSearch(e.target.value)}
-              className="w-full bg-[#0d081e]/90 backdrop-blur-2xl text-slate-50 font-medium placeholder-purple-300/75 pl-11 pr-32 py-3.5 rounded-2xl border border-purple-900/40 hover:border-purple-500/40 focus:border-purple-500 outline-none text-sm transition-all shadow-inner"
+              className="w-full bg-[#0d081e]/90 backdrop-blur-2xl text-slate-50 font-medium placeholder-purple-300/75 pl-11 pr-36 py-3.5 rounded-2xl border border-purple-900/40 hover:border-purple-500/40 focus:border-purple-500 outline-none text-sm transition-all shadow-inner"
             />
             <Search className="w-4 h-4 text-purple-400 absolute left-4 pointer-events-none" />
-            <div className="absolute right-24 hidden sm:flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-950/80 border border-purple-800/60 text-[10px] font-mono text-purple-200 pointer-events-none">
-              <span>Alt+O</span>
+            <div className="absolute right-2 flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-950/80 border border-purple-800/60 text-[10px] font-mono text-purple-200 pointer-events-none select-none">
+                <span>Alt+O</span>
+              </div>
+              <button
+                type="submit"
+                className="px-3.5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-purple-glow hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <span>Search</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
             </div>
-            <button
-              type="submit"
-              className="absolute right-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-purple-glow hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <span>Search</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
           </form>
         </motion.div>
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
-import { X, LogIn, UserPlus, Mail, Lock, User, Sparkles, ShieldCheck } from 'lucide-react';
+import { X, LogIn, UserPlus, Mail, Lock, User, Sparkles, ShieldCheck, AlertCircle } from 'lucide-react';
 
 export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
   const { login, register } = useAuth();
@@ -11,27 +11,37 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMsg('');
     setLoading(true);
 
-    let success = false;
+    let res;
     if (mode === 'login') {
-      success = await login(email, password);
+      res = await login(email, password);
     } else {
-      success = await register(username, email, password);
+      res = await register(username, email, password);
     }
 
     setLoading(false);
-    if (success) {
+    if (res?.success) {
       onClose();
       setUsername('');
       setEmail('');
       setPassword('');
+      setErrorMsg('');
+    } else {
+      setErrorMsg(res?.error || 'Authentication failed. Please verify your details.');
     }
+  };
+
+  const handleModeChange = (newMode) => {
+    setMode(newMode);
+    setErrorMsg('');
   };
 
   return createPortal(
@@ -64,10 +74,10 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
         </div>
 
         {/* Header Tabs */}
-        <div className="flex items-center gap-6 mb-6 border-b border-purple-900/30 pb-3">
+        <div className="flex items-center gap-6 mb-5 border-b border-purple-900/30 pb-3">
           <button
             type="button"
-            onClick={() => setMode('login')}
+            onClick={() => handleModeChange('login')}
             className={`font-mono text-xs font-semibold pb-1 transition-all cursor-pointer ${
               mode === 'login'
                 ? 'text-purple-300 border-b-2 border-purple-500 font-bold'
@@ -78,7 +88,7 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
           </button>
           <button
             type="button"
-            onClick={() => setMode('register')}
+            onClick={() => handleModeChange('register')}
             className={`font-mono text-xs font-semibold pb-1 transition-all cursor-pointer ${
               mode === 'register'
                 ? 'text-purple-300 border-b-2 border-purple-500 font-bold'
@@ -88,6 +98,18 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
             Create Account
           </button>
         </div>
+
+        {/* Inline Error Alert */}
+        {errorMsg && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 px-3.5 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-200 text-xs font-mono flex items-start gap-2.5 shadow-[0_0_15px_rgba(244,63,94,0.15)]"
+          >
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <span className="leading-relaxed select-text">{errorMsg}</span>
+          </motion.div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'register' && (

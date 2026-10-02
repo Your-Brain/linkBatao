@@ -49,12 +49,13 @@ export const AuthProvider = ({ children }) => {
         const ids = (res.data.user.savedResources || []).map(r => (typeof r === 'string' ? r : r._id));
         setSavedIds(new Set(ids));
         showToast(`Welcome back, ${res.data.user.username}!`, 'success');
-        return true;
+        return { success: true };
       }
+      return { success: false, error: 'Login failed' };
     } catch (err) {
       const msg = err.response?.data?.message || 'Login failed. Please check credentials.';
       showToast(msg, 'error');
-      return false;
+      return { success: false, error: msg };
     }
   };
 
@@ -66,12 +67,13 @@ export const AuthProvider = ({ children }) => {
         setUser(res.data.user);
         setSavedIds(new Set());
         showToast(`Account created! Welcome, ${res.data.user.username}!`, 'success');
-        return true;
+        return { success: true };
       }
+      return { success: false, error: 'Registration failed' };
     } catch (err) {
       const msg = err.response?.data?.message || 'Registration failed.';
       showToast(msg, 'error');
-      return false;
+      return { success: false, error: msg };
     }
   };
 
