@@ -57,6 +57,25 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
   const [submitting, setSubmitting] = useState(false);
   const [previewData, setPreviewData] = useState(null);
 
+  const resetForm = () => {
+    setUrl('');
+    setTitle('');
+    setDescription('');
+    setTags('');
+    setResourceType('WEBSITE');
+    setThumbnail('');
+    setShowThumbnailInput(false);
+    setThumbError(false);
+    setIsNsfw(false);
+    setPreviewData(null);
+  };
+
+  useEffect(() => {
+    if (!isOpen) {
+      resetForm();
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (activeCategories && activeCategories.length > 0 && !category) {
       setCategory(activeCategories[0]._id);
@@ -173,20 +192,19 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
       if (res.data.success) {
         showToast('Link signal transmitted successfully to network!', 'success');
         if (onResourceSubmitted) onResourceSubmitted(res.data.data);
+        resetForm();
         onClose();
-        // Reset form
-        setUrl('');
-        setTitle('');
-        setDescription('');
-        setTags('');
-        setIsNsfw(false);
-        setPreviewData(null);
       }
     } catch (err) {
       showToast(err.response?.data?.message || 'Transmission failed.', 'error');
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
   };
 
   return createPortal(
@@ -200,7 +218,7 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
       >
         {/* Modal Close Button */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute top-5 right-5 p-2 text-purple-300 hover:text-white rounded-xl bg-[#140d2e] border border-purple-900/40 hover:border-purple-500/50 transition-all cursor-pointer"
         >
           <X className="w-4 h-4" />
@@ -494,7 +512,7 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
           <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-purple-900/30">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="px-4 py-2 rounded-xl text-xs font-mono text-purple-300/70 hover:text-white transition-colors cursor-pointer"
             >
               Cancel
