@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import API from '../services/api';
@@ -29,6 +29,18 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
   const [collection, setCollection] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  const isAdultVault = isAdultCollection(collection);
+
+  // When incognito mode is turned off while inside an adult collection, redirect to collections list
+  const prevIncognitoRef = useRef(isIncognito);
+
+  useEffect(() => {
+    if (prevIncognitoRef.current && !isIncognito && id && isAdultVault) {
+      navigate('/collections');
+    }
+    prevIncognitoRef.current = isIncognito;
+  }, [isIncognito, id, isAdultVault, navigate]);
 
   // Fetch all collections
   const fetchCollections = async () => {
@@ -184,8 +196,8 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
           <div className="space-y-2.5 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2.5">
               <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-mono font-semibold border ${collection.visibility === 'PRIVATE'
-                  ? 'bg-amber-950/40 text-amber-300 border-amber-800/60'
-                  : 'bg-purple-950/40 text-purple-300 border-purple-800/60'
+                ? 'bg-amber-950/40 text-amber-300 border-amber-800/60'
+                : 'bg-purple-950/40 text-purple-300 border-purple-800/60'
                 }`}>
                 {collection.visibility === 'PRIVATE' ? <Lock className="w-3 h-3" /> : <Globe className="w-3 h-3" />}
                 <span>{collection.visibility} Vault</span>

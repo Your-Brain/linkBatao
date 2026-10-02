@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import API from '../services/api';
@@ -44,6 +44,16 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isCopiedUrl, setIsCopiedUrl] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
+
+  // Automatically redirect to Home whenever Incognito mode is turned OFF while viewing a resource
+  const prevIncognitoRef = useRef(isIncognito);
+
+  useEffect(() => {
+    if (prevIncognitoRef.current && !isIncognito) {
+      navigate('/');
+    }
+    prevIncognitoRef.current = isIncognito;
+  }, [isIncognito, navigate]);
 
   const fetchResource = async () => {
     setLoading(true);
