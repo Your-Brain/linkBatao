@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
-import API from '../../services/api';
+import API, { getProxyImageUrl } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { detectIsAdultContent, getSuggestedAdultTags } from '../../services/share/platformParsers';
@@ -407,7 +407,7 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
                         onError={(e) => {
                           if (!e.target.dataset.triedProxy && thumbnail) {
                             e.target.dataset.triedProxy = 'true';
-                            e.target.src = `/api/resources/proxy-image?url=${encodeURIComponent(thumbnail)}`;
+                            e.target.src = getProxyImageUrl(thumbnail);
                           } else {
                             setThumbError(true);
                           }

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { getProxyImageUrl } from '../../services/api';
 
 // Import Swiper CSS
 import 'swiper/css';
@@ -240,7 +241,7 @@ export const RecommendationCarousel = ({
                         onError={(e) => {
                           if (!e.target.dataset.triedProxy && resource.thumbnail) {
                             e.target.dataset.triedProxy = 'true';
-                            e.target.src = `/api/resources/proxy-image?url=${encodeURIComponent(resource.thumbnail)}`;
+                            e.target.src = getProxyImageUrl(resource.thumbnail);
                           } else {
                             e.target.style.display = 'none';
                           }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ExternalLink, Play, AlertCircle, RefreshCw, Volume2, Maximize2, FileText, Copy, Check, Type, BookOpen } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
+import { getProxyImageUrl } from '../../services/api';
 
 export const EmbeddedPlayer = ({ resource }) => {
   const [loading, setLoading] = useState(true);
@@ -77,7 +78,7 @@ export const EmbeddedPlayer = ({ resource }) => {
               onError={(e) => {
                 if (!e.target.dataset.triedProxy && thumbnail) {
                   e.target.dataset.triedProxy = 'true';
-                  e.target.src = `/api/resources/proxy-image?url=${encodeURIComponent(thumbnail)}`;
+                  e.target.src = getProxyImageUrl(thumbnail);
                 }
               }}
             />
@@ -157,7 +158,7 @@ export const EmbeddedPlayer = ({ resource }) => {
               onError={(e) => {
                 if (!e.target.dataset.triedProxy && thumbnail) {
                   e.target.dataset.triedProxy = 'true';
-                  e.target.src = `/api/resources/proxy-image?url=${encodeURIComponent(thumbnail)}`;
+                  e.target.src = getProxyImageUrl(thumbnail);
                 } else {
                   e.target.style.display = 'none';
                 }
@@ -213,7 +214,7 @@ export const EmbeddedPlayer = ({ resource }) => {
           onError={(e) => {
             if (!e.target.dataset.triedProxy && embedUrl) {
               e.target.dataset.triedProxy = 'true';
-              e.target.src = `/api/resources/proxy-image?url=${encodeURIComponent(embedUrl)}`;
+              e.target.src = getProxyImageUrl(embedUrl);
             }
           }}
         />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
-import API from '../../services/api';
+import API, { getProxyImageUrl } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { detectIsAdultContent, getSuggestedAdultTags } from '../../services/share/platformParsers';
 import { EmbeddedPlayer } from './EmbeddedPlayer';
@@ -474,7 +474,7 @@ export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated
                             onError={(e) => {
                               if (!e.target.dataset.triedProxy && formData.thumbnail) {
                                 e.target.dataset.triedProxy = 'true';
-                                e.target.src = `/api/resources/proxy-image?url=${encodeURIComponent(formData.thumbnail)}`;
+                                e.target.src = getProxyImageUrl(formData.thumbnail);
                               } else {
                                 setImageError(true);
                               }
@@ -631,7 +631,7 @@ export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated
                             onError={(e) => {
                               if (!e.target.dataset.triedProxy && formData.thumbnail) {
                                 e.target.dataset.triedProxy = 'true';
-                                e.target.src = `/api/resources/proxy-image?url=${encodeURIComponent(formData.thumbnail)}`;
+                                e.target.src = getProxyImageUrl(formData.thumbnail);
                               } else {
                                 setImageError(true);
                               }

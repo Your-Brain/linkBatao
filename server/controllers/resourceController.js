@@ -7,7 +7,7 @@ import Report from '../models/Report.js';
 import User from '../models/User.js';
 import { normalizeUrl } from '../utils/urlNormalizer.js';
 import { detectEmbed } from '../utils/embedDetector.js';
-import { fetchUrlMetadata, isPrivateHost } from '../utils/metadataFetcher.js';
+import { fetchUrlMetadata, isPrivateHost, upgradeThumbnailQuality } from '../utils/metadataFetcher.js';
 
 // @desc    Get resources with filtering, sorting & pagination
 // @route   GET /api/resources
@@ -693,8 +693,16 @@ export const proxyImage = async (req, res) => {
       return res.status(400).send('Image URL parameter is required');
     }
 
-    const decoded = decodeURIComponent(rawUrl).trim();
-    const parsed = new URL(decoded);
+    let decoded = decodeURIComponent(rawUrl).trim();
+    // Upgrade resolution if low-res thumb was passed
+    decoded = upgradeThumbnailQuality(decoded);
+
+    let parsed;
+    try {
+      parsed = new URL(decoded);
+    } catch (e) {
+      return res.status(400).send('Malformed image URL');
+    }
 
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
       return res.status(400).send('Invalid image protocol');
@@ -704,21 +712,62 @@ export const proxyImage = async (req, res) => {
       return res.status(403).send('Private network access is forbidden');
     }
 
-    const upstreamRes = await axios.get(decoded, {
-      responseType: 'stream',
-      timeout: 8000,
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-        'Referer': `${parsed.protocol}//${parsed.hostname}/`,
-        'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'
-      }
-    });
+    // Determine upstream referer that passes CDN anti-hotlinking
+    let referer = `${parsed.protocol}//${parsed.hostname}/`;
+    const h = parsed.hostname.toLowerCase();
+    if (h.includes('phncdn.com') || h.includes('pornhub')) {
+      referer = 'https://www.pornhub.com/';
+    } else if (h.includes('xhcdn.com') || h.includes('xhamster') || h.includes('xhpiccdn') || h.includes('xhpingcdn')) {
+      referer = 'https://xhamster.com/';
+    } else if (h.includes('xvideos') || h.includes('xv-cdn')) {
+      referer = 'https://www.xvideos.com/';
+    } else if (h.includes('xnxx')) {
+      referer = 'https://www.xnxx.com/';
+    } else if (h.includes('spankbang') || h.includes('sb-cdn')) {
+      referer = 'https://spankbang.com/';
+    }
 
+    const requestHeaders = {
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+      'Referer': referer,
+      'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'
+    };
+
+    let upstreamRes;
+    try {
+      upstreamRes = await axios.get(decoded, {
+        responseType: 'stream',
+        timeout: 9000,
+        headers: requestHeaders
+      });
+    } catch (firstErr) {
+      // If failed and URL had query params (e.g. expired hdnea/token), retry with clean URL without query
+      if (parsed.search) {
+        try {
+          const cleanUrl = `${parsed.protocol}//${parsed.host}${parsed.pathname}`;
+          upstreamRes = await axios.get(cleanUrl, {
+            responseType: 'stream',
+            timeout: 9000,
+            headers: requestHeaders
+          });
+        } catch (retryErr) {
+          throw firstErr;
+        }
+      } else {
+        throw firstErr;
+      }
+    }
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     res.setHeader('Content-Type', upstreamRes.headers['content-type'] || 'image/jpeg');
     res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
     upstreamRes.data.pipe(res);
   } catch (err) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     res.status(502).send('Error streaming upstream image');
   }
 };

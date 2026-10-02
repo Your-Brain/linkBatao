@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import API from '../../services/api';
+import API, { getProxyImageUrl } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { useIncognito } from '../../context/IncognitoContext';
@@ -184,7 +184,7 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
                             onError={(e) => {
                               if (!e.target.dataset.triedProxy && resource.thumbnail) {
                                 e.target.dataset.triedProxy = 'true';
-                                e.target.src = `/api/resources/proxy-image?url=${encodeURIComponent(resource.thumbnail)}`;
+                                e.target.src = getProxyImageUrl(resource.thumbnail);
                               } else {
                                 e.target.style.display = 'none';
                               }

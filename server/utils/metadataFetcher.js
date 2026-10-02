@@ -199,9 +199,49 @@ export function cleanExtractedUrl(rawUrl, baseUrl) {
   return url;
 }
 
+// Helper to upgrade thumbnail URLs to maximum available resolution across major platforms
+export function upgradeThumbnailQuality(imgUrl) {
+  if (!imgUrl || typeof imgUrl !== 'string') return imgUrl;
+  let url = imgUrl;
+
+  // 1. Pornhub CDN (phncdn.com) - upgrade downscaled rs:fit:320:180 to full HD
+  if (url.includes('phncdn.com')) {
+    url = url.replace(/\/rs:(?:fit|fill):\d+:\d+/i, '/rs:fit:1280:720');
+  }
+
+  // 2. YouTube - upgrade low-res /default.jpg or /mqdefault.jpg to /hqdefault.jpg
+  if (url.includes('ytimg.com') || url.includes('youtube.com')) {
+    url = url.replace(/\/(?:default|mqdefault|sddefault)\.jpg/i, '/hqdefault.jpg');
+  }
+
+  // 3. Vimeo - upgrade small resolution thumbnails to 1280x720
+  if (url.includes('vimeocdn.com')) {
+    url = url.replace(/_\d+x\d+/i, '_1280x720');
+  }
+
+  // 4. SpankBang - upgrade low-res thumbs to 720p or HD
+  if (url.includes('spankbang.com') || url.includes('sb-cdn.com')) {
+    url = url.replace(/\/(?:w:\d+|160p|240p|320p)\//i, '/w:1280/');
+  }
+
+  // 5. xHamster - upgrade small thumbs to high-res poster
+  if (url.includes('xhcdn.com') || url.includes('xhpiccdn.com') || url.includes('xhpingcdn.com')) {
+    url = url.replace(/\/\d+x\d+\//i, '/1280x720/');
+  }
+
+  // 6. XVideos / XNXX - upgrade tiny thumb to 16:9 large thumb
+  if (url.includes('xvideos-cdn.com') || url.includes('xnxx-cdn.com')) {
+    url = url.replace(/\/thumbs169ll\//i, '/videothumbs169/');
+  }
+
+  return url;
+}
+
 // Known Adult Domains for auto-tagging and specialized parsers
 export const ADULT_DOMAINS = [
   'pornhub.com',
+  'pornhub.org',
+  'pornhub.net',
   'pornhubpremium.com',
   'rt.pornhub.com',
   'phncdn.com',
@@ -321,210 +361,79 @@ export const STANDARD_HEADERS = {
 /**
  * Extract and score thumbnail candidates across CSS background-images,
  * video posters, lazy loading attributes, DOM elements, and player scripts.
+ * Prioritizes canonical OpenGraph, VideoObject, and player posters over recommended video cards.
  */
 function extractAndScoreCandidates($, rawHtml, baseUrl) {
   const candidates = [];
-  const seenUrls = new Set();
+  const seenMap = new Map();
 
-  const addCandidate = (rawUrl, score, source) => {
-    const cleaned = cleanExtractedUrl(rawUrl, baseUrl);
+  const addCandidate = (rawUrl, baseScore, source, isRelated = false) => {
+    let cleaned = cleanExtractedUrl(rawUrl, baseUrl);
     if (!cleaned) return;
-    if (seenUrls.has(cleaned)) return;
     if (isLogoOrGenericIcon(cleaned)) return;
 
-    seenUrls.add(cleaned);
-    candidates.push({ url: cleaned, score, source });
+    // Apply auto-resolution upgrade (e.g. phncdn rs:fit:320:180 -> HD, YouTube -> hqdefault)
+    cleaned = upgradeThumbnailQuality(cleaned);
+
+    let finalScore = baseScore;
+    const lower = cleaned.toLowerCase();
+
+    // 1. Penalize low-res thumbnails heavily (cards, related thumbs, mobile previews)
+    if (
+      lower.includes('320:180') ||
+      lower.includes('160:90') ||
+      lower.includes('120x90') ||
+      lower.includes('100x100') ||
+      lower.includes('150x150') ||
+      lower.includes('small') ||
+      lower.includes('mini') ||
+      lower.includes('tiny') ||
+      lower.includes('_thumb.') ||
+      lower.includes('-thumb.') ||
+      lower.includes('/thumbs/') ||
+      lower.includes('/thumb_') ||
+      lower.includes('rs:fit:320') ||
+      lower.includes('rs:fit:240') ||
+      lower.includes('rs:fit:160')
+    ) {
+      finalScore -= 40;
+    }
+
+    // 2. Reward explicit HD / high-resolution markers
+    if (
+      lower.includes('1280x720') ||
+      lower.includes('1920x1080') ||
+      lower.includes('original') ||
+      lower.includes('maxresdefault') ||
+      lower.includes('hqdefault') ||
+      lower.includes('1080p') ||
+      lower.includes('720p') ||
+      lower.includes('poster') ||
+      lower.includes('cover')
+    ) {
+      finalScore += 15;
+    }
+
+    // 3. Penalty if extracted from related / recommendation carousel
+    if (isRelated) {
+      finalScore -= 50;
+    }
+
+    if (seenMap.has(cleaned)) {
+      const idx = seenMap.get(cleaned);
+      if (finalScore > candidates[idx].score) {
+        candidates[idx].score = finalScore;
+        candidates[idx].source = source;
+      }
+      return;
+    }
+
+    seenMap.set(cleaned, candidates.length);
+    candidates.push({ url: cleaned, score: finalScore, source });
   };
 
-  // 1. High-Precision Player Script Configurations (Score 98 - 100)
-  if (rawHtml) {
-    // XVideos / XNXX player script thumb
-    const xv169 = rawHtml.match(/html5player\.setThumbUrl169\s*\(\s*['"]([^'"]+)['"]\s*\)/i);
-    if (xv169 && xv169[1]) addCandidate(xv169[1], 100, 'xvideos-thumb169');
-
-    const xvThumb = rawHtml.match(/html5player\.setThumbUrl\s*\(\s*['"]([^'"]+)['"]\s*\)/i);
-    if (xvThumb && xvThumb[1]) addCandidate(xvThumb[1], 98, 'xvideos-thumb');
-
-    const xvSlide = rawHtml.match(/html5player\.setThumbSlideBig\s*\(\s*['"]([^'"]+)['"]\s*\)/i);
-    if (xvSlide && xvSlide[1]) addCandidate(xvSlide[1], 95, 'xvideos-slide');
-
-    const xvPoster = rawHtml.match(/html5player\.setPosterUrl\s*\(\s*['"]([^'"]+)['"]\s*\)/i);
-    if (xvPoster && xvPoster[1]) addCandidate(xvPoster[1], 100, 'xvideos-poster');
-
-    // Pornhub / Tube8 flashvars
-    const phImg = rawHtml.match(/"image_url"\s*:\s*"([^"]+)"/i);
-    if (phImg && phImg[1]) addCandidate(phImg[1], 100, 'flashvars-image_url');
-
-    const phThumb = rawHtml.match(/"thumbnail_url"\s*:\s*"([^"]+)"/i);
-    if (phThumb && phThumb[1]) addCandidate(phThumb[1], 98, 'flashvars-thumbnail_url');
-
-    // xHamster window.initials JSON extraction
-    const xhInitialsMatch = rawHtml.match(/window\.initials\s*=\s*({[\s\S]*?});/);
-    if (xhInitialsMatch) {
-      try {
-        const initials = JSON.parse(xhInitialsMatch[1]);
-        if (initials.videoModel?.thumbURL) {
-          addCandidate(initials.videoModel.thumbURL, 100, 'xhamster-videoModel-thumbURL');
-        }
-        if (initials.videoModel?.previewThumbURL) {
-          addCandidate(initials.videoModel.previewThumbURL, 98, 'xhamster-videoModel-previewThumbURL');
-        }
-        if (initials.videoModel?.imageURL) {
-          addCandidate(initials.videoModel.imageURL, 100, 'xhamster-videoModel-imageURL');
-        }
-        if (initials.videoModel?.posterURL) {
-          addCandidate(initials.videoModel.posterURL, 100, 'xhamster-videoModel-posterURL');
-        }
-      } catch (e) {}
-    }
-
-    const xhThumb = rawHtml.match(/"thumbURL"\s*:\s*"([^"]+)"/i);
-    if (xhThumb && xhThumb[1]) addCandidate(xhThumb[1], 100, 'xhamster-thumbURL');
-
-    const xhPreviewThumb = rawHtml.match(/"previewThumbURL"\s*:\s*"([^"]+)"/i);
-    if (xhPreviewThumb && xhPreviewThumb[1]) addCandidate(xhPreviewThumb[1], 98, 'xhamster-previewThumbURL');
-
-    const xhImage = rawHtml.match(/"imageURL"\s*:\s*"([^"]+)"/i);
-    if (xhImage && xhImage[1]) addCandidate(xhImage[1], 100, 'xhamster-imageURL');
-
-    // xHamster CDN preview images (1280x720 / 1920x1080)
-    const xhCdnMatches = rawHtml.matchAll(/https?:\\?\/\\?\/[^"'()\s]+(?:xhpingcdn|xhpicgcdn|xhpiccdn|xhcdn)[^"'()\s]+\.(?:jpg|jpeg|webp|png)(?:\?[^"'()\s]*)?/gi);
-    for (const m of xhCdnMatches) {
-      if (m[0]) addCandidate(m[0], 99, 'xhamster-cdn-regex');
-    }
-
-    // SpankBang stream / poster
-    const sbCover = rawHtml.match(/cover_url\s*[:=]\s*["']([^"']+)["']/i);
-    if (sbCover && sbCover[1]) addCandidate(sbCover[1], 100, 'spankbang-cover');
-
-    const sbStream = rawHtml.match(/stream_data\s*[:=]\s*({[\s\S]*?})/i);
-    if (sbStream && sbStream[1]) {
-      try {
-        const streamJson = JSON.parse(sbStream[1]);
-        if (streamJson.poster) addCandidate(streamJson.poster, 100, 'spankbang-stream-poster');
-        if (streamJson.preview) addCandidate(streamJson.preview, 95, 'spankbang-stream-preview');
-        if (streamJson.thumbnail) addCandidate(streamJson.thumbnail, 95, 'spankbang-stream-thumb');
-      } catch (e) {}
-    }
-
-    // RedTube & YouPorn page params
-    const rtImg = rawHtml.match(/video_image\s*[:=]\s*["']([^"']+)["']/i);
-    if (rtImg && rtImg[1]) addCandidate(rtImg[1], 100, 'redtube-video-image');
-
-    // Eporner video image
-    const epPoster = rawHtml.match(/video_poster\s*[:=]\s*["']([^"']+)["']/i);
-    if (epPoster && epPoster[1]) addCandidate(epPoster[1], 100, 'eporner-poster');
-
-    // Generic player variable matches
-    const posterGeneric = rawHtml.match(/["']?poster["']?\s*[:=]\s*["'](https?:\\?\/\\?[^"']+\.(?:jpg|jpeg|png|webp)[^"']*)["']/i);
-    if (posterGeneric && posterGeneric[1]) addCandidate(posterGeneric[1], 95, 'generic-poster-regex');
-
-    const thumbGeneric = rawHtml.match(/["']?(?:thumbnail|thumb_url|preview_url|video_thumb)["']?\s*[:=]\s*["'](https?:\\?\/\\?[^"']+\.(?:jpg|jpeg|png|webp)[^"']*)["']/i);
-    if (thumbGeneric && thumbGeneric[1]) addCandidate(thumbGeneric[1], 92, 'generic-thumb-regex');
-  }
-
-  // Dedicated xHamster Player / Preload Image / Poster extraction
-  $('.xp-preload-image, .xp-poster, #player-container, [data-role="xplayer"]').each((_, el) => {
-    const style = $(el).attr('style') || '';
-    const urls = extractCssUrls(style);
-    for (const u of urls) {
-      addCandidate(u, 100, 'xhamster-player-poster-css');
-    }
-  });
-
-  // 2. HTML5 Video Tag Poster (Score 95)
-  $('video').each((_, el) => {
-    const poster = $(el).attr('poster');
-    if (poster) addCandidate(poster, 95, 'video-poster-attr');
-  });
-
-  // 3. CSS Background Images in Inline Styles (The Pro CSS Solution) (Score 85 - 95)
-  // Many adult and tube websites store the video thumbnail in background-image on responsive containers
-  $('[style*="url("], [style*="background"], [style*="--"]').each((_, el) => {
-    const style = $(el).attr('style') || '';
-    const classAndId = `${$(el).attr('class') || ''} ${$(el).attr('id') || ''}`.toLowerCase();
-    const isPlayerEl = /player|video|poster|cover|thumb|preview|screen|stage|holder|fp-|vjs-|jw-|fluid|xp-/.test(
-      classAndId
-    );
-
-    const urls = extractCssUrls(style);
-    for (const extractedUrl of urls) {
-      addCandidate(
-        extractedUrl,
-        isPlayerEl ? 95 : 65,
-        isPlayerEl ? 'css-player-inline' : 'css-generic-inline'
-      );
-    }
-  });
-
-  // 4. CSS Background Images inside <style> blocks (Score 70 - 85)
-  $('style').each((_, el) => {
-    const cssText = $(el).html() || '';
-    const ruleMatches = cssText.matchAll(/([^{}]+)\{([^}]+)\}/gi);
-    for (const rule of ruleMatches) {
-      const selector = rule[1].toLowerCase();
-      const body = rule[2];
-      const isPlayerRule = /player|video|poster|cover|thumb|preview|screen|stage|holder|fp-|vjs-|xp-/.test(
-        selector
-      );
-      const urls = extractCssUrls(body);
-      for (const u of urls) {
-        addCandidate(
-          u,
-          isPlayerRule ? 85 : 60,
-          isPlayerRule ? 'css-style-rule-player' : 'css-style-rule-generic'
-        );
-      }
-    }
-  });
-
-  // 5. Global Raw HTML CSS Fallback Regex (Score 60 - 80)
-  if (rawHtml) {
-    const rawUrls = extractCssUrls(rawHtml);
-    for (const u of rawUrls) {
-      const lower = u.toLowerCase();
-      const isMediaLike =
-        lower.includes('/video') ||
-        lower.includes('/thumb') ||
-        lower.includes('/poster') ||
-        lower.includes('/preview') ||
-        lower.includes('1280x720') ||
-        lower.includes('.jpg') ||
-        lower.includes('.webp');
-      addCandidate(u, isMediaLike ? 80 : 55, 'raw-html-css-bg');
-    }
-  }
-
-  // 6. JSON-LD structured data (VideoObject, Article, MediaObject) (Score 90)
-  $('script[type="application/ld+json"]').each((_, el) => {
-    try {
-      const text = $(el).html();
-      if (!text) return;
-      const data = JSON.parse(text);
-      const items = Array.isArray(data) ? data : [data];
-      for (const item of items) {
-        if (item.thumbnailUrl) {
-          if (Array.isArray(item.thumbnailUrl)) {
-            item.thumbnailUrl.forEach(u => addCandidate(u, 90, 'jsonld-thumbnailUrl'));
-          } else {
-            addCandidate(item.thumbnailUrl, 90, 'jsonld-thumbnailUrl');
-          }
-        }
-        if (item.image) {
-          if (typeof item.image === 'string') {
-            addCandidate(item.image, 85, 'jsonld-image');
-          } else if (item.image.url) {
-            addCandidate(item.image.url, 85, 'jsonld-image-url');
-          } else if (Array.isArray(item.image)) {
-            item.image.forEach(u => addCandidate(typeof u === 'string' ? u : u?.url, 85, 'jsonld-image-array'));
-          }
-        }
-      }
-    } catch (e) {}
-  });
-
-  // 7. OpenGraph & Twitter Meta Tags (Score 95 - 96)
-  // Canonical metadata placed by video platforms for social previews
+  // 1. CANONICAL OPENGRAPH & TWITTER METADATA (Highest Priority: Score 98 - 100)
+  // Canonical metadata placed by video platforms explicitly for the main resource
   const ogImageSecure = $('meta[property="og:image:secure_url"]').attr('content');
   const ogImage = $('meta[property="og:image"]').attr('content');
   const twitterImage =
@@ -536,19 +445,181 @@ function extractAndScoreCandidates($, rawHtml, baseUrl) {
     $('link[rel="thumbnail"]').attr('href');
   const metaThumb = $('meta[itemprop="thumbnailUrl"]').attr('content') || $('meta[name="thumbnail"]').attr('content');
 
-  if (ogImageSecure) addCandidate(ogImageSecure, 96, 'og:image:secure_url');
-  if (ogImage) addCandidate(ogImage, 95, 'og:image');
-  if (twitterImage) addCandidate(twitterImage, 94, 'twitter:image');
-  if (preloadImg) addCandidate(preloadImg, 95, 'link:preload-image');
-  if (linkImageSrc) addCandidate(linkImageSrc, 85, 'link:image_src');
-  if (metaThumb) addCandidate(metaThumb, 88, 'meta:thumbnail');
+  if (ogImageSecure) addCandidate(ogImageSecure, 100, 'og:image:secure_url');
+  if (ogImage) addCandidate(ogImage, 99, 'og:image');
+  if (twitterImage) addCandidate(twitterImage, 98, 'twitter:image');
+  if (preloadImg) addCandidate(preloadImg, 96, 'link:preload-image');
+  if (metaThumb) addCandidate(metaThumb, 95, 'meta:thumbnail');
+  if (linkImageSrc) addCandidate(linkImageSrc, 94, 'link:image_src');
 
-  // 8. Lazy-Loaded Image & Video Attributes (Score 70 - 85)
-  // Many modern sites render <img src="blank.gif" data-src="..." data-original="..." />
+  // 2. JSON-LD structured data (VideoObject, MediaObject) (Score 97)
+  $('script[type="application/ld+json"]').each((_, el) => {
+    try {
+      const text = $(el).html();
+      if (!text) return;
+      const data = JSON.parse(text);
+      const items = Array.isArray(data) ? data : [data];
+      for (const item of items) {
+        if (item.thumbnailUrl) {
+          if (Array.isArray(item.thumbnailUrl)) {
+            item.thumbnailUrl.forEach(u => addCandidate(u, 97, 'jsonld-thumbnailUrl'));
+          } else {
+            addCandidate(item.thumbnailUrl, 97, 'jsonld-thumbnailUrl');
+          }
+        }
+        if (item.image) {
+          if (typeof item.image === 'string') {
+            addCandidate(item.image, 94, 'jsonld-image');
+          } else if (item.image.url) {
+            addCandidate(item.image.url, 94, 'jsonld-image-url');
+          } else if (Array.isArray(item.image)) {
+            item.image.forEach(u => addCandidate(typeof u === 'string' ? u : u?.url, 94, 'jsonld-image-array'));
+          }
+        }
+      }
+    } catch (e) {}
+  });
+
+  // 3. HTML5 Video Tag Poster (Score 96)
+  $('video').each((_, el) => {
+    const poster = $(el).attr('poster');
+    if (poster) addCandidate(poster, 96, 'video-poster-attr');
+  });
+
+  // Dedicated xHamster Player / Preload Image / Poster extraction
+  $('.xp-preload-image, .xp-poster, #player-container, [data-role="xplayer"]').each((_, el) => {
+    const style = $(el).attr('style') || '';
+    const urls = extractCssUrls(style);
+    for (const u of urls) {
+      addCandidate(u, 95, 'xhamster-player-poster-css');
+    }
+  });
+
+  // 4. High-Precision Player Script Configurations (Score 88 - 95)
+  if (rawHtml) {
+    // XVideos / XNXX player script thumb
+    const xv169 = rawHtml.match(/html5player\.setThumbUrl169\s*\(\s*['"]([^'"]+)['"]\s*\)/i);
+    if (xv169 && xv169[1]) addCandidate(xv169[1], 95, 'xvideos-thumb169');
+
+    const xvPoster = rawHtml.match(/html5player\.setPosterUrl\s*\(\s*['"]([^'"]+)['"]\s*\)/i);
+    if (xvPoster && xvPoster[1]) addCandidate(xvPoster[1], 95, 'xvideos-poster');
+
+    const xvThumb = rawHtml.match(/html5player\.setThumbUrl\s*\(\s*['"]([^'"]+)['"]\s*\)/i);
+    if (xvThumb && xvThumb[1]) addCandidate(xvThumb[1], 92, 'xvideos-thumb');
+
+    const xvSlide = rawHtml.match(/html5player\.setThumbSlideBig\s*\(\s*['"]([^'"]+)['"]\s*\)/i);
+    if (xvSlide && xvSlide[1]) addCandidate(xvSlide[1], 88, 'xvideos-slide');
+
+    // xHamster window.initials JSON extraction
+    const xhInitialsMatch = rawHtml.match(/window\.initials\s*=\s*({[\s\S]*?});/);
+    if (xhInitialsMatch) {
+      try {
+        const initials = JSON.parse(xhInitialsMatch[1]);
+        if (initials.videoModel?.posterURL) {
+          addCandidate(initials.videoModel.posterURL, 95, 'xhamster-videoModel-posterURL');
+        }
+        if (initials.videoModel?.imageURL) {
+          addCandidate(initials.videoModel.imageURL, 94, 'xhamster-videoModel-imageURL');
+        }
+        if (initials.videoModel?.thumbURL) {
+          addCandidate(initials.videoModel.thumbURL, 92, 'xhamster-videoModel-thumbURL');
+        }
+        if (initials.videoModel?.previewThumbURL) {
+          addCandidate(initials.videoModel.previewThumbURL, 90, 'xhamster-videoModel-previewThumbURL');
+        }
+      } catch (e) {}
+    }
+
+    const xhImage = rawHtml.match(/"imageURL"\s*:\s*"([^"]+)"/i);
+    if (xhImage && xhImage[1]) addCandidate(xhImage[1], 94, 'xhamster-imageURL');
+
+    const xhThumb = rawHtml.match(/"thumbURL"\s*:\s*"([^"]+)"/i);
+    if (xhThumb && xhThumb[1]) addCandidate(xhThumb[1], 92, 'xhamster-thumbURL');
+
+    // SpankBang stream / poster
+    const sbCover = rawHtml.match(/cover_url\s*[:=]\s*["']([^"']+)["']/i);
+    if (sbCover && sbCover[1]) addCandidate(sbCover[1], 95, 'spankbang-cover');
+
+    const sbStream = rawHtml.match(/stream_data\s*[:=]\s*({[\s\S]*?})/i);
+    if (sbStream && sbStream[1]) {
+      try {
+        const streamJson = JSON.parse(sbStream[1]);
+        if (streamJson.poster) addCandidate(streamJson.poster, 95, 'spankbang-stream-poster');
+        if (streamJson.preview) addCandidate(streamJson.preview, 90, 'spankbang-stream-preview');
+        if (streamJson.thumbnail) addCandidate(streamJson.thumbnail, 88, 'spankbang-stream-thumb');
+      } catch (e) {}
+    }
+
+    // RedTube & YouPorn page params
+    const rtImg = rawHtml.match(/video_image\s*[:=]\s*["']([^"']+)["']/i);
+    if (rtImg && rtImg[1]) addCandidate(rtImg[1], 94, 'redtube-video-image');
+
+    // Eporner video image
+    const epPoster = rawHtml.match(/video_poster\s*[:=]\s*["']([^"']+)["']/i);
+    if (epPoster && epPoster[1]) addCandidate(epPoster[1], 95, 'eporner-poster');
+
+    // Pornhub / Tube8 flashvars (Score 88 to avoid overriding canonical og:image)
+    const phImg = rawHtml.match(/"image_url"\s*:\s*"([^"]+)"/i);
+    if (phImg && phImg[1]) addCandidate(phImg[1], 88, 'flashvars-image_url');
+
+    const phThumb = rawHtml.match(/"thumbnail_url"\s*:\s*"([^"]+)"/i);
+    if (phThumb && phThumb[1]) addCandidate(phThumb[1], 86, 'flashvars-thumbnail_url');
+
+    // Generic player variable matches
+    const posterGeneric = rawHtml.match(/["']?poster["']?\s*[:=]\s*["'](https?:\\?\/\\?[^"']+\.(?:jpg|jpeg|png|webp)[^"']*)["']/i);
+    if (posterGeneric && posterGeneric[1]) addCandidate(posterGeneric[1], 85, 'generic-poster-regex');
+
+    const thumbGeneric = rawHtml.match(/["']?(?:thumbnail|thumb_url|preview_url|video_thumb)["']?\s*[:=]\s*["'](https?:\\?\/\\?[^"']+\.(?:jpg|jpeg|png|webp)[^"']*)["']/i);
+    if (thumbGeneric && thumbGeneric[1]) addCandidate(thumbGeneric[1], 80, 'generic-thumb-regex');
+  }
+
+  // 5. CSS Background Images in Inline Styles (Score 60 - 88)
+  $('[style*="url("], [style*="background"], [style*="--"]').each((_, el) => {
+    const style = $(el).attr('style') || '';
+    const classAndId = `${$(el).attr('class') || ''} ${$(el).attr('id') || ''}`.toLowerCase();
+    const isRelated = $(el).closest('.related, .recommend, .sidebar, .suggestions, .video-card, .grid-item, #relatedVideos, .playlist, .more-videos').length > 0;
+    const isPlayerEl = /player|video|poster|cover|thumb|preview|screen|stage|holder|fp-|vjs-|jw-|fluid|xp-/.test(
+      classAndId
+    ) && !isRelated;
+
+    const urls = extractCssUrls(style);
+    for (const extractedUrl of urls) {
+      addCandidate(
+        extractedUrl,
+        isPlayerEl ? 88 : 60,
+        isPlayerEl ? 'css-player-inline' : 'css-generic-inline',
+        isRelated
+      );
+    }
+  });
+
+  // 6. CSS Background Images inside <style> blocks (Score 55 - 80)
+  $('style').each((_, el) => {
+    const cssText = $(el).html() || '';
+    const ruleMatches = cssText.matchAll(/([^{}]+)\{([^}]+)\}/gi);
+    for (const rule of ruleMatches) {
+      const selector = rule[1].toLowerCase();
+      const body = rule[2];
+      const isPlayerRule = /player|video|poster|cover|thumb|preview|screen|stage|holder|fp-|vjs-|xp-/.test(
+        selector
+      ) && !/related|recommend|sidebar/.test(selector);
+      const urls = extractCssUrls(body);
+      for (const u of urls) {
+        addCandidate(
+          u,
+          isPlayerRule ? 80 : 55,
+          isPlayerRule ? 'css-style-rule-player' : 'css-style-rule-generic'
+        );
+      }
+    }
+  });
+
+  // 7. Lazy-Loaded Image & Video Attributes (Score 25 - 78)
   $('img, [data-src], [data-original], [data-poster], [data-thumb], [data-thumbnail]').each((_, el) => {
     const classAndId = `${$(el).attr('class') || ''} ${$(el).attr('id') || ''}`.toLowerCase();
-    const isPlayerEl = /player|video|poster|cover|thumb|preview|screen|main/.test(classAndId);
-    const score = isPlayerEl ? 85 : 60;
+    const isRelated = $(el).closest('.related, .recommend, .sidebar, .suggestions, .video-card, .grid-item, #relatedVideos, .playlist, .more-videos').length > 0;
+    const isPlayerEl = /player|video|poster|cover|preview|screen|main/.test(classAndId) && !isRelated;
+    const score = isPlayerEl ? 78 : (isRelated ? 30 : 55);
 
     const dataAttrs = [
       'data-src',
@@ -567,7 +638,7 @@ function extractAndScoreCandidates($, rawHtml, baseUrl) {
 
     for (const attr of dataAttrs) {
       const val = $(el).attr(attr);
-      if (val) addCandidate(val, score, `dom-${attr}`);
+      if (val) addCandidate(val, score, `dom-${attr}`, isRelated);
     }
 
     // Process srcset for high-res candidate
@@ -575,15 +646,14 @@ function extractAndScoreCandidates($, rawHtml, baseUrl) {
     if (srcset) {
       const parts = srcset.split(',').map(s => s.trim().split(' ')[0]).filter(Boolean);
       if (parts.length > 0) {
-        // Largest image is usually at the end of srcset
-        addCandidate(parts[parts.length - 1], score, 'dom-srcset');
+        addCandidate(parts[parts.length - 1], score, 'dom-srcset', isRelated);
       }
     }
 
     // Standard src attribute
     const src = $(el).attr('src');
     if (src) {
-      addCandidate(src, isPlayerEl ? 75 : 45, 'dom-src');
+      addCandidate(src, isPlayerEl ? 70 : (isRelated ? 25 : 45), 'dom-src', isRelated);
     }
   });
 
@@ -788,28 +858,30 @@ export async function fetchUrlMetadata(urlString) {
       }
     }
 
-    // 6. Specialized fetcher for Pornhub oEmbed API
-    if (host.includes('pornhub.com') || host.includes('pornhubpremium.com')) {
+    // 6. Specialized fetcher for Pornhub (supports .com, .org, .net, rt.pornhub.com, etc.)
+    if (host.includes('pornhub')) {
       const viewkey =
         parsed.searchParams.get('viewkey') ||
-        (parsed.pathname.includes('/embed/') ? parsed.pathname.split('/embed/')[1]?.split('/')[0] : null);
+        (urlString.match(/[?&]viewkey=([a-zA-Z0-9]+)/i)?.[1]) ||
+        (parsed.pathname.includes('/embed/') ? parsed.pathname.split('/embed/')[1]?.split('/')[0]?.split('?')[0] : null);
+
       if (viewkey) {
+        // Step 1: Query Pornhub canonical oEmbed API
         try {
           const oembedUrl = `https://www.pornhub.com/oembed?url=https://www.pornhub.com/view_video.php?viewkey=${viewkey}&format=json`;
           const oembedRes = await axios.get(oembedUrl, {
-            timeout: 5000,
+            timeout: 6000,
             headers: STANDARD_HEADERS
           });
 
           if (oembedRes.data && (oembedRes.data.thumbnail_url || oembedRes.data.title)) {
-            const thumb = cleanExtractedUrl(oembedRes.data.thumbnail_url, urlString);
-            const finalThumb = thumb && !isLogoOrGenericIcon(thumb) ? thumb : '';
-
-            if (finalThumb) {
+            let thumb = cleanExtractedUrl(oembedRes.data.thumbnail_url, urlString);
+            if (thumb && !isLogoOrGenericIcon(thumb)) {
+              thumb = upgradeThumbnailQuality(thumb);
               return {
                 title: (oembedRes.data.title || 'Pornhub Video').trim(),
-                description: `Video on Pornhub by ${oembedRes.data.author_name || 'Community Creator'}`,
-                thumbnail: finalThumb,
+                description: `Watch ${oembedRes.data.title || 'video'} on Pornhub by ${oembedRes.data.author_name || 'Community Creator'}`,
+                thumbnail: thumb,
                 resourceType: 'VIDEO',
                 domain: host,
                 isNsfw: true
@@ -817,7 +889,41 @@ export async function fetchUrlMetadata(urlString) {
             }
           }
         } catch (oembedErr) {
-          // Fall through to standard scraping
+          // Fall through to step 2
+        }
+
+        // Step 2: Query Pornhub clean Embed page (Player only, NO recommendations/sidebars)
+        try {
+          const embedUrl = `https://www.pornhub.com/embed/${viewkey}`;
+          const embedRes = await axios.get(embedUrl, {
+            timeout: 6000,
+            headers: STANDARD_HEADERS
+          });
+          const embedHtml = typeof embedRes.data === 'string' ? embedRes.data : '';
+          if (embedHtml) {
+            const $embed = cheerio.load(embedHtml);
+            const embedOg = $embed('meta[property="og:image"]').attr('content');
+            const embedPoster = $embed('video').attr('poster');
+            const embedTitle = ($embed('title').text() || $embed('meta[property="og:title"]').attr('content') || '').replace(/\| Pornhub.*/i, '').trim();
+
+            const candidate = embedOg || embedPoster;
+            if (candidate) {
+              let cleanThumb = cleanExtractedUrl(candidate, embedUrl);
+              if (cleanThumb && !isLogoOrGenericIcon(cleanThumb)) {
+                cleanThumb = upgradeThumbnailQuality(cleanThumb);
+                return {
+                  title: embedTitle || 'Pornhub Video',
+                  description: `Watch on Pornhub`,
+                  thumbnail: cleanThumb,
+                  resourceType: 'VIDEO',
+                  domain: host,
+                  isNsfw: true
+                };
+              }
+            }
+          }
+        } catch (embedErr) {
+          // Fall through to generic scraping
         }
       }
     }
@@ -1046,7 +1152,7 @@ export async function fetchUrlMetadata(urlString) {
     return {
       title: title || parsed.hostname,
       description: description.slice(0, 500) || `Resource from ${parsed.hostname}`,
-      thumbnail: validThumbnail || '',
+      thumbnail: upgradeThumbnailQuality(validThumbnail) || '',
       resourceType,
       domain: host,
       isNsfw: finalIsAdult
@@ -1072,6 +1178,19 @@ export async function fetchUrlMetadata(urlString) {
             ? parsed.pathname.replace(/^\//, '').split('/')[0]
             : parsed.searchParams.get('v');
         if (v) fallbackThumb = `https://i.ytimg.com/vi/${v}/hqdefault.jpg`;
+      } else if (host.includes('pornhub')) {
+        const vk = parsed.searchParams.get('viewkey') || targetUrl.match(/[?&]viewkey=([a-zA-Z0-9]+)/i)?.[1];
+        if (vk) {
+          try {
+            const oRes = await axios.get(`https://www.pornhub.com/oembed?url=https://www.pornhub.com/view_video.php?viewkey=${vk}&format=json`, {
+              timeout: 5000,
+              headers: STANDARD_HEADERS
+            });
+            if (oRes.data?.thumbnail_url) {
+              fallbackThumb = upgradeThumbnailQuality(cleanExtractedUrl(oRes.data.thumbnail_url, targetUrl));
+            }
+          } catch (e) {}
+        }
       } else if (host.includes('stripchat.com')) {
         const u = parsed.pathname.replace(/^\//, '').split('/')[0];
         if (u) fallbackThumb = `https://img.stripchat.com/preview/${u}.jpg`;

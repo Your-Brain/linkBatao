@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import API from '../../services/api';
+import API, { getProxyImageUrl } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { useIncognito } from '../../context/IncognitoContext';
@@ -163,7 +163,7 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
       <Link to={`/resources/${resource._id}`} className="w-full sm:w-44 h-28 shrink-0 rounded-xl overflow-hidden bg-[#07040f] relative block">
         {resource.thumbnail && !imageFailed ? (
           <img
-            src={triedProxy ? `/api/resources/proxy-image?url=${encodeURIComponent(resource.thumbnail)}` : resource.thumbnail}
+            src={triedProxy ? getProxyImageUrl(resource.thumbnail) : resource.thumbnail}
             alt={resource.title}
             referrerPolicy="no-referrer"
             className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-500 opacity-90 group-hover:opacity-100 ${isBlurred ? 'blur-lg scale-110 opacity-40' : ''

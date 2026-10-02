@@ -27,8 +27,27 @@ app.use(helmet({
   crossOriginResourcePolicy: false
 }));
 
+const configuredOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(',').map(s => s.trim().replace(/\/+$/, ''))
+  : [];
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const clean = origin.replace(/\/+$/, '');
+    if (
+      process.env.NODE_ENV !== 'production' ||
+      configuredOrigins.includes(clean) ||
+      configuredOrigins.includes('*') ||
+      clean.includes('localhost') ||
+      clean.includes('127.0.0.1') ||
+      clean.endsWith('.netlify.app') ||
+      clean.endsWith('.vercel.app')
+    ) {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
   credentials: true
 }));
 
