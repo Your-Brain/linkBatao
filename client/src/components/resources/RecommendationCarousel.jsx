@@ -125,10 +125,10 @@ export const RecommendationCarousel = ({
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="relative my-8 space-y-4 text-left"
+      className="relative my-8 space-y-4 text-left overflow-x-hidden"
     >
       {/* Header with Title & Custom Glass Navigation Buttons */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4 ">
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400 shadow-purple-glow-sm">
@@ -221,8 +221,8 @@ export const RecommendationCarousel = ({
               <SwiperSlide key={resource._loopKey} className="h-auto">
                 <div
                   className={`h-full group flex flex-col justify-between rounded-2xl bg-[#0d081e]/90 hover:bg-[#120a2a] border transition-all duration-300 shadow-md hover:shadow-xl hover:-translate-y-1 overflow-hidden ${isAdult
-                      ? 'border-purple-600/40 hover:border-purple-400/80 shadow-[0_0_15px_rgba(147,51,234,0.12)]'
-                      : 'border-purple-900/40 hover:border-purple-500/60'
+                    ? 'border-purple-600/40 hover:border-purple-400/80 shadow-[0_0_15px_rgba(147,51,234,0.12)]'
+                    : 'border-purple-900/40 hover:border-purple-500/60'
                     }`}
                 >
                   {/* Slide Image Header */}
