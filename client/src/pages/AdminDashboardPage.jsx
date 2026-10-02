@@ -918,14 +918,14 @@ export const AdminDashboardPage = () => {
                           </td>
 
                           <td className="p-3.5 text-left">
-                            <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border ${
+                            <span className={`badge-semantic ${
                               resItem.status === 'APPROVED'
-                                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                                : resItem.status === 'REMOVED'
-                                ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
+                                ? 'badge-approved'
+                                : resItem.status === 'REMOVED' || resItem.status === 'REJECTED'
+                                ? 'badge-rejected'
                                 : resItem.status === 'PENDING'
-                                ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
-                                : 'bg-[#140d2e] text-purple-400 border-purple-900/40'
+                                ? 'badge-pending'
+                                : 'badge-info'
                             }`}>
                               {resItem.status === 'APPROVED' ? 'VISIBLE' : resItem.status === 'REMOVED' ? 'HIDDEN' : resItem.status}
                             </span>
@@ -1066,20 +1066,20 @@ export const AdminDashboardPage = () => {
                         {resItem.submittedBy ? `@${resItem.submittedBy.username}` : 'Anonymous'}
                       </td>
                       <td className="p-3.5 text-left">
-                        <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        <span className="badge-semantic badge-pending">
                           {resItem.status}
                         </span>
                       </td>
                       <td className="p-3.5 text-right space-x-2 whitespace-nowrap">
                         <button
                           onClick={() => handleUpdateResourceStatus(resItem._id, 'APPROVED')}
-                          className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition-colors cursor-pointer"
+                          className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition-all btn-press cursor-pointer font-medium text-xs shadow-sm"
                         >
                           Approve
                         </button>
                         <button
                           onClick={() => handleUpdateResourceStatus(resItem._id, 'REJECTED')}
-                          className="px-3 py-1.5 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 transition-colors cursor-pointer"
+                          className="px-3 py-1.5 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 transition-all btn-press cursor-pointer font-medium text-xs shadow-sm"
                         >
                           Reject
                         </button>

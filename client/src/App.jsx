@@ -23,7 +23,7 @@ import { ShareTargetPage } from './pages/ShareTargetPage';
 
 import { HomeLoader } from './components/layout/HomeLoader';
 
-export const DEFAULT_CATEGORIES = [
+const DEFAULT_CATEGORIES = [
   { _id: 'technology', name: 'Technology', slug: 'technology', description: 'AI, software & hardware news', icon: 'Cpu' },
   { _id: 'programming', name: 'Programming', slug: 'programming', description: 'Web dev & engineering', icon: 'Code' },
   { _id: 'gaming', name: 'Gaming', slug: 'gaming', description: 'Games & eSports', icon: 'Gamepad2' },

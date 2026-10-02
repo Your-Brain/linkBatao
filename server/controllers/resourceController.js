@@ -141,19 +141,173 @@ export const getResourceById = async (req, res, next) => {
       }
     }
 
-    // Fetch related resources in same category
-    const related = await Resource.find({
-      category: resource.category._id,
+    // Smart related resources powered by category, tags & engagement
+    const isIncognito = req.query.includeNsfw === 'true' || resource.isNsfw;
+    const relatedQuery = {
       _id: { $ne: resource._id },
       status: 'APPROVED'
-    })
-      .limit(6)
-      .populate('category', 'name slug');
+    };
+
+    if (!isIncognito) {
+      relatedQuery.isNsfw = false;
+      const sexCat = await Category.findOne({ slug: 'sex' });
+      if (sexCat) relatedQuery.category = { $ne: sexCat._id };
+    }
+
+    const candidatePool = await Resource.find(relatedQuery)
+      .populate('category', 'name slug icon')
+      .populate('submittedBy', 'username avatar')
+      .limit(30);
+
+    const targetTags = (resource.tags || []).map(t => t.toLowerCase());
+    const targetCatId = resource.category?._id?.toString();
+
+    const scoredRelated = candidatePool.map(item => {
+      let score = 0;
+      if (targetCatId && item.category?._id?.toString() === targetCatId) score += 35;
+      if (targetTags.length > 0 && item.tags?.length > 0) {
+        const itemTags = new Set(item.tags.map(t => t.toLowerCase()));
+        targetTags.forEach(t => { if (itemTags.has(t)) score += 20; });
+      }
+      score += Math.log10((item.views || 0) + 1) * 4 + (item.savesCount || 0) * 5;
+      return { item, score };
+    });
+
+    scoredRelated.sort((a, b) => b.score - a.score);
+    const related = scoredRelated.slice(0, 8).map(s => s.item);
 
     res.json({
       success: true,
       data: resource,
       related
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Smart multi-factor recommendations based on tags, category & engagement
+// @route   GET /api/resources/recommendations
+// @access  Public
+export const getRecommendations = async (req, res, next) => {
+  try {
+    const { resourceId, category, tags, limit = 10, includeNsfw } = req.query;
+    const isIncognito = includeNsfw === 'true';
+    const maxResults = Math.min(parseInt(limit, 10) || 10, 25);
+
+    const baseQuery = { status: 'APPROVED' };
+
+    if (resourceId && resourceId.match(/^[0-9a-fA-F]{24}$/)) {
+      baseQuery._id = { $ne: resourceId };
+    }
+
+    if (!isIncognito) {
+      baseQuery.isNsfw = false;
+      const sexCat = await Category.findOne({ slug: 'sex' });
+      if (sexCat) {
+        baseQuery.category = { $ne: sexCat._id };
+      }
+    }
+
+    let targetTags = [];
+    if (tags) {
+      targetTags = Array.isArray(tags)
+        ? tags.map(t => String(t).toLowerCase().trim())
+        : String(tags).split(',').map(t => t.toLowerCase().trim()).filter(Boolean);
+    }
+
+    let targetCategory = category || null;
+    if (resourceId && (!targetTags.length || !targetCategory)) {
+      const source = await Resource.findById(resourceId);
+      if (source) {
+        if (!targetTags.length && source.tags?.length) {
+          targetTags = source.tags.map(t => t.toLowerCase());
+        }
+        if (!targetCategory && source.category) {
+          targetCategory = source.category.toString();
+        }
+      }
+    }
+
+    let targetCategoryId = null;
+    if (targetCategory) {
+      if (targetCategory.match(/^[0-9a-fA-F]{24}$/)) {
+        targetCategoryId = targetCategory;
+      } else {
+        const cat = await Category.findOne({ slug: targetCategory.toLowerCase() });
+        if (cat) targetCategoryId = cat._id.toString();
+      }
+    }
+
+    const candidates = await Resource.find(baseQuery)
+      .populate('category', 'name slug icon')
+      .populate('submittedBy', 'username avatar')
+      .sort({ views: -1, createdAt: -1 })
+      .limit(50);
+
+    if (!candidates || candidates.length === 0) {
+      return res.json({ success: true, count: 0, data: [] });
+    }
+
+    const scored = candidates.map(item => {
+      let score = 0;
+
+      // 1. Tag overlap (+25 per matching tag)
+      if (targetTags.length > 0 && item.tags?.length > 0) {
+        const itemTagSet = new Set(item.tags.map(t => t.toLowerCase()));
+        let overlap = 0;
+        targetTags.forEach(t => {
+          if (itemTagSet.has(t)) overlap += 1;
+        });
+        score += overlap * 25;
+      }
+
+      // 2. Category Affinity (+35)
+      if (targetCategoryId && item.category?._id?.toString() === targetCategoryId) {
+        score += 35;
+      }
+
+      // 3. Popularity & Engagement
+      const views = item.views || 0;
+      const saves = item.savesCount || 0;
+      const upvotes = item.upvotes || 0;
+      score += Math.log10(views + 1) * 6 + saves * 8 + upvotes * 4;
+
+      // 4. Quality Thumbnail Boost
+      if (item.thumbnail && !item.thumbnail.includes('google.com/s2/favicons')) {
+        score += 15;
+      }
+
+      // 5. Freshness boost
+      const ageInDays = (Date.now() - new Date(item.createdAt).getTime()) / (1000 * 60 * 60 * 24);
+      if (ageInDays < 3) {
+        score += 12;
+      } else if (ageInDays < 7) {
+        score += 6;
+      }
+
+      return { item, score };
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+
+    // Diversity check: cap same domain to 2 max
+    const domainCounts = {};
+    const finalResults = [];
+
+    for (const entry of scored) {
+      const dom = entry.item.domain || 'other';
+      domainCounts[dom] = (domainCounts[dom] || 0) + 1;
+      if (domainCounts[dom] <= 2 || scored.length <= maxResults) {
+        finalResults.push(entry.item);
+      }
+      if (finalResults.length >= maxResults) break;
+    }
+
+    res.json({
+      success: true,
+      count: finalResults.length,
+      data: finalResults
     });
   } catch (err) {
     next(err);

@@ -58,7 +58,7 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
           setShowGlanceTooltip(false);
           try {
             localStorage.setItem('auralink_incognito_glance_seen', 'true');
-          } catch (e) {}
+          } catch (e) { }
         }, 8500);
 
         return () => {
@@ -66,14 +66,14 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
           clearTimeout(autoHideTimer);
         };
       }
-    } catch (e) {}
+    } catch (e) { }
   }, []);
 
   const dismissGlanceTooltip = () => {
     setShowGlanceTooltip(false);
     try {
       localStorage.setItem('auralink_incognito_glance_seen', 'true');
-    } catch (e) {}
+    } catch (e) { }
   };
 
   // Load search history from localStorage
@@ -222,8 +222,8 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
             <Link
               to="/"
               className={`px-3 py-1.5 rounded-xl backdrop-blur-md transition-all ${isActive('/')
-                  ? 'bg-purple-600/20 text-purple-200 border border-purple-500/40 shadow-sm font-semibold'
-                  : 'hover:text-white hover:bg-purple-900/20'
+                ? 'bg-purple-600/20 text-purple-200 border border-purple-500/40 shadow-sm font-semibold'
+                : 'hover:text-white hover:bg-purple-900/20'
                 }`}
             >
               Explore
@@ -232,8 +232,8 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
             <Link
               to="/collections"
               className={`px-3 py-1.5 rounded-xl backdrop-blur-md transition-all ${isActive('/collections')
-                  ? 'bg-purple-600/20 text-purple-200 border border-purple-500/40 shadow-sm font-semibold'
-                  : 'hover:text-white hover:bg-purple-900/20'
+                ? 'bg-purple-600/20 text-purple-200 border border-purple-500/40 shadow-sm font-semibold'
+                : 'hover:text-white hover:bg-purple-900/20'
                 }`}
             >
               Vaults
@@ -242,8 +242,8 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
             <Link
               to="/privacy"
               className={`px-3 py-1.5 rounded-xl backdrop-blur-md transition-all ${isActive('/privacy')
-                  ? 'bg-purple-600/20 text-purple-200 border border-purple-500/40 shadow-sm font-semibold'
-                  : 'hover:text-white hover:bg-purple-900/20'
+                ? 'bg-purple-600/20 text-purple-200 border border-purple-500/40 shadow-sm font-semibold'
+                : 'hover:text-white hover:bg-purple-900/20'
                 }`}
             >
               Safety
@@ -252,8 +252,8 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
             <Link
               to="/share-target"
               className={`px-3 py-1.5 rounded-xl backdrop-blur-md transition-all flex items-center gap-1.5 ${isActive('/share-target')
-                  ? 'bg-purple-600/20 text-purple-200 border border-purple-500/40 shadow-sm font-semibold'
-                  : 'hover:text-purple-300 hover:bg-purple-900/20 text-purple-300/80'
+                ? 'bg-purple-600/20 text-purple-200 border border-purple-500/40 shadow-sm font-semibold'
+                : 'hover:text-purple-300 hover:bg-purple-900/20 text-purple-300/80'
                 }`}
             >
               <Share2 className="w-3.5 h-3.5 text-purple-400" />
@@ -272,12 +272,12 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
               value={searchQuery}
               onFocus={() => setIsHistoryOpen(true)}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#0d081e]/80 backdrop-blur-xl text-xs text-slate-100 placeholder-purple-300/40 pl-9 pr-16 py-2 rounded-xl border border-purple-900/30 hover:border-purple-500/30 focus:border-purple-500 outline-none transition-all shadow-inner"
+              className="w-full bg-[#0d081e]/90 backdrop-blur-xl text-xs text-slate-50 font-medium placeholder-purple-300/75 pl-9 pr-16 py-2 rounded-xl border border-purple-900/40 hover:border-purple-500/40 focus:border-purple-500 outline-none transition-all shadow-inner"
             />
             <Search className="w-3.5 h-3.5 text-purple-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
 
             {/* Shortcut Badge */}
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-950/60 border border-purple-800/40 text-[10px] font-mono text-purple-300/70 pointer-events-none">
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-950/80 border border-purple-800/60 text-[10px] font-mono text-purple-200 pointer-events-none">
               <span>Alt+O</span>
             </div>
           </form>
@@ -362,27 +362,24 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
         <div className="flex items-center gap-2">
           {/* Incognito Stealth Mode Control Group with Relative Anchor for Glance Popover */}
           <div className="relative">
-            <div className={`flex items-center rounded-xl bg-[#0d081e] border p-0.5 transition-all ${
-              isIncognito
+            <div className={`flex items-center rounded-xl bg-[#0d081e] border p-0.5 transition-all ${isIncognito
                 ? 'border-purple-500/60 shadow-[0_0_15px_rgba(147,51,234,0.3)]'
                 : 'border-purple-900/40'
-            }`}>
+              }`}>
               <button
                 onClick={toggleIncognito}
                 title={isIncognito ? "Incognito Active: 18+ Channels Unlocked (Alt+I)" : "Safe Browsing Active: Click to unlock Incognito / 18+ mode (Alt+I)"}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium backdrop-blur-md transition-all cursor-pointer relative ${isIncognito
-                    ? 'bg-purple-950/80 text-purple-200 border border-purple-500/60 shadow-purple-glow'
-                    : 'hover:bg-purple-950/30 text-purple-200/80'
+                  ? 'bg-purple-950/80 text-purple-200 border border-purple-500/60 shadow-purple-glow'
+                  : 'hover:bg-purple-950/30 text-purple-200/80'
                   }`}
               >
                 {/* Blinking Beacon Indicator */}
                 <span className="relative flex h-2 w-2">
-                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                    isIncognito ? 'bg-purple-400' : 'bg-emerald-400'
-                  }`}></span>
-                  <span className={`relative inline-flex rounded-full h-2 w-2 ${
-                    isIncognito ? 'bg-purple-500' : 'bg-emerald-500'
-                  }`}></span>
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isIncognito ? 'bg-purple-400' : 'bg-emerald-400'
+                    }`}></span>
+                  <span className={`relative inline-flex rounded-full h-2 w-2 ${isIncognito ? 'bg-purple-500' : 'bg-emerald-500'
+                    }`}></span>
                 </span>
 
                 {isIncognito ? (
@@ -463,14 +460,16 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
           </div>
 
           {/* Submit Action Button */}
-          <button
+          <motion.button
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.95 }}
             onClick={onOpenSubmitModal}
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-glow transition-all cursor-pointer shrink-0"
           >
             <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
             <span className="hidden sm:inline">Submit Link</span>
             <span className="sm:hidden">Submit</span>
-          </button>
+          </motion.button>
 
           {/* User Account Session */}
           {user ? (
@@ -576,7 +575,7 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
                 placeholder="Search links, tags..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#0d081e] text-xs text-slate-100 placeholder-purple-300/40 pl-8 pr-4 py-2 rounded-xl border border-purple-900/40 focus:border-purple-500 outline-none"
+                className="w-full bg-[#0d081e] text-xs text-slate-50 font-medium placeholder-purple-300/75 pl-8 pr-4 py-2.5 rounded-xl border border-purple-900/50 focus:border-purple-500 outline-none"
               />
               <Search className="w-3.5 h-3.5 text-purple-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             </form>
@@ -627,11 +626,10 @@ export const Navbar = ({ onOpenSubmitModal, onOpenAuthModal }) => {
                 <button
                   type="button"
                   onClick={toggleIncognito}
-                  className={`px-3 py-1 rounded-lg text-xs font-mono font-bold uppercase transition-all cursor-pointer ${
-                    isIncognito
+                  className={`px-3 py-1 rounded-lg text-xs font-mono font-bold uppercase transition-all cursor-pointer ${isIncognito
                       ? 'bg-purple-600 text-white shadow-purple-glow'
                       : 'bg-purple-950/60 text-purple-300 border border-purple-800/40'
-                  }`}
+                    }`}
                 >
                   {isIncognito ? 'Disable' : 'Enable'}
                 </button>

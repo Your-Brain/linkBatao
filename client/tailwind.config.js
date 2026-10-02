@@ -21,6 +21,50 @@ export default {
           900: '#4c1d95',
           950: '#2e1065'
         },
+        semantic: {
+          success: {
+            bg: 'rgba(16, 185, 129, 0.12)',
+            text: '#34d399',
+            border: 'rgba(16, 185, 129, 0.35)',
+            glow: 'rgba(16, 185, 129, 0.25)'
+          },
+          pending: {
+            bg: 'rgba(245, 158, 11, 0.12)',
+            text: '#fbbf24',
+            border: 'rgba(245, 158, 11, 0.35)',
+            glow: 'rgba(245, 158, 11, 0.25)'
+          },
+          approved: {
+            bg: 'rgba(20, 184, 166, 0.12)',
+            text: '#2dd4bf',
+            border: 'rgba(20, 184, 166, 0.35)',
+            glow: 'rgba(20, 184, 166, 0.25)'
+          },
+          rejected: {
+            bg: 'rgba(244, 63, 94, 0.12)',
+            text: '#fb7185',
+            border: 'rgba(244, 63, 94, 0.35)',
+            glow: 'rgba(244, 63, 94, 0.25)'
+          },
+          warning: {
+            bg: 'rgba(249, 115, 22, 0.12)',
+            text: '#fb923c',
+            border: 'rgba(249, 115, 22, 0.35)',
+            glow: 'rgba(249, 115, 22, 0.25)'
+          },
+          error: {
+            bg: 'rgba(239, 68, 68, 0.12)',
+            text: '#f87171',
+            border: 'rgba(239, 68, 68, 0.35)',
+            glow: 'rgba(239, 68, 68, 0.25)'
+          },
+          info: {
+            bg: 'rgba(139, 92, 246, 0.12)',
+            text: '#c4b5fd',
+            border: 'rgba(139, 92, 246, 0.35)',
+            glow: 'rgba(139, 92, 246, 0.25)'
+          }
+        },
         surface: {
           base: '#07040f',
           card: '#0d081e',

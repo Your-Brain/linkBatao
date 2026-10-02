@@ -152,9 +152,8 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
 
         {/* 18+ Adult Vault Notice Banner */}
         {isAdultVault && (
-          <div className={`p-4 rounded-2xl border flex flex-wrap items-center justify-between gap-4 ${
-            isIncognito ? 'bg-purple-950/40 border-purple-500/40 text-purple-200' : 'bg-purple-950/20 border-purple-800/40 text-purple-300'
-          }`}>
+          <div className={`p-4 rounded-2xl border flex flex-wrap items-center justify-between gap-4 ${isIncognito ? 'bg-purple-950/40 border-purple-500/40 text-purple-200' : 'bg-purple-950/20 border-purple-800/40 text-purple-300'
+            }`}>
             <div className="flex items-center gap-2.5">
               <Ghost className="w-5 h-5 text-purple-400 shrink-0" />
               <div>
@@ -184,11 +183,10 @@ export const CollectionsPage = ({ onReportResource, onAddToCollection }) => {
         <div className="bg-[#0d081e] rounded-3xl p-6 sm:p-8 border border-purple-900/40 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl hud-bracket">
           <div className="space-y-2.5 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2.5">
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-mono font-semibold border ${
-                collection.visibility === 'PRIVATE'
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-mono font-semibold border ${collection.visibility === 'PRIVATE'
                   ? 'bg-amber-950/40 text-amber-300 border-amber-800/60'
                   : 'bg-purple-950/40 text-purple-300 border-purple-800/60'
-              }`}>
+                }`}>
                 {collection.visibility === 'PRIVATE' ? <Lock className="w-3 h-3" /> : <Globe className="w-3 h-3" />}
                 <span>{collection.visibility} Vault</span>
               </span>

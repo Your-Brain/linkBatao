@@ -9,7 +9,8 @@ import {
   saveResource,
   unsaveResource,
   reportResource,
-  proxyImage
+  proxyImage,
+  getRecommendations
 } from '../controllers/resourceController.js';
 import { protect, optionalAuth } from '../middleware/auth.js';
 
@@ -17,6 +18,7 @@ const router = express.Router();
 
 router.get('/', getResources);
 router.get('/proxy-image', proxyImage);
+router.get('/recommendations', getRecommendations);
 router.post('/metadata-preview', previewMetadata);
 router.post('/', optionalAuth, createResource);
 

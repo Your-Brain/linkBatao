@@ -153,10 +153,10 @@ export const ResourceCard = ({ resource: initialResource, onReport, onAddToColle
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       className={`glass-card rounded-2xl overflow-hidden flex flex-col justify-between group h-full border text-left hud-bracket ${isHidden
-          ? 'border-rose-500/40 bg-rose-950/10'
-          : isAdult
-            ? 'border-purple-600/40 hover:border-purple-400/80 shadow-[0_0_15px_rgba(147,51,234,0.15)]'
-            : 'border-purple-900/30 hover:border-purple-500/50'
+        ? 'border-rose-500/40 bg-rose-950/10'
+        : isAdult
+          ? 'border-purple-600/40 hover:border-purple-400/80 shadow-[0_0_15px_rgba(147,51,234,0.15)]'
+          : 'border-purple-900/30 hover:border-purple-500/50'
         }`}
     >
       {/* Card Header & Thumbnail */}
@@ -177,15 +177,14 @@ export const ResourceCard = ({ resource: initialResource, onReport, onAddToColle
             }}
           />
         ) : (
-          <div className={`w-full h-full flex flex-col items-center justify-center text-center transition-all ${
-            isAdult
+          <div className={`w-full h-full flex flex-col items-center justify-center text-center transition-all ${isAdult
               ? 'bg-gradient-to-br from-purple-950/50 via-[#0d081e] to-[#07040f]'
               : resource.resourceType === 'VIDEO'
                 ? 'bg-gradient-to-br from-purple-900/30 via-[#0d081e] to-[#140d2e]'
                 : isArticleOrText
                   ? 'bg-gradient-to-br from-[#120a2a] via-[#0d081e] to-[#07040f]'
                   : 'bg-gradient-to-br from-[#0d081e] to-[#140d2e]'
-          }`}>
+            }`}>
             {resource.resourceType === 'VIDEO' ? (
               <div className="w-11 h-11 rounded-2xl bg-purple-600/15 border border-purple-500/40 flex items-center justify-center mb-1.5 shadow-purple-glow group-hover:scale-110 transition-transform">
                 <Play className="w-5 h-5 text-purple-400 fill-purple-400/20 ml-0.5" />
@@ -293,43 +292,45 @@ export const ResourceCard = ({ resource: initialResource, onReport, onAddToColle
             </div>
 
             {/* Quick 1-click Direct URL copy */}
-            <button
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.94 }}
               onClick={handleCopyUrl}
               title={isCopied ? 'Direct URL Copied!' : 'Copy Direct Resource URL'}
               className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-medium border transition-all cursor-pointer ${isCopied
-                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                  : 'bg-[#140d2e] hover:bg-purple-600/20 text-purple-300/70 hover:text-purple-200 border-purple-900/40'
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.25)]'
+                : 'bg-[#140d2e] hover:bg-purple-600/20 text-purple-300/70 hover:text-purple-200 border-purple-900/40'
                 }`}
             >
               {isCopied ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5" />}
               <span>{isCopied ? 'Copied' : 'Copy URL'}</span>
-            </button>
+            </motion.button>
           </div>
 
           {/* Title */}
           <Link to={`/resources/${resource._id}`} className="block group-hover:text-purple-300 transition-colors">
-            <h3 className="font-display font-bold text-sm text-slate-100 line-clamp-2 leading-snug">
+            <h3 className="font-display font-bold text-sm text-slate-50 line-clamp-2 leading-snug">
               {resource.title}
             </h3>
           </Link>
 
           {/* Description */}
           {resource.description && (
-            <p className="text-xs text-purple-200/60 line-clamp-2 leading-relaxed">
+            <p className="text-xs text-purple-200/85 line-clamp-2 leading-relaxed">
               {resource.description}
             </p>
           )}
 
           {/* Tags */}
           {Array.isArray(resource.tags) && resource.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 pt-1">
+            <div className="flex flex-wrap gap-1.5 pt-1">
               {resource.tags.slice(0, 3).map((tag, idx) => (
-                <span key={idx} className="text-[10px] text-purple-300/70 font-mono bg-[#140d2e] px-1.5 py-0.5 rounded border border-purple-900/40">
+                <span key={idx} className="text-[10px] text-purple-200 font-mono bg-[#140d2e] px-2 py-0.5 rounded-md border border-purple-800/50">
                   #{tag}
                 </span>
               ))}
               {resource.tags.length > 3 && (
-                <span className="text-[9px] text-purple-400/50 font-mono">+{resource.tags.length - 3}</span>
+                <span className="text-[10px] text-purple-300 font-mono">+{resource.tags.length - 3}</span>
               )}
             </div>
           )}
@@ -360,8 +361,8 @@ export const ResourceCard = ({ resource: initialResource, onReport, onAddToColle
               <button
                 onClick={handleAdminToggleHide}
                 className={`px-2 py-0.5 rounded text-[10px] font-semibold border transition-colors flex items-center gap-0.5 cursor-pointer ${isHidden
-                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
-                    : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
+                  : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
                   }`}
                 title={isHidden ? 'Unhide Link' : 'Hide Link'}
               >
@@ -394,41 +395,49 @@ export const ResourceCard = ({ resource: initialResource, onReport, onAddToColle
             </span>
           </div>
 
-          <div className="flex items-center gap-1">
-            <button
+          <div className="flex items-center gap-1.5">
+            <motion.button
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.92 }}
               onClick={handleSaveToggle}
               title={isSaved ? 'Remove Bookmark' : 'Save Bookmark'}
               className={`p-1.5 rounded-lg border transition-all cursor-pointer ${isSaved
-                  ? 'bg-purple-600/30 text-purple-200 border-purple-500/50 shadow-purple-glow-sm'
-                  : 'bg-[#140d2e] hover:bg-purple-900/30 text-purple-300/70 hover:text-purple-200 border-purple-900/40'
+                ? 'bg-purple-600/30 text-purple-200 border-purple-500/50 shadow-purple-glow-sm'
+                : 'bg-[#140d2e] hover:bg-purple-900/30 text-purple-300/70 hover:text-purple-200 border-purple-900/40'
                 }`}
             >
-              <Bookmark className={`w-3.5 h-3.5 ${isSaved ? 'fill-purple-300' : ''}`} />
-            </button>
+              <Bookmark className={`w-3.5 h-3.5 ${isSaved ? 'fill-purple-300 text-purple-300' : ''}`} />
+            </motion.button>
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.92 }}
               onClick={handleAddToCollection}
               title="Add to Vault Collection"
               className="p-1.5 rounded-lg bg-[#140d2e] hover:bg-purple-600/20 text-purple-300/70 hover:text-purple-200 border border-purple-900/40 transition-colors cursor-pointer"
             >
               <FolderPlus className="w-3.5 h-3.5" />
-            </button>
+            </motion.button>
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.92 }}
               onClick={handleShare}
               title="Share Link"
               className="p-1.5 rounded-lg bg-[#140d2e] hover:bg-purple-900/30 text-purple-300/70 hover:text-purple-200 border border-purple-900/40 transition-colors cursor-pointer"
             >
               <Share2 className="w-3.5 h-3.5" />
-            </button>
+            </motion.button>
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.92 }}
               onClick={handleReportClick}
               title="Report Link"
               className="p-1.5 rounded-lg bg-[#140d2e] hover:bg-rose-500/20 text-purple-300/70 hover:text-rose-300 border border-purple-900/40 transition-colors cursor-pointer"
             >
               <Flag className="w-3.5 h-3.5" />
-            </button>
+            </motion.button>
           </div>
         </div>
 

@@ -1,9 +1,32 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ResourceCard } from './ResourceCard';
 import { ResourceRow } from './ResourceRow';
 import { ResourceTable } from './ResourceTable';
 import { ResourceCardSkeleton, ResourceRowSkeleton, ResourceTableSkeleton } from '../common/Skeleton';
 import { LayoutGrid, List, Table2, SearchX } from 'lucide-react';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.04,
+      delayChildren: 0.02
+    }
+  },
+  exit: { opacity: 0, transition: { duration: 0.15 } }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 14, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.28, ease: 'easeOut' }
+  }
+};
 
 export const ResourceGrid = ({ resources, loading, onReport, onAddToCollection, onResourceDeleted, hideLayoutToggle = false }) => {
   const [viewMode, setViewMode] = useState(() => {
@@ -44,15 +67,20 @@ export const ResourceGrid = ({ resources, loading, onReport, onAddToCollection, 
 
   if (!resources || resources.length === 0) {
     return (
-      <div className="bg-[#0d081e]/90 backdrop-blur-md rounded-2xl p-12 text-center max-w-md mx-auto my-12 border border-purple-900/40 space-y-4 shadow-xl">
-        <div className="w-12 h-12 rounded-xl bg-purple-950/60 text-purple-400 mx-auto flex items-center justify-center border border-purple-800/40 shadow-purple-glow-sm">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
+        className="bg-[#0d081e]/90 backdrop-blur-md rounded-3xl p-12 text-center max-w-md mx-auto my-12 border border-purple-900/40 space-y-4 shadow-xl"
+      >
+        <div className="w-12 h-12 rounded-2xl bg-purple-950/60 text-purple-400 mx-auto flex items-center justify-center border border-purple-800/40 shadow-purple-glow-sm">
           <SearchX className="w-6 h-6" />
         </div>
         <h3 className="text-base font-bold text-white font-display">No Links Found</h3>
         <p className="text-xs text-purple-200/60 leading-relaxed">
           No resources found matching your current filter. Try selecting a different category or search term.
         </p>
-      </div>
+      </motion.div>
     );
   }
 
@@ -112,43 +140,69 @@ export const ResourceGrid = ({ resources, loading, onReport, onAddToCollection, 
         </div>
       )}
 
-      {/* Content Rendering: Grid vs List vs Table */}
-      {viewMode === 'grid' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {resources.map((resource) => (
-            <ResourceCard
-              key={resource._id}
-              resource={resource}
+      {/* Content Rendering: Grid vs List vs Table with Staggered Framer Motion */}
+      <AnimatePresence mode="wait">
+        {viewMode === 'grid' && (
+          <motion.div
+            key="grid"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
+          >
+            {resources.map((resource) => (
+              <motion.div key={resource._id} variants={itemVariants}>
+                <ResourceCard
+                  resource={resource}
+                  onReport={onReport}
+                  onAddToCollection={onAddToCollection}
+                  onResourceDeleted={onResourceDeleted}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+
+        {viewMode === 'list' && (
+          <motion.div
+            key="list"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="flex flex-col gap-3"
+          >
+            {resources.map((resource) => (
+              <motion.div key={resource._id} variants={itemVariants}>
+                <ResourceRow
+                  resource={resource}
+                  onReport={onReport}
+                  onAddToCollection={onAddToCollection}
+                  onResourceDeleted={onResourceDeleted}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+
+        {viewMode === 'table' && (
+          <motion.div
+            key="table"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+          >
+            <ResourceTable
+              resources={resources}
               onReport={onReport}
               onAddToCollection={onAddToCollection}
               onResourceDeleted={onResourceDeleted}
             />
-          ))}
-        </div>
-      )}
-
-      {viewMode === 'list' && (
-        <div className="flex flex-col gap-3">
-          {resources.map((resource) => (
-            <ResourceRow
-              key={resource._id}
-              resource={resource}
-              onReport={onReport}
-              onAddToCollection={onAddToCollection}
-              onResourceDeleted={onResourceDeleted}
-            />
-          ))}
-        </div>
-      )}
-
-      {viewMode === 'table' && (
-        <ResourceTable
-          resources={resources}
-          onReport={onReport}
-          onAddToCollection={onAddToCollection}
-          onResourceDeleted={onResourceDeleted}
-        />
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

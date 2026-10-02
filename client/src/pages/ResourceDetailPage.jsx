@@ -8,6 +8,8 @@ import { useIncognito } from '../context/IncognitoContext';
 import { EmbeddedPlayer } from '../components/resources/EmbeddedPlayer';
 import { ResourceCard } from '../components/resources/ResourceCard';
 import { EditResourceModal } from '../components/resources/EditResourceModal';
+import { RecommendationCarousel } from '../components/resources/RecommendationCarousel';
+import { recordResourceInteraction } from '../services/recommendationService';
 import {
   ExternalLink,
   Bookmark,
@@ -50,6 +52,7 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
       if (res.data.success) {
         setResource(res.data.data);
         setRelated(res.data.related || []);
+        recordResourceInteraction(res.data.data, isIncognito);
       }
     } catch (err) {
       showToast('Failed to load resource details', 'error');
@@ -152,13 +155,12 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
 
       {/* Adult Content Status Banner (only when unlocked/revealed or incognito) */}
       {isAdult && (
-        <div className={`p-3.5 rounded-2xl border flex flex-wrap items-center justify-between gap-3 ${
-          isIncognito
+        <div className={`p-3.5 rounded-2xl border flex flex-wrap items-center justify-between gap-3 ${isIncognito
             ? 'bg-purple-950/40 border-purple-500/40 text-purple-200'
             : isRevealed
               ? 'bg-amber-950/30 border-amber-500/40 text-amber-200'
               : 'bg-purple-950/20 border-purple-800/40 text-purple-300'
-        }`}>
+          }`}>
           <div className="flex items-center gap-2.5">
             {isIncognito ? (
               <Ghost className="w-4 h-4 text-purple-400 shrink-0" />
@@ -219,11 +221,10 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
             {isAdminOrMod && (
               <button
                 onClick={handleToggleHide}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
-                  isHidden
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${isHidden
                     ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
                     : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
-                }`}
+                  }`}
               >
                 {isHidden ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
                 <span>{isHidden ? 'Unhide' : 'Hide'}</span>
@@ -349,11 +350,10 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
           {/* Copy Direct Resource URL */}
           <button
             onClick={handleCopyDirectUrl}
-            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-mono font-semibold border transition-all cursor-pointer ${
-              isCopiedUrl
+            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-mono font-semibold border transition-all cursor-pointer ${isCopiedUrl
                 ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                 : 'bg-[#140d2e] text-purple-200 border-purple-900/40 hover:border-purple-500 hover:text-white'
-            }`}
+              }`}
           >
             {isCopiedUrl ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-purple-400" />}
             <span>{isCopiedUrl ? 'URL Copied!' : 'Copy Direct URL'}</span>
@@ -361,11 +361,10 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
 
           <button
             onClick={() => toggleSaveResource(resource._id)}
-            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-mono font-semibold border transition-all cursor-pointer ${
-              isSaved
+            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-mono font-semibold border transition-all cursor-pointer ${isSaved
                 ? 'bg-purple-600/25 text-purple-200 border-purple-500/50 shadow-sm'
                 : 'bg-[#140d2e] text-purple-200 border-purple-900/40 hover:border-purple-500'
-            }`}
+              }`}
           >
             <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-purple-400 text-purple-400' : 'text-purple-400'}`} />
             <span>{isSaved ? 'Bookmarked' : 'Save Bookmark'}</span>
@@ -429,25 +428,15 @@ export const ResourceDetailPage = ({ onReportResource, onAddToCollection }) => {
 
       </div>
 
-      {/* Related Resources Grid */}
+      {/* Related Resources Carousel powered by Swiper.js */}
       {related.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-purple-400" />
-            <h2 className="font-display font-bold text-lg text-white">
-              Related Transmission Signals
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {related.map((r) => (
-              <ResourceCard
-                key={r._id}
-                resource={r}
-                onReport={onReportResource}
-                onAddToCollection={onAddToCollection}
-              />
-            ))}
-          </div>
+        <div className="pt-4 border-t border-purple-900/30">
+          <RecommendationCarousel
+            items={related}
+            title="Related Transmission Signals"
+            subtitle="Discovered via tag overlap, category affinity, and network popularity"
+            onAddToCollection={onAddToCollection}
+          />
         </div>
       )}
 

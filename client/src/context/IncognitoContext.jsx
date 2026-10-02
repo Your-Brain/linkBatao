@@ -60,6 +60,15 @@ export const IncognitoProvider = ({ children }) => {
 
   const [isExplainerOpen, setIsExplainerOpen] = useState(false);
 
+  // Synchronize entire application theme: Toggle .incognito-mode on <html>
+  useEffect(() => {
+    if (isIncognito) {
+      document.documentElement.classList.add('incognito-mode');
+    } else {
+      document.documentElement.classList.remove('incognito-mode');
+    }
+  }, [isIncognito]);
+
   const { showToast } = useToast();
 
   const openExplainer = useCallback(() => setIsExplainerOpen(true), []);

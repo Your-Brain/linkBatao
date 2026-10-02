@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from 'react';
+import { useIncognito } from '../../context/IncognitoContext';
 
 export const CanvasBackground = () => {
   const canvasRef = useRef(null);
+  const { isIncognito } = useIncognito();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -47,7 +49,9 @@ export const CanvasBackground = () => {
             ctx.moveTo(nodes[i].x, nodes[i].y);
             ctx.lineTo(nodes[j].x, nodes[j].y);
             const lineAlpha = (1 - dist / 140) * 0.15;
-            ctx.strokeStyle = `rgba(139, 92, 246, ${lineAlpha})`;
+            ctx.strokeStyle = isIncognito
+              ? `rgba(249, 115, 22, ${lineAlpha})`
+              : `rgba(139, 92, 246, ${lineAlpha})`;
             ctx.lineWidth = 0.75;
             ctx.stroke();
           }
@@ -61,7 +65,9 @@ export const CanvasBackground = () => {
 
         ctx.beginPath();
         ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(167, 139, 250, ${Math.max(0.08, currentAlpha)})`;
+        ctx.fillStyle = isIncognito
+          ? `rgba(251, 146, 60, ${Math.max(0.08, currentAlpha)})`
+          : `rgba(167, 139, 250, ${Math.max(0.08, currentAlpha)})`;
         ctx.fill();
 
         if (!prefersReducedMotion) {
@@ -84,7 +90,7 @@ export const CanvasBackground = () => {
       window.removeEventListener('resize', resize);
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [isIncognito]);
 
   return (
     <canvas

@@ -143,7 +143,117 @@ body {
   background: #7c3aed;
 }
 
-/* Interactive Input / Button Focus States */
+/* ==========================================================================
+   Semantic Status Badges & Indicators
+   ========================================================================== */
+.badge-semantic {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 0.5rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1;
+}
+
+.badge-approved {
+  background: rgba(20, 184, 166, 0.12);
+  color: #2dd4bf;
+  border: 1px solid rgba(20, 184, 166, 0.35);
+  box-shadow: 0 0 10px -2px rgba(20, 184, 166, 0.2);
+}
+
+.badge-pending {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  box-shadow: 0 0 10px -2px rgba(245, 158, 11, 0.2);
+}
+
+.badge-rejected {
+  background: rgba(244, 63, 94, 0.12);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.35);
+  box-shadow: 0 0 10px -2px rgba(244, 63, 94, 0.2);
+}
+
+.badge-warning {
+  background: rgba(249, 115, 22, 0.12);
+  color: #fb923c;
+  border: 1px solid rgba(249, 115, 22, 0.35);
+  box-shadow: 0 0 10px -2px rgba(249, 115, 22, 0.2);
+}
+
+.badge-success {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  box-shadow: 0 0 10px -2px rgba(16, 185, 129, 0.2);
+}
+
+.badge-error {
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  box-shadow: 0 0 10px -2px rgba(239, 68, 68, 0.2);
+}
+
+.badge-info {
+  background: rgba(139, 92, 246, 0.12);
+  color: #c4b5fd;
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  box-shadow: 0 0 10px -2px rgba(139, 92, 246, 0.2);
+}
+
+/* Micro-interaction utilities */
+.btn-press {
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), filter 0.15s ease;
+}
+.btn-press:active {
+  transform: scale(0.97);
+}
+
+/* Swiper custom overrides */
+.swiper-pagination-bullet {
+  background: rgba(167, 139, 250, 0.35) !important;
+  transition: all 0.3s ease !important;
+}
+.swiper-pagination-bullet-active {
+  background: #a78bfa !important;
+  width: 18px !important;
+  border-radius: 4px !important;
+}
+
+
+/* Interactive Input / Button Focus States & High Contrast Readability */
+input,
+textarea,
+select {
+  color: #f8fafc !important;
+  background-color: #0d081e;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #c4b5fd !important;
+  opacity: 0.8 !important;
+}
+
+/* Chrome / Edge autofill protection so backgrounds never turn white and hide text */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: #f8fafc !important;
+  -webkit-box-shadow: 0 0 0px 1000px #0d081e inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 input:focus,
 textarea:focus,
 select:focus {
@@ -161,4 +271,270 @@ select:focus {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ==========================================================================
+   Full-Site Incognito Stealth Theme (Obsidian & Warm Orange Atmosphere)
+   Dynamically activates across the entire application whenever Incognito is ON
+   ========================================================================== */
+html.incognito-mode {
+  --bg-base: #080503;
+  --surface-1: #120a04;
+  --surface-2: #1c1007;
+  --surface-3: #28160a;
+  --border-dim: rgba(249, 115, 22, 0.16);
+  --border-hover: rgba(251, 146, 60, 0.45);
+  --accent-purple: #f97316;
+  --accent-purple-dark: #ea580c;
+  --accent-purple-light: #fb923c;
+}
+
+html.incognito-mode body {
+  background-color: #080503 !important;
+  color: #ffedd5 !important;
+}
+
+html.incognito-mode ::selection {
+  background-color: #ea580c !important;
+  color: #ffffff !important;
+}
+
+html.incognito-mode .cosmos-grid {
+  background-image:
+    linear-gradient(to right, rgba(249, 115, 22, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(249, 115, 22, 0.035) 1px, transparent 1px) !important;
+}
+
+html.incognito-mode .glass-panel {
+  background: rgba(18, 10, 4, 0.88) !important;
+  border-color: rgba(249, 115, 22, 0.18) !important;
+  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+html.incognito-mode .glass-card {
+  background: rgba(18, 10, 4, 0.8) !important;
+  border-color: rgba(249, 115, 22, 0.15) !important;
+}
+
+html.incognito-mode .glass-card:hover {
+  background: rgba(28, 16, 7, 0.92) !important;
+  border-color: rgba(251, 146, 60, 0.45) !important;
+  box-shadow: 0 14px 32px -4px rgba(0, 0, 0, 0.75), 0 0 25px -4px rgba(249, 115, 22, 0.22) !important;
+}
+
+html.incognito-mode .glass-modal {
+  background: rgba(14, 8, 3, 0.97) !important;
+  border-color: rgba(249, 115, 22, 0.3) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85), 0 0 40px -5px rgba(234, 88, 12, 0.25) !important;
+}
+
+html.incognito-mode .hud-bracket::before,
+html.incognito-mode .hud-bracket::after {
+  border-color: #f97316 !important;
+}
+
+html.incognito-mode .hero-gradient {
+  background: linear-gradient(135deg, #ffffff 15%, #fdba74 50%, #f97316 90%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+html.incognito-mode .text-gradient-purple {
+  background: linear-gradient(135deg, #fed7aa 0%, #f97316 50%, #c2410c 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* Hero Atmospheric Ambient Glow */
+.hero-ambient-glow {
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.14) 0%, transparent 70%);
+  filter: blur(50px);
+}
+
+html.incognito-mode .hero-ambient-glow {
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.14) 0%, transparent 70%);
+  filter: blur(50px);
+}
+
+/* Base surface shifts under Incognito - sleek dark obsidian */
+html.incognito-mode,
+html.incognito-mode body {
+  background-color: #070503 !important;
+  color: #ffedd5 !important;
+}
+
+html.incognito-mode .bg-\[\#07040f\] {
+  background-color: #070503 !important;
+}
+
+html.incognito-mode .bg-\[\#0d081e\] {
+  background-color: #120a04 !important;
+}
+
+html.incognito-mode .bg-\[\#140d2e\] {
+  background-color: #1a0e06 !important;
+}
+
+/* High-Contrast Text Visibility in Incognito Mode - Soft luminous cream & warm amber */
+html.incognito-mode h1,
+html.incognito-mode h2,
+html.incognito-mode h3,
+html.incognito-mode h4,
+html.incognito-mode h5,
+html.incognito-mode h6,
+html.incognito-mode .text-white,
+html.incognito-mode .text-slate-100,
+html.incognito-mode .text-slate-50 {
+  color: #fff7ed !important;
+}
+
+html.incognito-mode input,
+html.incognito-mode textarea,
+html.incognito-mode select {
+  color: #fff7ed !important;
+  background-color: #120a04 !important;
+}
+
+html.incognito-mode input::placeholder,
+html.incognito-mode textarea::placeholder {
+  color: #fdba74 !important;
+  opacity: 0.8 !important;
+}
+
+html.incognito-mode input:-webkit-autofill,
+html.incognito-mode input:-webkit-autofill:hover,
+html.incognito-mode input:-webkit-autofill:focus,
+html.incognito-mode textarea:-webkit-autofill,
+html.incognito-mode select:-webkit-autofill {
+  -webkit-text-fill-color: #fff7ed !important;
+  -webkit-box-shadow: 0 0 0px 1000px #120a04 inset !important;
+}
+
+/* Color Remapping for Incognito Mode - Using EXACT classes only */
+html.incognito-mode .bg-purple-600 {
+  background-color: #ea580c !important;
+}
+
+html.incognito-mode .from-purple-600 {
+  --tw-gradient-from: #ea580c var(--tw-gradient-from-position) !important;
+}
+
+html.incognito-mode .to-indigo-600 {
+  --tw-gradient-to: #d97706 var(--tw-gradient-to-position) !important;
+}
+
+html.incognito-mode .hover\:bg-purple-600:hover,
+html.incognito-mode .hover\:bg-purple-500:hover {
+  background-color: #f97316 !important;
+}
+
+html.incognito-mode .bg-purple-950,
+html.incognito-mode .bg-purple-950\/60,
+html.incognito-mode .bg-purple-950\/80,
+html.incognito-mode .bg-purple-950\/90 {
+  background-color: rgba(67, 20, 7, 0.75) !important;
+}
+
+html.incognito-mode .bg-purple-900,
+html.incognito-mode .bg-purple-900\/30,
+html.incognito-mode .bg-purple-900\/40 {
+  background-color: rgba(124, 45, 18, 0.35) !important;
+}
+
+html.incognito-mode .bg-purple-600\/15,
+html.incognito-mode .bg-purple-600\/20,
+html.incognito-mode .bg-purple-600\/25,
+html.incognito-mode .bg-purple-600\/30 {
+  background-color: rgba(234, 88, 12, 0.18) !important;
+}
+
+html.incognito-mode .text-purple-400,
+html.incognito-mode .text-purple-400\/70,
+html.incognito-mode .text-purple-400\/60 {
+  color: #fb923c !important;
+}
+
+html.incognito-mode .text-purple-300,
+html.incognito-mode .text-purple-300\/80,
+html.incognito-mode .text-purple-300\/70 {
+  color: #fdba74 !important;
+}
+
+html.incognito-mode .text-purple-200,
+html.incognito-mode .text-purple-200\/80,
+html.incognito-mode .text-purple-200\/70 {
+  color: #fed7aa !important;
+}
+
+html.incognito-mode .text-purple-100 {
+  color: #ffedd5 !important;
+}
+
+html.incognito-mode .border-purple-500,
+html.incognito-mode .border-purple-500\/40,
+html.incognito-mode .border-purple-500\/50,
+html.incognito-mode .border-purple-500\/60 {
+  border-color: rgba(249, 115, 22, 0.45) !important;
+}
+
+html.incognito-mode .border-purple-800,
+html.incognito-mode .border-purple-800\/40,
+html.incognito-mode .border-purple-800\/60 {
+  border-color: rgba(194, 65, 12, 0.4) !important;
+}
+
+html.incognito-mode .border-purple-900,
+html.incognito-mode .border-purple-900\/30,
+html.incognito-mode .border-purple-900\/40,
+html.incognito-mode .border-purple-900\/50 {
+  border-color: rgba(154, 52, 18, 0.35) !important;
+}
+
+html.incognito-mode .fill-purple-300 {
+  fill: #fdba74 !important;
+}
+
+html.incognito-mode .fill-purple-400 {
+  fill: #fb923c !important;
+}
+
+html.incognito-mode .shadow-purple-glow {
+  box-shadow: 0 0 25px -4px rgba(249, 115, 22, 0.4) !important;
+}
+
+html.incognito-mode .shadow-purple-glow-sm {
+  box-shadow: 0 0 15px -3px rgba(249, 115, 22, 0.3) !important;
+}
+
+html.incognito-mode .shadow-purple-glow-lg {
+  box-shadow: 0 0 45px -5px rgba(234, 88, 12, 0.5) !important;
+}
+
+
+
+html.incognito-mode input:focus,
+html.incognito-mode textarea:focus,
+html.incognito-mode select:focus {
+  border-color: #f97316 !important;
+  box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.4), 0 0 18px -3px rgba(249, 115, 22, 0.3) !important;
+}
+
+html.incognito-mode ::-webkit-scrollbar-track {
+  background: #080503;
+}
+
+html.incognito-mode ::-webkit-scrollbar-thumb {
+  background: #431407;
+}
+
+html.incognito-mode ::-webkit-scrollbar-thumb:hover {
+  background: #ea580c;
+}
+
+html.incognito-mode .swiper-pagination-bullet {
+  background: rgba(251, 146, 60, 0.35) !important;
+}
+
+html.incognito-mode .swiper-pagination-bullet-active {
+  background: #fb923c !important;
 }

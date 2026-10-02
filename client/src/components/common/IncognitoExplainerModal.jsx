@@ -41,11 +41,10 @@ export const IncognitoExplainerModal = () => {
                 <h3 className="font-display font-bold text-xl text-white">
                   Incognito Stealth Mode
                 </h3>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border ${
-                  isIncognito
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border ${isIncognito
                     ? 'bg-purple-950/80 text-purple-300 border-purple-500/50'
                     : 'bg-emerald-950/80 text-emerald-300 border-emerald-500/50'
-                }`}>
+                  }`}>
                   {isIncognito ? 'Currently ON' : 'Safe Mode Active'}
                 </span>
               </div>
@@ -115,11 +114,10 @@ export const IncognitoExplainerModal = () => {
                 onClick={() => {
                   toggleIncognito();
                 }}
-                className={`px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase transition-all cursor-pointer shadow-sm flex items-center gap-1.5 ${
-                  isIncognito
+                className={`px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase transition-all cursor-pointer shadow-sm flex items-center gap-1.5 ${isIncognito
                     ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-500/20'
                     : 'bg-purple-600 hover:bg-purple-500 text-white shadow-purple-glow'
-                }`}
+                  }`}
               >
                 {isIncognito ? (
                   <>

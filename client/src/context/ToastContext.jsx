@@ -23,37 +23,45 @@ export const ToastProvider = ({ children }) => {
     <ToastContext.Provider value={{ showToast }}>
       {children}
       {/* Toast Notification Container */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none">
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0">
         <AnimatePresence>
-          {toasts.map(toast => (
-            <motion.div
-              key={toast.id}
-              initial={{ opacity: 0, y: 15, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 15, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              className={`pointer-events-auto flex items-center justify-between gap-3 px-4 py-3 rounded-2xl shadow-2xl border text-left hud-bracket ${
-                toast.type === 'success'
-                  ? 'border-emerald-500/40 text-emerald-300 bg-[#070e1b]/95'
-                  : toast.type === 'error'
-                  ? 'border-rose-500/40 text-rose-300 bg-[#12070e]/95'
-                  : 'border-purple-500/40 text-purple-200 bg-[#0d081e]/95 shadow-[0_0_15px_rgba(147,51,234,0.2)]'
-              }`}
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                {toast.type === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />}
-                {toast.type === 'error' && <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />}
-                {toast.type === 'info' && <Radio className="w-4 h-4 text-purple-400 shrink-0 animate-pulse" />}
-                <span className="text-xs font-mono font-medium truncate">{toast.message}</span>
-              </div>
-              <button
-                onClick={() => removeToast(toast.id)}
-                className="text-purple-400/60 hover:text-white transition-colors cursor-pointer shrink-0"
+          {toasts.map(toast => {
+            let toastStyle = 'border-purple-500/40 text-purple-200 bg-[#0d081e]/95 shadow-[0_0_20px_rgba(147,51,234,0.2)]';
+            let IconComponent = <Radio className="w-4 h-4 text-purple-400 shrink-0 animate-pulse" />;
+
+            if (toast.type === 'success' || toast.type === 'approved') {
+              toastStyle = 'border-emerald-500/40 text-emerald-300 bg-[#070e1b]/95 shadow-[0_0_20px_rgba(16,185,129,0.2)]';
+              IconComponent = <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />;
+            } else if (toast.type === 'error' || toast.type === 'rejected') {
+              toastStyle = 'border-rose-500/40 text-rose-300 bg-[#14070e]/95 shadow-[0_0_20px_rgba(244,63,94,0.2)]';
+              IconComponent = <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />;
+            } else if (toast.type === 'warning' || toast.type === 'pending') {
+              toastStyle = 'border-amber-500/40 text-amber-300 bg-[#140e07]/95 shadow-[0_0_20px_rgba(245,158,11,0.2)]';
+              IconComponent = <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />;
+            }
+
+            return (
+              <motion.div
+                key={toast.id}
+                initial={{ opacity: 0, y: 20, scale: 0.92 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 15, scale: 0.95 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className={`pointer-events-auto flex items-center justify-between gap-3 px-4 py-3 rounded-2xl shadow-2xl border text-left hud-bracket ${toastStyle}`}
               >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </motion.div>
-          ))}
+                <div className="flex items-center gap-2.5 min-w-0">
+                  {IconComponent}
+                  <span className="text-xs font-mono font-medium truncate">{toast.message}</span>
+                </div>
+                <button
+                  onClick={() => removeToast(toast.id)}
+                  className="text-purple-400/60 hover:text-white transition-colors cursor-pointer shrink-0 p-0.5 rounded"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
       </div>
     </ToastContext.Provider>

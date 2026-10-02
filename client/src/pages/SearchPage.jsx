@@ -131,11 +131,10 @@ export const SearchPage = ({ categories = [], onReportResource, onAddToCollectio
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin border-b border-purple-900/30">
           <button
             onClick={() => handleCategorySelect('all')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all shrink-0 cursor-pointer ${
-              !categoryParam || categoryParam === 'all'
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all shrink-0 cursor-pointer ${!categoryParam || categoryParam === 'all'
                 ? 'bg-purple-600 text-white shadow-sm font-semibold'
                 : 'bg-[#0d081e] hover:bg-[#140d2e] text-purple-300 hover:text-white border border-purple-900/40'
-            }`}
+              }`}
           >
             All Channels
           </button>
@@ -146,15 +145,14 @@ export const SearchPage = ({ categories = [], onReportResource, onAddToCollectio
               <button
                 key={cat._id}
                 onClick={() => handleCategorySelect(cat.slug)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all shrink-0 cursor-pointer ${
-                  isSelected
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all shrink-0 cursor-pointer ${isSelected
                     ? isSexCat
                       ? 'bg-purple-600 text-white shadow-sm font-semibold'
                       : 'bg-purple-600 text-white shadow-sm font-semibold'
                     : isSexCat
                       ? 'bg-purple-950/40 text-purple-300 hover:text-purple-100 border border-purple-800/60'
                       : 'bg-[#0d081e] hover:bg-[#140d2e] text-purple-300 hover:text-white border border-purple-900/40'
-                }`}
+                  }`}
               >
                 {cat.name} {isSexCat ? '(18+)' : ''}
               </button>
