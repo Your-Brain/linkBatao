@@ -16,7 +16,8 @@ import {
   Radio,
   Layers,
   FileText,
-  Tag
+  Tag,
+  Check
 } from 'lucide-react';
 
 const FALLBACK_CATEGORIES = [
@@ -48,6 +49,8 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
   const [tags, setTags] = useState('');
   const [resourceType, setResourceType] = useState('WEBSITE');
   const [thumbnail, setThumbnail] = useState('');
+  const [showThumbnailInput, setShowThumbnailInput] = useState(false);
+  const [thumbError, setThumbError] = useState(false);
   const [isNsfw, setIsNsfw] = useState(false);
 
   const [fetchingPreview, setFetchingPreview] = useState(false);
@@ -114,7 +117,10 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
         setPreviewData(p);
         if (p.metadata.title) setTitle(p.metadata.title);
         if (p.metadata.description) setDescription(p.metadata.description);
-        if (p.metadata.thumbnail) setThumbnail(p.metadata.thumbnail);
+        if (p.metadata.thumbnail) {
+          setThumbnail(p.metadata.thumbnail);
+          setThumbError(false);
+        }
         if (p.metadata.resourceType) setResourceType(p.metadata.resourceType);
 
         // Auto-detect 18+ adult content from preview metadata
@@ -365,6 +371,110 @@ export const SubmitModal = ({ isOpen, onClose, categories = [], onResourceSubmit
               <div className="w-10 h-5 bg-[#090515] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600 border border-purple-800 peer-checked:border-purple-400"></div>
             </label>
           </div>
+
+          {/* Real-time Thumbnail Preview & Control */}
+          {thumbnail ? (
+            <div className="p-3 rounded-2xl bg-[#140d2e]/80 border border-purple-900/40 space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-16 h-11 rounded-xl overflow-hidden bg-[#07040f] border border-purple-800/40 shrink-0 relative flex items-center justify-center shadow-inner">
+                    {!thumbError ? (
+                      <img
+                        src={thumbnail}
+                        alt="Captured Thumbnail"
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          if (!e.target.dataset.triedProxy && thumbnail) {
+                            e.target.dataset.triedProxy = 'true';
+                            e.target.src = `/api/resources/proxy-image?url=${encodeURIComponent(thumbnail)}`;
+                          } else {
+                            setThumbError(true);
+                          }
+                        }}
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-rose-400 text-[9px] font-mono">
+                        <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+                        <span>Failed</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-mono font-bold text-purple-200">Video / Media Thumbnail</span>
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[9px] font-mono font-semibold flex items-center gap-0.5">
+                        <Check className="w-2.5 h-2.5" /> Captured
+                      </span>
+                    </div>
+                    <p className="text-[10px] font-mono text-purple-400/60 truncate max-w-xs">{thumbnail}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setShowThumbnailInput(!showThumbnailInput)}
+                    className="px-2 py-1 text-[10px] font-mono text-purple-300 hover:text-white bg-purple-900/30 hover:bg-purple-800/40 border border-purple-700/40 rounded-lg transition-colors cursor-pointer"
+                  >
+                    {showThumbnailInput ? 'Hide URL' : 'Edit URL'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setThumbnail('');
+                      setThumbError(false);
+                    }}
+                    className="px-2 py-1 text-[10px] font-mono text-purple-400/70 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+
+              {showThumbnailInput && (
+                <input
+                  type="text"
+                  placeholder="https://..."
+                  value={thumbnail}
+                  onChange={(e) => {
+                    setThumbnail(e.target.value);
+                    setThumbError(false);
+                  }}
+                  className="w-full bg-[#090515] text-[11px] font-mono text-purple-100 placeholder-purple-400/40 px-3 py-1.5 rounded-lg border border-purple-900/40 focus:border-purple-500 outline-none transition-all"
+                />
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center justify-between text-[11px] font-mono text-purple-400/60 px-1">
+              <span>Thumbnail: Auto-detected from link or video player</span>
+              <button
+                type="button"
+                onClick={() => setShowThumbnailInput(!showThumbnailInput)}
+                className="text-purple-400 hover:text-purple-200 underline cursor-pointer text-[10px]"
+              >
+                {showThumbnailInput ? 'Hide manual thumbnail' : '+ Add custom thumbnail'}
+              </button>
+            </div>
+          )}
+
+          {showThumbnailInput && !thumbnail && (
+            <div>
+              <label className="block text-[11px] font-mono font-semibold text-purple-200 uppercase tracking-wider mb-1.5">
+                Thumbnail URL
+              </label>
+              <input
+                type="text"
+                placeholder="https://example.com/cover.jpg"
+                value={thumbnail}
+                onChange={(e) => {
+                  setThumbnail(e.target.value);
+                  setThumbError(false);
+                }}
+                className="w-full bg-[#090515] text-xs font-mono text-purple-100 placeholder-purple-400/40 px-3.5 py-2.5 rounded-xl border border-purple-900/40 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 outline-none transition-all"
+              />
+            </div>
+          )}
 
           {/* Tags */}
           <div>

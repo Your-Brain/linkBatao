@@ -38,10 +38,12 @@ export const ResourceCard = ({ resource: initialResource, onReport, onAddToColle
   const [isCopied, setIsCopied] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
+  const [triedProxy, setTriedProxy] = useState(false);
 
   useEffect(() => {
     setResource(initialResource);
     setImageFailed(false);
+    setTriedProxy(false);
   }, [initialResource]);
 
   if (!resource || isDeleted) return null;
@@ -141,6 +143,10 @@ export const ResourceCard = ({ resource: initialResource, onReport, onAddToColle
   const isAdult = isAdultResource(resource);
   const isBlurred = isAdult && blurNsfw && !isRevealed;
 
+  const isArticleOrText = resource.resourceType === 'ARTICLE' || resource.isTextPost || Boolean(resource.content);
+  const wordCount = (resource.content || resource.description || '').trim().split(/\s+/).filter(Boolean).length;
+  const readTime = Math.max(1, Math.ceil(wordCount / 200));
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -157,30 +163,54 @@ export const ResourceCard = ({ resource: initialResource, onReport, onAddToColle
       <Link to={`/resources/${resource._id}`} className="block relative aspect-video w-full overflow-hidden bg-[#07040f]">
         {resource.thumbnail && !imageFailed ? (
           <img
-            src={resource.thumbnail}
+            src={triedProxy ? `/api/resources/proxy-image?url=${encodeURIComponent(resource.thumbnail)}` : resource.thumbnail}
             alt={resource.title}
+            referrerPolicy="no-referrer"
             className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-500 opacity-90 group-hover:opacity-100 ${isBlurred ? 'blur-lg scale-110 opacity-40' : ''
               }`}
-            onError={() => setImageFailed(true)}
+            onError={() => {
+              if (!triedProxy && resource.thumbnail) {
+                setTriedProxy(true);
+              } else {
+                setImageFailed(true);
+              }
+            }}
           />
         ) : (
-          <div className={`w-full h-full flex flex-col items-center justify-center p-4 text-center transition-all ${
+          <div className={`w-full h-full flex flex-col items-center justify-center text-center transition-all ${
             isAdult
               ? 'bg-gradient-to-br from-purple-950/50 via-[#0d081e] to-[#07040f]'
               : resource.resourceType === 'VIDEO'
                 ? 'bg-gradient-to-br from-purple-900/30 via-[#0d081e] to-[#140d2e]'
-                : 'bg-gradient-to-br from-[#0d081e] to-[#140d2e]'
+                : isArticleOrText
+                  ? 'bg-gradient-to-br from-[#120a2a] via-[#0d081e] to-[#07040f]'
+                  : 'bg-gradient-to-br from-[#0d081e] to-[#140d2e]'
           }`}>
             {resource.resourceType === 'VIDEO' ? (
               <div className="w-11 h-11 rounded-2xl bg-purple-600/15 border border-purple-500/40 flex items-center justify-center mb-1.5 shadow-purple-glow group-hover:scale-110 transition-transform">
                 <Play className="w-5 h-5 text-purple-400 fill-purple-400/20 ml-0.5" />
               </div>
-            ) : (
-              <div className="w-10 h-10 rounded-xl bg-purple-950/40 border border-purple-900/50 flex items-center justify-center mb-1">
-                {renderResourceTypeIcon(resource.resourceType)}
+            ) : isArticleOrText ? (
+              <div className="w-full h-full flex flex-col justify-between p-3.5 pt-7 text-left">
+                <p className="text-[11px] font-sans text-purple-200/90 line-clamp-3 leading-relaxed italic">
+                  "{resource.content ? resource.content.slice(0, 110) : (resource.description || resource.title)}"
+                </p>
+                <div className="flex items-center justify-between text-[10px] font-mono text-amber-400/80">
+                  <span className="flex items-center gap-1">
+                    <FileText className="w-3 h-3" />
+                    ~{readTime} min read
+                  </span>
+                  <span className="text-purple-400/60 truncate max-w-[90px]">{resource.domain || 'auralink.app'}</span>
+                </div>
               </div>
+            ) : (
+              <>
+                <div className="w-10 h-10 rounded-xl bg-purple-950/40 border border-purple-900/50 flex items-center justify-center mb-1">
+                  {renderResourceTypeIcon(resource.resourceType)}
+                </div>
+                <span className="text-[11px] font-mono font-medium text-purple-200/70 truncate max-w-[170px]">{resource.domain}</span>
+              </>
             )}
-            <span className="text-[11px] font-mono font-medium text-purple-200/70 truncate max-w-[170px]">{resource.domain}</span>
           </div>
         )}
 

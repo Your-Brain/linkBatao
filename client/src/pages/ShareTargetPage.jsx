@@ -27,14 +27,17 @@ import {
   Check,
   ShieldCheck,
   HelpCircle,
-  FolderPlus
+  FolderPlus,
+  BookOpen,
+  AlignLeft,
+  Clock
 } from 'lucide-react';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { parseUniversalShareInput } from '../services/share/urlExtractor';
 import { detectAndParseUrl, detectIsAdultContent, PLATFORM_TYPES } from '../services/share/platformParsers';
-import { processSharedFile, revokeFilePreviews, formatFileSize } from '../services/share/fileHandler';
+import { processSharedFile, revokeFilePreviews, formatFileSize, readFileContentAsText } from '../services/share/fileHandler';
 import { getSharedPayload, deleteSharedPayload, pruneOldSharedPayloads } from '../services/share/indexedDb';
 
 export function ShareTargetPage({ categories = [], onResourceSubmitted }) {
@@ -55,6 +58,8 @@ export function ShareTargetPage({ categories = [], onResourceSubmitted }) {
   // Resource Form State
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [content, setContent] = useState('');
+  const [isTextPost, setIsTextPost] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [resourceType, setResourceType] = useState('WEBSITE');
   const [tags, setTags] = useState([]);
@@ -140,7 +145,7 @@ export function ShareTargetPage({ categories = [], onResourceSubmitted }) {
   // -------------------------------------------------------------
   // Process Share Input (URLs, Text, Files)
   // -------------------------------------------------------------
-  const processShareInput = useCallback((rawTitle, rawText, rawUrl, rawFiles = []) => {
+  const processShareInput = useCallback(async (rawTitle, rawText, rawUrl, rawFiles = []) => {
     const parsed = parseUniversalShareInput({
       title: rawTitle || '',
       text: rawText || '',
@@ -162,17 +167,47 @@ export function ShareTargetPage({ categories = [], onResourceSubmitted }) {
     const processedFilesList = rawFiles.map(f => processSharedFile(f)).filter(Boolean);
     setSharedFiles(processedFilesList);
 
+    // Read text/markdown file content if uploaded (.txt, .md, .csv, etc.)
+    let extractedFileText = '';
+    const textFile = processedFilesList.find(f =>
+      f.type?.startsWith('text/') ||
+      f.name?.match(/\.(txt|md|markdown|json|js|jsx|ts|tsx|html|css|csv)$/i)
+    );
+    if (textFile) {
+      try {
+        extractedFileText = await readFileContentAsText(textFile);
+      } catch (err) {
+        console.warn('Failed to read text file content:', err);
+      }
+    }
+
+    // Determine content for Blog / Article reading
+    const textBody = extractedFileText || (!parsed.hasUrl ? (rawText || '') : '');
+    setContent(textBody);
+
+    const isTextMode = Boolean(!parsed.hasUrl && (textBody || !rawUrl));
+    setIsTextPost(isTextMode);
+
     // Auto-populate form fields
-    const defaultTitle = parsed.title ||
-      (detected ? `${detected.platformName} Content` : '') ||
-      (processedFilesList.length > 0 ? processedFilesList[0].name : '') ||
-      'Shared Link';
+    let defaultTitle = parsed.title;
+    if (!defaultTitle && detected) {
+      defaultTitle = `${detected.platformName} Content`;
+    } else if (!defaultTitle && processedFilesList.length > 0) {
+      defaultTitle = processedFilesList[0].name.replace(/\.[^/.]+$/, '');
+    } else if (!defaultTitle && textBody) {
+      const firstLine = textBody.split('\n')[0].replace(/^#+\s*/, '').trim();
+      defaultTitle = firstLine.slice(0, 60) || 'Text Note / Blog Story';
+    } else if (!defaultTitle) {
+      defaultTitle = 'Shared Link';
+    }
 
     setTitle(defaultTitle);
-    setDescription(parsed.cleanText || '');
+    setDescription(parsed.hasUrl ? (parsed.cleanText || '') : textBody.slice(0, 200));
 
     // Suggested resource type
-    if (processedFilesList.length > 0) {
+    if (isTextMode || textFile) {
+      setResourceType('ARTICLE');
+    } else if (processedFilesList.length > 0) {
       setResourceType(processedFilesList[0].classification?.suggestedResourceType || 'DOCUMENT');
     } else if (detected) {
       setResourceType(detected.resourceType || 'WEBSITE');
@@ -312,6 +347,8 @@ export function ShareTargetPage({ categories = [], onResourceSubmitted }) {
     setManualInput('');
     setTitle('');
     setDescription('');
+    setContent('');
+    setIsTextPost(false);
     setTags([]);
     setSearchParams({});
     showToast('Cleared share workspace', 'info');
@@ -329,8 +366,9 @@ export function ShareTargetPage({ categories = [], onResourceSubmitted }) {
     }
 
     const finalUrl = parsedData?.primaryUrl || '';
-    if (!finalUrl && sharedFiles.length === 0) {
-      showToast('A valid link or file is required to save', 'error');
+    const hasContent = Boolean(content.trim() || description.trim());
+    if (!finalUrl && sharedFiles.length === 0 && !hasContent) {
+      showToast('A valid link, file, or article content is required to save', 'error');
       return;
     }
 
@@ -339,9 +377,11 @@ export function ShareTargetPage({ categories = [], onResourceSubmitted }) {
       const payload = {
         title: title.trim(),
         description: description.trim(),
-        url: finalUrl || 'https://auralink.app/file/' + (sharedFiles[0]?.name || 'shared'),
+        content: content.trim(),
+        isTextPost: Boolean(!finalUrl && (content.trim() || description.trim())),
+        url: finalUrl || (sharedFiles.length > 0 ? 'https://auralink.app/file/' + (sharedFiles[0]?.name || 'shared') : ''),
         category: selectedCategory || (categories[0]?._id || 'other'),
-        resourceType,
+        resourceType: resourceType || (isTextPost ? 'ARTICLE' : 'WEBSITE'),
         tags,
         isNsfw,
         thumbnail: platformInfo?.thumbnail || ''
@@ -454,6 +494,25 @@ export function ShareTargetPage({ categories = [], onResourceSubmitted }) {
         showToast('Loaded Spotify preset', 'info');
         break;
 
+      case 'blog_story':
+        processShareInput(
+          'Deep Dive: The Architecture of Local-First Web Apps',
+          `# The Architecture of Local-First Web Apps
+
+Local-first software combines the collaboration benefits of cloud applications with the speed, privacy, and offline capabilities of traditional desktop applications.
+
+## Key Principles:
+1. **Zero latency** on local user actions.
+2. **Offline-first reliability** using IndexedDB and Service Workers.
+3. **Multi-device sync** with conflict-free replicated data types (CRDTs).
+4. **Data ownership** where the user retains their full archive.
+
+AuraLink leverages Web Share Target API level 2 and client-side stream parsers to empower instantaneous intake!`,
+          ''
+        );
+        showToast('Loaded Article / Blog Story preset', 'info');
+        break;
+
       case 'messy_text':
         processShareInput(
           '',
@@ -468,7 +527,7 @@ export function ShareTargetPage({ categories = [], onResourceSubmitted }) {
     }
   };
 
-  const hasReceivedData = Boolean(parsedData?.hasUrl || sharedFiles.length > 0 || parsedData?.cleanText);
+  const hasReceivedData = Boolean(parsedData?.hasUrl || sharedFiles.length > 0 || parsedData?.cleanText || content.trim());
 
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto text-left">
@@ -699,6 +758,45 @@ export function ShareTargetPage({ categories = [], onResourceSubmitted }) {
                     </div>
                   )}
 
+                  {/* Article & Blog Content Preview (When text or document is shared) */}
+                  {content.trim() && (
+                    <div className="p-4 rounded-2xl bg-[#07040f] border border-purple-900/40 mb-4 space-y-3">
+                      <div className="flex items-center justify-between border-b border-purple-900/30 pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                            <BookOpen className="w-4 h-4" />
+                          </span>
+                          <div>
+                            <span className="text-xs font-display font-bold text-white">
+                              Blog & Story View Preview
+                            </span>
+                            <span className="text-[10px] font-mono text-purple-300/60 ml-2">
+                              (Markdown / Formatted Note)
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-[11px] font-mono text-purple-300/70">
+                          <span className="flex items-center gap-1">
+                            <AlignLeft className="w-3 h-3 text-purple-400" />
+                            {content.trim().split(/\s+/).filter(Boolean).length} words
+                          </span>
+                          <span>•</span>
+                          <span className="flex items-center gap-1 text-amber-300">
+                            <Clock className="w-3 h-3" />
+                            ~{Math.max(1, Math.ceil(content.trim().split(/\s+/).filter(Boolean).length / 200))} min read
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Excerpt Body */}
+                      <div className="text-xs text-purple-200/90 leading-relaxed font-sans bg-[#090515] p-3.5 rounded-xl border border-purple-900/30 max-h-48 overflow-y-auto whitespace-pre-wrap">
+                        {content.slice(0, 1000)}
+                        {content.length > 1000 ? '...' : ''}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Clean Detected URL Display */}
                   {parsedData?.primaryUrl && (
                     <div className="p-3.5 rounded-2xl bg-[#07040f] border border-purple-900/40 flex items-center justify-between gap-3 text-xs font-mono">
@@ -752,8 +850,30 @@ export function ShareTargetPage({ categories = [], onResourceSubmitted }) {
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Add an optional description or notes..."
-                      rows={3}
+                      rows={2}
                       className="w-full px-3.5 py-2 rounded-xl bg-[#090515] border border-purple-900/40 text-purple-100 text-xs focus:border-purple-500 outline-none transition-colors resize-none"
+                    />
+                  </div>
+
+                  {/* Blog / Longform Story Editor */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-mono font-semibold text-purple-200 flex items-center gap-1.5">
+                        <BookOpen className="w-3.5 h-3.5 text-purple-400" />
+                        Article & Story Content (Blog View)
+                      </label>
+                      {content.trim() && (
+                        <span className="text-[10px] font-mono text-purple-300/60">
+                          {content.trim().split(/\s+/).filter(Boolean).length} words • ~{Math.max(1, Math.ceil(content.trim().split(/\s+/).filter(Boolean).length / 200))} min read
+                        </span>
+                      )}
+                    </div>
+                    <textarea
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      placeholder="Write or paste your full markdown article, thought, notes, or blog content here..."
+                      rows={5}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#090515] border border-purple-900/40 text-purple-100 text-xs font-mono focus:border-purple-500 outline-none transition-colors resize-y placeholder-purple-400/30 leading-relaxed"
                     />
                   </div>
 
@@ -784,8 +904,9 @@ export function ShareTargetPage({ categories = [], onResourceSubmitted }) {
                         onChange={(e) => setResourceType(e.target.value)}
                         className="w-full px-3 py-2.5 rounded-xl bg-[#090515] border border-purple-900/40 text-purple-100 text-xs font-mono focus:border-purple-500 outline-none"
                       >
+                        <option value="ARTICLE" className="bg-[#0d081e]">Article / Blog Post</option>
+                        <option value="WEBSITE" className="bg-[#0d081e]">Website / URL</option>
                         <option value="VIDEO" className="bg-[#0d081e]">Video</option>
-                        <option value="WEBSITE" className="bg-[#0d081e]">Website / Article</option>
                         <option value="IMAGE" className="bg-[#0d081e]">Image / Graphic</option>
                         <option value="MUSIC" className="bg-[#0d081e]">Music / Podcast</option>
                         <option value="DOCUMENT" className="bg-[#0d081e]">Document / PDF</option>
@@ -1125,6 +1246,21 @@ export function ShareTargetPage({ categories = [], onResourceSubmitted }) {
               </div>
               <p className="text-xs text-purple-300/70 font-mono">
                 Simulate multi-sentence text with embedded URLs and hashtags.
+              </p>
+            </button>
+
+            <button
+              onClick={() => { loadPreset('blog_story'); setActiveTab('receiver'); }}
+              className="p-4 rounded-2xl bg-[#07040f] border border-amber-500/40 hover:border-amber-400 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)] transition-all text-left group cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5 mb-2">
+                <span className="p-2 rounded-xl bg-amber-500/10 text-amber-400 group-hover:scale-110 transition-transform">
+                  <BookOpen className="w-4 h-4" />
+                </span>
+                <span className="text-sm font-semibold text-white font-display">Article / Blog Story</span>
+              </div>
+              <p className="text-xs text-purple-300/70 font-mono">
+                Simulate sharing pure text / markdown notes formatted in clean Blog View.
               </p>
             </button>
           </div>

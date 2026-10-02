@@ -179,9 +179,15 @@ export const ResourceTable = ({ resources, onReport, onAddToCollection, onResour
                           <img
                             src={resource.thumbnail}
                             alt=""
+                            referrerPolicy="no-referrer"
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform opacity-90"
                             onError={(e) => {
-                              e.target.style.display = 'none';
+                              if (!e.target.dataset.triedProxy && resource.thumbnail) {
+                                e.target.dataset.triedProxy = 'true';
+                                e.target.src = `/api/resources/proxy-image?url=${encodeURIComponent(resource.thumbnail)}`;
+                              } else {
+                                e.target.style.display = 'none';
+                              }
                             }}
                           />
                         ) : (

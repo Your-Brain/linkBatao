@@ -1,3 +1,4 @@
+import axios from 'axios';
 import crypto from 'crypto';
 import Resource from '../models/Resource.js';
 import ResourceView from '../models/ResourceView.js';
@@ -6,7 +7,7 @@ import Report from '../models/Report.js';
 import User from '../models/User.js';
 import { normalizeUrl } from '../utils/urlNormalizer.js';
 import { detectEmbed } from '../utils/embedDetector.js';
-import { fetchUrlMetadata } from '../utils/metadataFetcher.js';
+import { fetchUrlMetadata, isPrivateHost } from '../utils/metadataFetcher.js';
 
 // @desc    Get resources with filtering, sorting & pagination
 // @route   GET /api/resources
@@ -202,32 +203,46 @@ export const previewMetadata = async (req, res, next) => {
   }
 };
 
-// @desc    Submit a new link (Anonymous or Authenticated)
+// @desc    Submit a new link or text post (Anonymous or Authenticated)
 // @route   POST /api/resources
 // @access  Public (Optional Auth)
 export const createResource = async (req, res, next) => {
   try {
-    const { url, title, description, category, tags, resourceType, thumbnail, isNsfw } = req.body;
+    const { url, title, description, content, category, tags, resourceType, thumbnail, isNsfw, isTextPost } = req.body;
 
-    if (!url || !title || !category) {
-      return res.status(400).json({ success: false, message: 'Please provide URL, title, and category' });
+    if (!title || !title.trim()) {
+      return res.status(400).json({ success: false, message: 'Please provide a title' });
     }
 
-    const { normalizedUrl, domain } = normalizeUrl(url);
+    const hasTextContent = Boolean((content && content.trim()) || (description && description.trim()));
+    const isPureText = Boolean(isTextPost || (!url && hasTextContent) || (resourceType === 'ARTICLE' && !url));
+
+    let finalUrl = (url || '').trim();
+    if (!finalUrl) {
+      if (hasTextContent) {
+        // Generate unique internal permalink for native text/blog post
+        const randomSlug = crypto.randomBytes(6).toString('hex');
+        finalUrl = `https://auralink.app/article/${randomSlug}`;
+      } else {
+        return res.status(400).json({ success: false, message: 'Please provide either a valid link or article/note text' });
+      }
+    }
+
+    const { normalizedUrl, domain } = normalizeUrl(finalUrl);
 
     // Check duplicate
     const existing = await Resource.findOne({ normalizedUrl });
     if (existing) {
       return res.status(400).json({
         success: false,
-        message: 'This link has already been submitted to the platform.',
+        message: 'This link or article has already been submitted to the platform.',
         existingId: existing._id
       });
     }
 
     // Verify category exists or resolve fallback
     let catObj;
-    if (category && category.match(/^[0-9a-fA-F]{24}$/)) {
+    if (category && String(category).match(/^[0-9a-fA-F]{24}$/)) {
       catObj = await Category.findById(category);
     }
 
@@ -255,7 +270,7 @@ export const createResource = async (req, res, next) => {
     }
 
     // Detect Embed Type
-    const embedInfo = detectEmbed(url);
+    const embedInfo = isPureText ? { embedType: 'NONE', embedUrl: '', resourceType: 'ARTICLE' } : detectEmbed(finalUrl);
 
     // Parse tags into clean array
     let processedTags = [];
@@ -266,26 +281,38 @@ export const createResource = async (req, res, next) => {
     }
 
     // Determine Resource Type
-    const finalType = (resourceType || embedInfo.resourceType || 'WEBSITE').toUpperCase();
+    const finalType = (resourceType || (isPureText ? 'ARTICLE' : (embedInfo.resourceType || 'WEBSITE'))).toUpperCase();
 
     // Auto-detect NSFW if category is sex or tags contain adult keywords
     const isAdultCategory = catObj && (catObj.slug === 'sex' || catObj.name.toLowerCase() === 'sex');
     const hasNsfwTags = processedTags.some(t => ['nsfw', 'adult', '18+', 'xxx', 'porn', 'erotic', 'sex'].includes(t.toLowerCase()));
     const finalIsNsfw = Boolean(isNsfw || isAdultCategory || hasNsfwTags);
 
+    let finalThumbnail = (thumbnail || '').trim();
+    if (!finalThumbnail && !isPureText && finalUrl) {
+      try {
+        const meta = await fetchUrlMetadata(finalUrl);
+        if (meta && meta.thumbnail) {
+          finalThumbnail = meta.thumbnail;
+        }
+      } catch (e) {}
+    }
+
     const newResource = await Resource.create({
-      url,
+      url: finalUrl,
       normalizedUrl,
       domain,
       title: title.trim(),
       description: (description || '').trim(),
+      content: (content || (isPureText ? description : '') || '').trim(),
+      isTextPost: isPureText,
       category: catObj._id,
       tags: processedTags,
       resourceType: finalType,
       isNsfw: finalIsNsfw,
       embedType: embedInfo.embedType,
       embedUrl: embedInfo.embedUrl,
-      thumbnail: thumbnail || '',
+      thumbnail: finalThumbnail,
       submittedBy: req.user ? req.user._id : null
     });
 
@@ -345,10 +372,11 @@ export const updateResource = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Not authorized to edit this resource' });
     }
 
-    const { title, description, url, category, tags, resourceType, thumbnail, status, isNsfw } = req.body;
+    const { title, description, content, url, category, tags, resourceType, thumbnail, status, isNsfw } = req.body;
 
     if (title) resource.title = title.trim();
     if (description !== undefined) resource.description = description.trim();
+    if (content !== undefined) resource.content = content.trim();
     if (thumbnail !== undefined) resource.thumbnail = thumbnail;
     if (isNsfw !== undefined) resource.isNsfw = Boolean(isNsfw);
 
@@ -484,5 +512,45 @@ export const reportResource = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+};
+
+// @desc    Safe Image Proxy to bypass CDN hotlink protection & CORS blocks
+// @route   GET /api/resources/proxy-image
+// @access  Public
+export const proxyImage = async (req, res) => {
+  try {
+    const rawUrl = req.query.url;
+    if (!rawUrl) {
+      return res.status(400).send('Image URL parameter is required');
+    }
+
+    const decoded = decodeURIComponent(rawUrl).trim();
+    const parsed = new URL(decoded);
+
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return res.status(400).send('Invalid image protocol');
+    }
+
+    if (isPrivateHost(parsed.hostname)) {
+      return res.status(403).send('Private network access is forbidden');
+    }
+
+    const upstreamRes = await axios.get(decoded, {
+      responseType: 'stream',
+      timeout: 8000,
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+        'Referer': `${parsed.protocol}//${parsed.hostname}/`,
+        'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'
+      }
+    });
+
+    res.setHeader('Content-Type', upstreamRes.headers['content-type'] || 'image/jpeg');
+    res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+    upstreamRes.data.pipe(res);
+  } catch (err) {
+    res.status(502).send('Error streaming upstream image');
   }
 };

@@ -35,8 +35,18 @@ const resourceSchema = new mongoose.Schema(
     },
     resourceType: {
       type: String,
-      enum: ['VIDEO', 'IMAGE', 'ARTICLE', 'WEBSITE', 'AUDIO', 'OTHER'],
+      enum: ['VIDEO', 'IMAGE', 'ARTICLE', 'WEBSITE', 'AUDIO', 'DOCUMENT', 'OTHER'],
       default: 'WEBSITE',
+      index: true
+    },
+    content: {
+      type: String,
+      default: '',
+      maxlength: [50000, 'Content cannot exceed 50000 characters']
+    },
+    isTextPost: {
+      type: Boolean,
+      default: false,
       index: true
     },
     category: {

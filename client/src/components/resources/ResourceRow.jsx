@@ -38,10 +38,12 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
   const [isCopied, setIsCopied] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
+  const [triedProxy, setTriedProxy] = useState(false);
 
   useEffect(() => {
     setResource(initialResource);
     setImageFailed(false);
+    setTriedProxy(false);
   }, [initialResource]);
 
   if (!resource || isDeleted) return null;
@@ -141,6 +143,10 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
 
   const categoryName = getCategoryName(resource.category);
 
+  const isArticleOrText = resource.resourceType === 'ARTICLE' || resource.isTextPost || Boolean(resource.content);
+  const wordCount = (resource.content || resource.description || '').trim().split(/\s+/).filter(Boolean).length;
+  const readTime = Math.max(1, Math.ceil(wordCount / 200));
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -157,11 +163,18 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
       <Link to={`/resources/${resource._id}`} className="w-full sm:w-44 h-28 shrink-0 rounded-xl overflow-hidden bg-[#07040f] relative block">
         {resource.thumbnail && !imageFailed ? (
           <img
-            src={resource.thumbnail}
+            src={triedProxy ? `/api/resources/proxy-image?url=${encodeURIComponent(resource.thumbnail)}` : resource.thumbnail}
             alt={resource.title}
+            referrerPolicy="no-referrer"
             className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-500 opacity-90 group-hover:opacity-100 ${isBlurred ? 'blur-lg scale-110 opacity-40' : ''
               }`}
-            onError={() => setImageFailed(true)}
+            onError={() => {
+              if (!triedProxy && resource.thumbnail) {
+                setTriedProxy(true);
+              } else {
+                setImageFailed(true);
+              }
+            }}
           />
         ) : (
           <div className={`w-full h-full flex flex-col items-center justify-center p-2 text-center transition-all ${
@@ -169,18 +182,34 @@ export const ResourceRow = ({ resource: initialResource, onReport, onAddToCollec
               ? 'bg-gradient-to-br from-purple-950/50 via-[#0d081e] to-[#07040f]'
               : resource.resourceType === 'VIDEO'
                 ? 'bg-gradient-to-br from-purple-900/30 via-[#0d081e] to-[#140d2e]'
-                : 'bg-gradient-to-br from-[#0d081e] to-[#140d2e]'
+                : isArticleOrText
+                  ? 'bg-gradient-to-br from-[#120a2a] via-[#0d081e] to-[#07040f]'
+                  : 'bg-gradient-to-br from-[#0d081e] to-[#140d2e]'
           }`}>
             {resource.resourceType === 'VIDEO' ? (
               <div className="w-9 h-9 rounded-xl bg-purple-600/15 border border-purple-500/40 flex items-center justify-center mb-1 shadow-purple-glow group-hover:scale-110 transition-transform">
                 <Play className="w-4 h-4 text-purple-400 fill-purple-400/20 ml-0.5" />
               </div>
-            ) : (
-              <div className="w-8 h-8 rounded-lg bg-purple-950/40 border border-purple-900/50 flex items-center justify-center mb-1">
-                {renderResourceTypeIcon(resource.resourceType)}
+            ) : isArticleOrText ? (
+              <div className="w-full h-full flex flex-col justify-between p-2 pt-6 text-left">
+                <p className="text-[10px] font-sans text-purple-200/90 line-clamp-2 leading-tight italic">
+                  "{resource.content ? resource.content.slice(0, 75) : (resource.description || resource.title)}"
+                </p>
+                <div className="flex items-center justify-between text-[9px] font-mono text-amber-400/80">
+                  <span className="flex items-center gap-0.5">
+                    <FileText className="w-2.5 h-2.5" />
+                    ~{readTime}m read
+                  </span>
+                </div>
               </div>
+            ) : (
+              <>
+                <div className="w-8 h-8 rounded-lg bg-purple-950/40 border border-purple-900/50 flex items-center justify-center mb-1">
+                  {renderResourceTypeIcon(resource.resourceType)}
+                </div>
+                <span className="text-[10px] font-mono text-purple-200/70 truncate max-w-[120px]">{resource.domain}</span>
+              </>
             )}
-            <span className="text-[10px] font-mono text-purple-200/70 truncate max-w-[120px]">{resource.domain}</span>
           </div>
         )}
 

@@ -166,3 +166,24 @@ export function revokeFilePreviews(files = []) {
     }
   });
 }
+
+/**
+ * Safely reads a text / markdown file and returns its string content
+ */
+export function readFileContentAsText(file) {
+  return new Promise((resolve) => {
+    const blobOrFile = file.blob || file;
+    if (!blobOrFile || !(blobOrFile instanceof Blob)) {
+      return resolve('');
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      resolve(String(reader.result || ''));
+    };
+    reader.onerror = () => {
+      resolve('');
+    };
+    reader.readAsText(blobOrFile);
+  });
+}

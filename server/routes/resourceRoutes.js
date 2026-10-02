@@ -8,13 +8,15 @@ import {
   deleteResource,
   saveResource,
   unsaveResource,
-  reportResource
+  reportResource,
+  proxyImage
 } from '../controllers/resourceController.js';
 import { protect, optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
 router.get('/', getResources);
+router.get('/proxy-image', proxyImage);
 router.post('/metadata-preview', previewMetadata);
 router.post('/', optionalAuth, createResource);
 

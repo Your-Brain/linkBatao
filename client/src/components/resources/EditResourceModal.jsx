@@ -469,8 +469,16 @@ export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated
                           <img
                             src={formData.thumbnail}
                             alt="Preview"
+                            referrerPolicy="no-referrer"
                             className="w-full h-full object-cover"
-                            onError={() => setImageError(true)}
+                            onError={(e) => {
+                              if (!e.target.dataset.triedProxy && formData.thumbnail) {
+                                e.target.dataset.triedProxy = 'true';
+                                e.target.src = `/api/resources/proxy-image?url=${encodeURIComponent(formData.thumbnail)}`;
+                              } else {
+                                setImageError(true);
+                              }
+                            }}
                           />
                         ) : (
                           <div className="flex flex-col items-center justify-center text-purple-400/60 text-[10px]">
@@ -618,8 +626,16 @@ export const EditResourceModal = ({ isOpen, onClose, resource, onResourceUpdated
                           <img
                             src={formData.thumbnail}
                             alt={formData.title}
+                            referrerPolicy="no-referrer"
                             className="w-full h-full object-cover"
-                            onError={() => setImageError(true)}
+                            onError={(e) => {
+                              if (!e.target.dataset.triedProxy && formData.thumbnail) {
+                                e.target.dataset.triedProxy = 'true';
+                                e.target.src = `/api/resources/proxy-image?url=${encodeURIComponent(formData.thumbnail)}`;
+                              } else {
+                                setImageError(true);
+                              }
+                            }}
                           />
                         ) : (
                           <div className="flex flex-col items-center justify-center p-4 text-center">

@@ -1,13 +1,147 @@
 import React, { useState } from 'react';
-import { ExternalLink, Play, AlertCircle, RefreshCw, Volume2, Maximize2 } from 'lucide-react';
+import { ExternalLink, Play, AlertCircle, RefreshCw, Volume2, Maximize2, FileText, Copy, Check, Type, BookOpen } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
 
 export const EmbeddedPlayer = ({ resource }) => {
   const [loading, setLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [isLargeFont, setIsLargeFont] = useState(false);
+  const { showToast } = useToast();
 
   if (!resource) return null;
 
-  const { embedType, embedUrl, url, title, thumbnail, domain } = resource;
+  const { embedType, embedUrl, url, title, thumbnail, domain, content, description, resourceType, isTextPost } = resource;
+
+  const textBody = (content || (isTextPost ? description : '') || '').trim();
+  const isArticleOrBlog = Boolean(textBody || resourceType === 'ARTICLE');
+
+  const handleCopyText = () => {
+    const textToCopy = `${title}\n\n${textBody || description}`;
+    navigator.clipboard.writeText(textToCopy);
+    setCopied(true);
+    showToast('Article text copied to clipboard!', 'success');
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Render Blog / Article Reader View for text-based resources
+  if (isArticleOrBlog && textBody) {
+    const wordCount = textBody.split(/\s+/).filter(Boolean).length;
+    const readingTime = Math.max(1, Math.ceil(wordCount / 200));
+
+    return (
+      <div className="relative rounded-3xl bg-[#0c081e] p-6 sm:p-8 border border-purple-900/50 shadow-2xl space-y-6 hud-bracket text-left overflow-hidden">
+        {/* Blog Header Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-purple-900/40 pb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-purple-600/20 text-purple-300 border border-purple-500/30 flex items-center justify-center shadow-inner">
+              <BookOpen className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-purple-200">
+                Article & Blog Reader
+              </span>
+              <p className="text-[11px] font-mono text-purple-400/70">
+                {wordCount} words • ~{readingTime} min read
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleCopyText}
+              className="px-3.5 py-1.5 rounded-xl bg-[#140d2e] hover:bg-purple-900/40 text-purple-200 border border-purple-800/40 text-xs font-mono transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copied ? 'Copied' : 'Copy Text'}</span>
+            </button>
+            <button
+              onClick={() => setIsLargeFont(!isLargeFont)}
+              className="px-3 py-1.5 rounded-xl bg-[#140d2e] hover:bg-purple-900/40 text-purple-200 border border-purple-800/40 text-xs font-mono transition-colors flex items-center gap-1 cursor-pointer"
+              title="Toggle font size"
+            >
+              <Type className="w-3.5 h-3.5 text-purple-400" />
+              <span>{isLargeFont ? 'A-' : 'A+'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Optional Cover Thumbnail */}
+        {thumbnail && (
+          <div className="w-full max-h-80 rounded-2xl overflow-hidden bg-[#07040f] border border-purple-900/30">
+            <img
+              src={thumbnail}
+              alt={title}
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                if (!e.target.dataset.triedProxy && thumbnail) {
+                  e.target.dataset.triedProxy = 'true';
+                  e.target.src = `/api/resources/proxy-image?url=${encodeURIComponent(thumbnail)}`;
+                }
+              }}
+            />
+          </div>
+        )}
+
+        {/* Formatted Article Body */}
+        <div className={`text-purple-100/90 leading-relaxed font-sans space-y-4 ${
+          isLargeFont ? 'text-base sm:text-lg leading-relaxed' : 'text-sm sm:text-base leading-relaxed'
+        }`}>
+          {textBody.split('\n\n').map((paragraph, idx) => {
+            const trimmed = paragraph.trim();
+            if (!trimmed) return null;
+
+            if (trimmed.startsWith('# ')) {
+              return <h1 key={idx} className="text-2xl font-bold font-display text-white mt-6 mb-2">{trimmed.slice(2)}</h1>;
+            }
+            if (trimmed.startsWith('## ')) {
+              return <h2 key={idx} className="text-xl font-bold font-display text-white mt-5 mb-2">{trimmed.slice(3)}</h2>;
+            }
+            if (trimmed.startsWith('### ')) {
+              return <h3 key={idx} className="text-lg font-bold font-display text-purple-200 mt-4 mb-2">{trimmed.slice(4)}</h3>;
+            }
+            if (trimmed.startsWith('```') && trimmed.endsWith('```')) {
+              return (
+                <pre key={idx} className="p-4 rounded-2xl bg-[#07040f] border border-purple-900/50 font-mono text-xs text-purple-300 overflow-x-auto my-3">
+                  <code>{trimmed.replace(/^```[a-z]*\n?/, '').replace(/```$/, '')}</code>
+                </pre>
+              );
+            }
+            if (trimmed.startsWith('> ')) {
+              return (
+                <blockquote key={idx} className="border-l-4 border-purple-500 pl-4 py-1.5 italic text-purple-200/80 bg-purple-950/20 rounded-r-xl my-3 font-serif">
+                  {trimmed.slice(2)}
+                </blockquote>
+              );
+            }
+            if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+              const items = trimmed.split('\n').map(l => l.replace(/^[-*]\s+/, '').trim()).filter(Boolean);
+              return (
+                <ul key={idx} className="list-disc list-inside space-y-1.5 my-2 pl-2 text-purple-200/90">
+                  {items.map((item, itemIdx) => (
+                    <li key={itemIdx} className="leading-relaxed">{item}</li>
+                  ))}
+                </ul>
+              );
+            }
+            if (/^\d+\.\s+/.test(trimmed)) {
+              const items = trimmed.split('\n').map(l => l.replace(/^\d+\.\s+/, '').trim()).filter(Boolean);
+              return (
+                <ol key={idx} className="list-decimal list-inside space-y-1.5 my-2 pl-2 text-purple-200/90">
+                  {items.map((item, itemIdx) => (
+                    <li key={itemIdx} className="leading-relaxed">{item}</li>
+                  ))}
+                </ol>
+              );
+            }
+
+            return <p key={idx} className="whitespace-pre-line leading-relaxed">{trimmed}</p>;
+          })}
+        </div>
+      </div>
+    );
+  }
 
   // Handle No Embed (Display Open Graph metadata card + Open Original Source button)
   if (embedType === 'NONE' || !embedUrl) {
@@ -18,8 +152,16 @@ export const EmbeddedPlayer = ({ resource }) => {
             <img
               src={thumbnail}
               alt={title}
+              referrerPolicy="no-referrer"
               className="w-full h-full object-cover"
-              onError={(e) => { e.target.style.display = 'none'; }}
+              onError={(e) => {
+                if (!e.target.dataset.triedProxy && thumbnail) {
+                  e.target.dataset.triedProxy = 'true';
+                  e.target.src = `/api/resources/proxy-image?url=${encodeURIComponent(thumbnail)}`;
+                } else {
+                  e.target.style.display = 'none';
+                }
+              }}
             />
           </div>
         )}
@@ -28,7 +170,7 @@ export const EmbeddedPlayer = ({ resource }) => {
             <span>External Web Resource</span>
           </div>
           <h3 className="text-xl font-bold text-white line-clamp-2 font-display">{title}</h3>
-          <p className="text-sm text-purple-200/70 line-clamp-2 leading-relaxed">{resource.description || `Explore this resource on ${domain}`}</p>
+          <p className="text-sm text-purple-200/70 line-clamp-2 leading-relaxed">{description || `Explore this resource on ${domain}`}</p>
           <a
             href={url}
             target="_blank"
@@ -66,7 +208,14 @@ export const EmbeddedPlayer = ({ resource }) => {
         <img
           src={embedUrl}
           alt={title}
+          referrerPolicy="no-referrer"
           className="max-h-[480px] w-auto object-contain rounded-xl shadow-2xl"
+          onError={(e) => {
+            if (!e.target.dataset.triedProxy && embedUrl) {
+              e.target.dataset.triedProxy = 'true';
+              e.target.src = `/api/resources/proxy-image?url=${encodeURIComponent(embedUrl)}`;
+            }
+          }}
         />
       </div>
     );
