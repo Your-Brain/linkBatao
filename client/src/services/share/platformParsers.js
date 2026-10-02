@@ -641,7 +641,7 @@ export const xhamsterParser = {
     if (!url) return false;
     try {
       const hostname = new URL(url).hostname.toLowerCase();
-      return hostname.includes('xhamster.com') || hostname.includes('xhamster.desi') || hostname.includes('xhamster.one') || hostname.includes('xhwide.com');
+      return hostname.includes('xhamster') || hostname.includes('xhwide');
     } catch {
       return false;
     }
@@ -650,7 +650,10 @@ export const xhamsterParser = {
   parse(rawUrl) {
     try {
       const parsed = new URL(rawUrl);
-      const match = parsed.pathname.match(/\/videos\/[^\/]+-(\w+)/i) || parsed.pathname.match(/\/videos\/(\w+)/i) || parsed.searchParams.get('video');
+      const match =
+        parsed.pathname.match(/\/videos\/[^\/]+-([a-zA-Z0-9]+)(?:[?&#/]|$)/i) ||
+        parsed.pathname.match(/\/videos\/([a-zA-Z0-9]+)(?:[?&#/]|$)/i) ||
+        parsed.searchParams.get('video');
       const videoId = typeof match === 'object' && match ? match[1] : match;
       const embedUrl = videoId ? `https://xhamster.com/xembed.php?video=${videoId}` : null;
 
@@ -895,7 +898,11 @@ export function detectIsAdultContent(url = '', title = '', text = '', tags = [])
     try {
       const parsed = new URL(url.startsWith('http') ? url : `https://${url}`);
       const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
-      if (ADULT_DOMAINS.some(d => host === d || host.endsWith(`.${d}`))) {
+      if (
+        ADULT_DOMAINS.some(d => host === d || host.endsWith(`.${d}`)) ||
+        host.includes('xhamster') ||
+        host.includes('xhwide')
+      ) {
         return true;
       }
       const pathWords = parsed.pathname.toLowerCase().split(/[/_.-]+/);
@@ -904,7 +911,11 @@ export function detectIsAdultContent(url = '', title = '', text = '', tags = [])
       }
     } catch {
       const lowerUrl = String(url).toLowerCase();
-      if (ADULT_DOMAINS.some(d => lowerUrl.includes(d))) return true;
+      if (
+        ADULT_DOMAINS.some(d => lowerUrl.includes(d)) ||
+        lowerUrl.includes('xhamster') ||
+        lowerUrl.includes('xhwide')
+      ) return true;
       if (ADULT_KEYWORDS.some(kw => lowerUrl.includes(kw))) return true;
     }
   }

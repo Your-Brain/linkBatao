@@ -45,6 +45,8 @@ const KNOWN_THUMB_CDNS = [
   'xnxx-cdn.com',
   'xhcdn.com',
   'xhpingcdn.com',
+  'xhpicgcdn.com',
+  'xhpiccdn.com',
   'eporner.com',
   'eporner-cdn.com',
   'camsoda.com',
@@ -246,6 +248,56 @@ export const ADULT_DOMAINS = [
   'e-hentai.org'
 ];
 
+/**
+ * Checks whether a given host is a known adult domain or mirror
+ */
+export function isAdultHost(host) {
+  if (!host) return false;
+  const h = String(host).toLowerCase().replace(/^www\./, '');
+  return (
+    ADULT_DOMAINS.some(d => h === d || h.endsWith(`.${d}`)) ||
+    h.includes('xhamster') ||
+    h.includes('xhwide') ||
+    h.includes('xvideos') ||
+    h.includes('xnxx') ||
+    h.includes('spankbang') ||
+    h.includes('pornhub')
+  );
+}
+
+/**
+ * Extracts xHamster video ID from URL string or path
+ */
+export function extractXHamsterVideoId(urlOrPath) {
+  if (!urlOrPath) return null;
+  const match =
+    String(urlOrPath).match(/\/videos\/[^\/]+-([a-zA-Z0-9]+)(?:[?&#/]|$)/i) ||
+    String(urlOrPath).match(/\/videos\/([a-zA-Z0-9]+)(?:[?&#/]|$)/i) ||
+    String(urlOrPath).match(/[?&]video=([a-zA-Z0-9]+)/i);
+  return match ? match[1] : null;
+}
+
+/**
+ * Robust CSS url('...') and url(...) extractor that handles internal parentheses like /s(w:1280,h:720)/
+ */
+export function extractCssUrls(str) {
+  if (!str || typeof str !== 'string') return [];
+  const urls = [];
+  // 1. Quoted: url('...') or url("...")
+  const quotedMatches = str.matchAll(/url\(\s*['"]([^'"]+)['"]\s*\)/gi);
+  for (const m of quotedMatches) {
+    if (m[1]) urls.push(m[1].trim());
+  }
+  // 2. Unquoted: url(...)
+  const unquotedMatches = str.matchAll(/url\(\s*([^\s'")]+)\s*\)/gi);
+  for (const m of unquotedMatches) {
+    if (m[1] && !m[1].startsWith('\'') && !m[1].startsWith('"')) {
+      urls.push(m[1].trim());
+    }
+  }
+  return urls;
+}
+
 // Browser request headers with adult disclaimer & age verification bypass cookies
 export const STANDARD_HEADERS = {
   'User-Agent':
@@ -317,11 +369,29 @@ function extractAndScoreCandidates($, rawHtml, baseUrl) {
         if (initials.videoModel?.previewThumbURL) {
           addCandidate(initials.videoModel.previewThumbURL, 98, 'xhamster-videoModel-previewThumbURL');
         }
+        if (initials.videoModel?.imageURL) {
+          addCandidate(initials.videoModel.imageURL, 100, 'xhamster-videoModel-imageURL');
+        }
+        if (initials.videoModel?.posterURL) {
+          addCandidate(initials.videoModel.posterURL, 100, 'xhamster-videoModel-posterURL');
+        }
       } catch (e) {}
     }
 
     const xhThumb = rawHtml.match(/"thumbURL"\s*:\s*"([^"]+)"/i);
     if (xhThumb && xhThumb[1]) addCandidate(xhThumb[1], 100, 'xhamster-thumbURL');
+
+    const xhPreviewThumb = rawHtml.match(/"previewThumbURL"\s*:\s*"([^"]+)"/i);
+    if (xhPreviewThumb && xhPreviewThumb[1]) addCandidate(xhPreviewThumb[1], 98, 'xhamster-previewThumbURL');
+
+    const xhImage = rawHtml.match(/"imageURL"\s*:\s*"([^"]+)"/i);
+    if (xhImage && xhImage[1]) addCandidate(xhImage[1], 100, 'xhamster-imageURL');
+
+    // xHamster CDN preview images (1280x720 / 1920x1080)
+    const xhCdnMatches = rawHtml.matchAll(/https?:\\?\/\\?\/[^"'()\s]+(?:xhpingcdn|xhpicgcdn|xhpiccdn|xhcdn)[^"'()\s]+\.(?:jpg|jpeg|webp|png)(?:\?[^"'()\s]*)?/gi);
+    for (const m of xhCdnMatches) {
+      if (m[0]) addCandidate(m[0], 99, 'xhamster-cdn-regex');
+    }
 
     // SpankBang stream / poster
     const sbCover = rawHtml.match(/cover_url\s*[:=]\s*["']([^"']+)["']/i);
@@ -353,6 +423,15 @@ function extractAndScoreCandidates($, rawHtml, baseUrl) {
     if (thumbGeneric && thumbGeneric[1]) addCandidate(thumbGeneric[1], 92, 'generic-thumb-regex');
   }
 
+  // Dedicated xHamster Player / Preload Image / Poster extraction
+  $('.xp-preload-image, .xp-poster, #player-container, [data-role="xplayer"]').each((_, el) => {
+    const style = $(el).attr('style') || '';
+    const urls = extractCssUrls(style);
+    for (const u of urls) {
+      addCandidate(u, 100, 'xhamster-player-poster-css');
+    }
+  });
+
   // 2. HTML5 Video Tag Poster (Score 95)
   $('video').each((_, el) => {
     const poster = $(el).attr('poster');
@@ -364,21 +443,17 @@ function extractAndScoreCandidates($, rawHtml, baseUrl) {
   $('[style*="url("], [style*="background"], [style*="--"]').each((_, el) => {
     const style = $(el).attr('style') || '';
     const classAndId = `${$(el).attr('class') || ''} ${$(el).attr('id') || ''}`.toLowerCase();
-    const isPlayerEl = /player|video|poster|cover|thumb|preview|screen|stage|holder|fp-|vjs-|jw-|fluid/.test(
+    const isPlayerEl = /player|video|poster|cover|thumb|preview|screen|stage|holder|fp-|vjs-|jw-|fluid|xp-/.test(
       classAndId
     );
 
-    // Extract all url(...) instances from the style attribute
-    const matches = style.matchAll(/url\(\s*['"]?([^'")]+)['"]?\s*\)/gi);
-    for (const match of matches) {
-      const extractedUrl = match[1];
-      if (extractedUrl) {
-        addCandidate(
-          extractedUrl,
-          isPlayerEl ? 95 : 65,
-          isPlayerEl ? 'css-player-inline' : 'css-generic-inline'
-        );
-      }
+    const urls = extractCssUrls(style);
+    for (const extractedUrl of urls) {
+      addCandidate(
+        extractedUrl,
+        isPlayerEl ? 95 : 65,
+        isPlayerEl ? 'css-player-inline' : 'css-generic-inline'
+      );
     }
   });
 
@@ -389,13 +464,13 @@ function extractAndScoreCandidates($, rawHtml, baseUrl) {
     for (const rule of ruleMatches) {
       const selector = rule[1].toLowerCase();
       const body = rule[2];
-      const isPlayerRule = /player|video|poster|cover|thumb|preview|screen|stage|holder|fp-|vjs-/.test(
+      const isPlayerRule = /player|video|poster|cover|thumb|preview|screen|stage|holder|fp-|vjs-|xp-/.test(
         selector
       );
-      const urlMatches = body.matchAll(/url\(\s*['"]?([^'")]+)['"]?\s*\)/gi);
-      for (const u of urlMatches) {
+      const urls = extractCssUrls(body);
+      for (const u of urls) {
         addCandidate(
-          u[1],
+          u,
           isPlayerRule ? 85 : 60,
           isPlayerRule ? 'css-style-rule-player' : 'css-style-rule-generic'
         );
@@ -405,21 +480,18 @@ function extractAndScoreCandidates($, rawHtml, baseUrl) {
 
   // 5. Global Raw HTML CSS Fallback Regex (Score 60 - 80)
   if (rawHtml) {
-    const rawCssMatches = rawHtml.matchAll(
-      /background(?:-image)?\s*:\s*url\(\s*['"]?([^'")\s]+)['"]?\s*\)/gi
-    );
-    for (const m of rawCssMatches) {
-      if (m[1]) {
-        const lower = m[1].toLowerCase();
-        const isMediaLike =
-          lower.includes('/video') ||
-          lower.includes('/thumb') ||
-          lower.includes('/poster') ||
-          lower.includes('/preview') ||
-          lower.includes('.jpg') ||
-          lower.includes('.webp');
-        addCandidate(m[1], isMediaLike ? 80 : 55, 'raw-html-css-bg');
-      }
+    const rawUrls = extractCssUrls(rawHtml);
+    for (const u of rawUrls) {
+      const lower = u.toLowerCase();
+      const isMediaLike =
+        lower.includes('/video') ||
+        lower.includes('/thumb') ||
+        lower.includes('/poster') ||
+        lower.includes('/preview') ||
+        lower.includes('1280x720') ||
+        lower.includes('.jpg') ||
+        lower.includes('.webp');
+      addCandidate(u, isMediaLike ? 80 : 55, 'raw-html-css-bg');
     }
   }
 
@@ -541,7 +613,7 @@ export async function fetchUrlMetadata(urlString) {
     }
 
     const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
-    const isAdult = ADULT_DOMAINS.some(d => host === d || host.endsWith(`.${d}`));
+    const isAdult = isAdultHost(host);
 
     // 1. Specialized fetcher for YouTube
     if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtu.be') {
@@ -800,20 +872,29 @@ export async function fetchUrlMetadata(urlString) {
             responseContentType = embedRes.headers['content-type'] || '';
           } catch (e) {}
         }
-      } else if (host.includes('xhamster.com')) {
-        // xHamster fallback to embed
-        const match =
-          parsed.pathname.match(/\/videos\/[^\/]+-(\w+)/i) || parsed.pathname.match(/\/videos\/(\w+)/i);
-        if (match && match[1]) {
-          try {
-            const embedRes = await axios.get(`https://xhamster.com/xembed.php?video=${match[1]}`, {
-              timeout: 6000,
-              headers: STANDARD_HEADERS
-            });
-            response = embedRes;
-            responseHtml = typeof embedRes.data === 'string' ? embedRes.data : '';
-            responseContentType = embedRes.headers['content-type'] || '';
-          } catch (e) {}
+      } else if (host.includes('xhamster') || host.includes('xhwide')) {
+        // xHamster fallback to embed across mirrors
+        const vid = extractXHamsterVideoId(parsed.pathname) || extractXHamsterVideoId(urlString);
+        if (vid) {
+          const embedCandidates = [
+            `https://xhamster.com/xembed.php?video=${vid}`,
+            `https://${host}/xembed.php?video=${vid}`,
+            `https://xhamster.desi/xembed.php?video=${vid}`
+          ];
+          for (const embedUrl of embedCandidates) {
+            try {
+              const embedRes = await axios.get(embedUrl, {
+                timeout: 5000,
+                headers: STANDARD_HEADERS
+              });
+              if (embedRes.data && typeof embedRes.data === 'string') {
+                response = embedRes;
+                responseHtml = embedRes.data;
+                responseContentType = embedRes.headers['content-type'] || '';
+                break;
+              }
+            } catch (e) {}
+          }
         }
       }
 
@@ -857,31 +938,60 @@ export async function fetchUrlMetadata(urlString) {
       validThumbnail = candidates[0].url;
     }
 
-    // If still no valid thumbnail found for XVideos/XNXX, try embedframe extraction
-    if (!validThumbnail && (host.includes('xvideos.com') || host.includes('xnxx.com'))) {
-      const match =
-        parsed.pathname.match(/\/video[\.-]?(\d+)/i) || parsed.pathname.match(/\/embedframe\/(\d+)/i);
-      const vid = match ? match[1] : null;
-      if (vid) {
-        try {
-          const isXnxx = host.includes('xnxx');
-          const embedUrl = isXnxx
-            ? `https://www.xnxx.com/embedframe/${vid}`
-            : `https://www.xvideos.com/embedframe/${vid}`;
-          const embedRes = await axios.get(embedUrl, {
-            timeout: 5000,
-            headers: STANDARD_HEADERS
-          });
-          const embedHtml = typeof embedRes.data === 'string' ? embedRes.data : '';
-          const embedCandidates = extractAndScoreCandidates(
-            cheerio.load(embedHtml),
-            embedHtml,
-            embedUrl
-          );
-          if (embedCandidates.length > 0) {
-            validThumbnail = embedCandidates[0].url;
+    // If still no valid thumbnail found for XVideos/XNXX/xHamster, try embedframe extraction
+    if (!validThumbnail && (host.includes('xvideos.com') || host.includes('xnxx.com') || host.includes('xhamster') || host.includes('xhwide'))) {
+      if (host.includes('xhamster') || host.includes('xhwide')) {
+        const vid = extractXHamsterVideoId(parsed.pathname) || extractXHamsterVideoId(urlString);
+        if (vid) {
+          const embedCandidates = [
+            `https://xhamster.com/xembed.php?video=${vid}`,
+            `https://${host}/xembed.php?video=${vid}`,
+            `https://xhamster.desi/xembed.php?video=${vid}`
+          ];
+          for (const embedUrl of embedCandidates) {
+            try {
+              const embedRes = await axios.get(embedUrl, {
+                timeout: 5000,
+                headers: STANDARD_HEADERS
+              });
+              const embedHtml = typeof embedRes.data === 'string' ? embedRes.data : '';
+              const xhEmbedCandidates = extractAndScoreCandidates(
+                cheerio.load(embedHtml),
+                embedHtml,
+                embedUrl
+              );
+              if (xhEmbedCandidates.length > 0) {
+                validThumbnail = xhEmbedCandidates[0].url;
+                break;
+              }
+            } catch (e) {}
           }
-        } catch (e) {}
+        }
+      } else {
+        const match =
+          parsed.pathname.match(/\/video[\.-]?(\d+)/i) || parsed.pathname.match(/\/embedframe\/(\d+)/i);
+        const vid = match ? match[1] : null;
+        if (vid) {
+          try {
+            const isXnxx = host.includes('xnxx');
+            const embedUrl = isXnxx
+              ? `https://www.xnxx.com/embedframe/${vid}`
+              : `https://www.xvideos.com/embedframe/${vid}`;
+            const embedRes = await axios.get(embedUrl, {
+              timeout: 5000,
+              headers: STANDARD_HEADERS
+            });
+            const embedHtml = typeof embedRes.data === 'string' ? embedRes.data : '';
+            const embedCandidates = extractAndScoreCandidates(
+              cheerio.load(embedHtml),
+              embedHtml,
+              embedUrl
+            );
+            if (embedCandidates.length > 0) {
+              validThumbnail = embedCandidates[0].url;
+            }
+          } catch (e) {}
+        }
       }
     }
 
@@ -954,7 +1064,7 @@ export async function fetchUrlMetadata(urlString) {
     try {
       const parsed = new URL(targetUrl);
       host = parsed.hostname.toLowerCase().replace(/^www\./, '');
-      isAdult = ADULT_DOMAINS.some(d => host === d || host.endsWith(`.${d}`));
+      isAdult = isAdultHost(host);
 
       if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtu.be') {
         const v =
@@ -968,6 +1078,36 @@ export async function fetchUrlMetadata(urlString) {
       } else if (host.includes('chaturbate.com')) {
         const u = parsed.pathname.replace(/^\//, '').split('/')[0];
         if (u) fallbackThumb = `https://roomimg.stream.highwebmedia.com/ri/${u}.jpg`;
+      } else if (host.includes('xhamster') || host.includes('xhwide')) {
+        const vid = extractXHamsterVideoId(parsed.pathname) || extractXHamsterVideoId(targetUrl);
+        if (vid) {
+          const embedCandidates = [
+            `https://xhamster.com/xembed.php?video=${vid}`,
+            `https://${host}/xembed.php?video=${vid}`,
+            `https://xhamster.desi/xembed.php?video=${vid}`
+          ];
+          for (const embedUrl of embedCandidates) {
+            try {
+              const embedRes = await axios.get(embedUrl, {
+                timeout: 5000,
+                headers: STANDARD_HEADERS
+              });
+              const embedHtml = typeof embedRes.data === 'string' ? embedRes.data : '';
+              const xhCandidates = extractAndScoreCandidates(
+                cheerio.load(embedHtml),
+                embedHtml,
+                embedUrl
+              );
+              if (xhCandidates.length > 0) {
+                fallbackThumb = xhCandidates[0].url;
+                break;
+              }
+            } catch (e) {}
+          }
+        }
+        if (!fallbackThumb && host) {
+          fallbackThumb = `https://www.google.com/s2/favicons?domain=${host}&sz=128`;
+        }
       } else if (host) {
         fallbackThumb = `https://www.google.com/s2/favicons?domain=${host}&sz=128`;
       }

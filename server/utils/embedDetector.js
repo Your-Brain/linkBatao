@@ -97,12 +97,17 @@ export function detectEmbed(urlString) {
     }
 
     // xHamster Detection
-    if (host.includes('xhamster.com') || host.includes('xhamster.desi') || host.includes('xhamster.one') || host.includes('xhwide.com')) {
-      const match = pathname.match(/\/videos\/[^\/]+-(\w+)/i) || pathname.match(/\/videos\/(\w+)/i) || pathname.match(/video=(\w+)/i);
-      if (match && match[1]) {
+    if (host.includes('xhamster') || host.includes('xhwide')) {
+      const match =
+        pathname.match(/\/videos\/[^\/]+-([a-zA-Z0-9]+)(?:[?&#/]|$)/i) ||
+        pathname.match(/\/videos\/([a-zA-Z0-9]+)(?:[?&#/]|$)/i) ||
+        pathname.match(/video=([a-zA-Z0-9]+)/i) ||
+        parsed.searchParams.get('video');
+      const vid = typeof match === 'object' && match ? match[1] : match;
+      if (vid) {
         return {
           embedType: 'XHAMSTER',
-          embedUrl: `https://xhamster.com/xembed.php?video=${match[1]}`,
+          embedUrl: `https://xhamster.com/xembed.php?video=${vid}`,
           resourceType: 'VIDEO'
         };
       }
