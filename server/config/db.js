@@ -23,7 +23,12 @@ export const connectDB = async () => {
 
     mongoose.set('strictQuery', false);
 
-    const conn = await mongoose.connect(mongoUri);
+    const conn = await mongoose.connect(mongoUri, {
+      maxPoolSize: 10, // Maintain up to 10 connections instead of default 100 to drastically save RAM on MongoDB Atlas
+      minPoolSize: 2,  // Keep 2 warm sockets to avoid reconnection latency
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000
+    });
 
     console.log(`[Database] MongoDB Connected: ${conn.connection.host}`);
   } catch (err) {

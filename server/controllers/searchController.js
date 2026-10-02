@@ -17,7 +17,7 @@ export const search = async (req, res, next) => {
     const includeNsfw = req.query.includeNsfw === 'true' || req.query.nsfw === 'true';
     const nsfwOnly = req.query.nsfwOnly === 'true';
 
-    const sexCat = await Category.findOne({ slug: 'sex' });
+    const sexCat = await Category.findOne({ slug: 'sex' }).lean();
     const sexCatId = sexCat ? sexCat._id : null;
 
     if (nsfwOnly) {
@@ -58,7 +58,7 @@ export const search = async (req, res, next) => {
       if (req.query.category.match(/^[0-9a-fA-F]{24}$/)) {
         searchQuery.category = req.query.category;
       } else {
-        const cat = await Category.findOne({ slug: req.query.category.toLowerCase() });
+        const cat = await Category.findOne({ slug: req.query.category.toLowerCase() }).lean();
         if (cat) searchQuery.category = cat._id;
       }
     }
@@ -71,16 +71,19 @@ export const search = async (req, res, next) => {
     const total = await Resource.countDocuments(searchQuery);
 
     const results = await Resource.find(searchQuery)
+      .select('-content')
       .populate('category', 'name slug icon')
       .populate('submittedBy', 'username avatar')
       .sort({ views: -1, createdAt: -1 })
       .skip(startIndex)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
     // Generate quick search suggestions from titles & tags
     const suggestionsRaw = await Resource.find(searchQuery)
       .select('title tags')
-      .limit(10);
+      .limit(10)
+      .lean();
 
     const suggestionsSet = new Set();
     suggestionsRaw.forEach(item => {
@@ -122,6 +125,7 @@ export const getTags = async (req, res, next) => {
 
     const tags = await Resource.aggregate([
       { $match: matchQuery },
+      { $project: { tags: 1 } },
       { $unwind: '$tags' },
       { $group: { _id: '$tags', count: { $sum: 1 } } },
       { $sort: { count: -1 } },

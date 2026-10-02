@@ -24,7 +24,7 @@ export const getResources = async (req, res, next) => {
     const includeNsfw = req.query.includeNsfw === 'true' || req.query.nsfw === 'true';
     const nsfwOnly = req.query.nsfwOnly === 'true';
 
-    const sexCat = await Category.findOne({ slug: 'sex' });
+    const sexCat = await Category.findOne({ slug: 'sex' }).lean();
     const sexCatId = sexCat ? sexCat._id : null;
 
     if (nsfwOnly) {
@@ -45,7 +45,7 @@ export const getResources = async (req, res, next) => {
       if (req.query.category.match(/^[0-9a-fA-F]{24}$/)) {
         query.category = req.query.category;
       } else {
-        const cat = await Category.findOne({ slug: req.query.category.toLowerCase() });
+        const cat = await Category.findOne({ slug: req.query.category.toLowerCase() }).lean();
         if (cat) query.category = cat._id;
       }
     }
@@ -79,11 +79,13 @@ export const getResources = async (req, res, next) => {
 
     const total = await Resource.countDocuments(query);
     const resources = await Resource.find(query)
+      .select('-content')
       .populate('category', 'name slug icon')
       .populate('submittedBy', 'username avatar')
       .sort(sort)
       .skip(startIndex)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
     res.json({
       success: true,
@@ -150,14 +152,16 @@ export const getResourceById = async (req, res, next) => {
 
     if (!isIncognito) {
       relatedQuery.isNsfw = false;
-      const sexCat = await Category.findOne({ slug: 'sex' });
+      const sexCat = await Category.findOne({ slug: 'sex' }).lean();
       if (sexCat) relatedQuery.category = { $ne: sexCat._id };
     }
 
     const candidatePool = await Resource.find(relatedQuery)
+      .select('-content')
       .populate('category', 'name slug icon')
       .populate('submittedBy', 'username avatar')
-      .limit(30);
+      .limit(30)
+      .lean();
 
     const targetTags = (resource.tags || []).map(t => t.toLowerCase());
     const targetCatId = resource.category?._id?.toString();
@@ -203,7 +207,7 @@ export const getRecommendations = async (req, res, next) => {
 
     if (!isIncognito) {
       baseQuery.isNsfw = false;
-      const sexCat = await Category.findOne({ slug: 'sex' });
+      const sexCat = await Category.findOne({ slug: 'sex' }).lean();
       if (sexCat) {
         baseQuery.category = { $ne: sexCat._id };
       }
@@ -218,7 +222,7 @@ export const getRecommendations = async (req, res, next) => {
 
     let targetCategory = category || null;
     if (resourceId && (!targetTags.length || !targetCategory)) {
-      const source = await Resource.findById(resourceId);
+      const source = await Resource.findById(resourceId).lean();
       if (source) {
         if (!targetTags.length && source.tags?.length) {
           targetTags = source.tags.map(t => t.toLowerCase());
@@ -234,16 +238,18 @@ export const getRecommendations = async (req, res, next) => {
       if (targetCategory.match(/^[0-9a-fA-F]{24}$/)) {
         targetCategoryId = targetCategory;
       } else {
-        const cat = await Category.findOne({ slug: targetCategory.toLowerCase() });
+        const cat = await Category.findOne({ slug: targetCategory.toLowerCase() }).lean();
         if (cat) targetCategoryId = cat._id.toString();
       }
     }
 
     const candidates = await Resource.find(baseQuery)
+      .select('-content')
       .populate('category', 'name slug icon')
       .populate('submittedBy', 'username avatar')
       .sort({ views: -1, createdAt: -1 })
-      .limit(50);
+      .limit(50)
+      .lean();
 
     if (!candidates || candidates.length === 0) {
       return res.json({ success: true, count: 0, data: [] });
@@ -592,17 +598,29 @@ export const saveResource = async (req, res, next) => {
     }
 
     const user = await User.findById(req.user.id);
-    if (user.savedResources.includes(resource._id)) {
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const alreadySaved = (user.savedResources || []).some(
+      (id) => id.toString() === resource._id.toString()
+    );
+
+    if (alreadySaved) {
       return res.status(400).json({ success: false, message: 'Resource already saved in your bookmarks' });
     }
 
-    user.savedResources.push(resource._id);
-    await user.save();
+    await User.findByIdAndUpdate(req.user.id, {
+      $addToSet: { savedResources: resource._id }
+    });
 
-    resource.saves += 1;
-    await resource.save();
+    const updatedResource = await Resource.findByIdAndUpdate(
+      resource._id,
+      { $inc: { saves: 1 } },
+      { new: true }
+    );
 
-    res.json({ success: true, message: 'Resource saved to bookmarks', saves: resource.saves });
+    res.json({ success: true, message: 'Resource saved to bookmarks', saves: updatedResource?.saves || resource.saves + 1 });
   } catch (err) {
     next(err);
   }
@@ -613,17 +631,13 @@ export const saveResource = async (req, res, next) => {
 // @access  Private
 export const unsaveResource = async (req, res, next) => {
   try {
+    await User.findByIdAndUpdate(req.user.id, {
+      $pull: { savedResources: req.params.id }
+    });
+
     const resource = await Resource.findById(req.params.id);
-    const user = await User.findById(req.user.id);
-
-    user.savedResources = user.savedResources.filter(
-      id => id.toString() !== req.params.id
-    );
-    await user.save();
-
     if (resource && resource.saves > 0) {
-      resource.saves -= 1;
-      await resource.save();
+      await Resource.findByIdAndUpdate(req.params.id, { $inc: { saves: -1 } });
     }
 
     res.json({ success: true, message: 'Resource removed from bookmarks' });

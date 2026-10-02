@@ -48,4 +48,6 @@ const reportSchema = new mongoose.Schema(
   }
 );
 
+reportSchema.index({ status: 1, createdAt: -1 });
+
 export default mongoose.model('Report', reportSchema);

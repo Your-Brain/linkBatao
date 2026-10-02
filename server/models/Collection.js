@@ -36,4 +36,7 @@ const collectionSchema = new mongoose.Schema(
   }
 );
 
+collectionSchema.index({ visibility: 1, createdAt: -1 });
+collectionSchema.index({ ownerId: 1, createdAt: -1 });
+
 export default mongoose.model('Collection', collectionSchema);

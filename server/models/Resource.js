@@ -10,8 +10,7 @@ const resourceSchema = new mongoose.Schema(
     normalizedUrl: {
       type: String,
       required: true,
-      unique: true,
-      index: true
+      unique: true
     },
     title: {
       type: String,
@@ -99,8 +98,7 @@ const resourceSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ['PENDING', 'APPROVED', 'REJECTED', 'REMOVED'],
-      default: 'APPROVED',
-      index: true
+      default: 'APPROVED'
     },
     linkHealth: {
       type: String,
@@ -141,6 +139,14 @@ const resourceSchema = new mongoose.Schema(
     timestamps: true
   }
 );
+
+// High-performance compound indexes (ESR: Equality, Sort, Range)
+// Prevents in-memory sort buffer spikes in MongoDB WiredTiger
+resourceSchema.index({ status: 1, isNsfw: 1, createdAt: -1 });
+resourceSchema.index({ status: 1, isNsfw: 1, trendingScore: -1 });
+resourceSchema.index({ category: 1, status: 1, isNsfw: 1, createdAt: -1 });
+resourceSchema.index({ status: 1, isNsfw: 1, views: -1 });
+resourceSchema.index({ domain: 1, status: 1 });
 
 // Compound text index for search
 resourceSchema.index({

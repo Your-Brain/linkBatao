@@ -5,13 +5,11 @@ const resourceViewSchema = new mongoose.Schema(
     resource: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Resource',
-      required: true,
-      index: true
+      required: true
     },
     viewerIdentifier: {
       type: String,
-      required: true,
-      index: true
+      required: true
     },
     createdAt: {
       type: Date,

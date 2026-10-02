@@ -15,7 +15,8 @@ export const getPendingReports = async (req, res, next) => {
         populate: { path: 'category', select: 'name' }
       })
       .populate('reporterId', 'username email')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     res.json({
       success: true,
@@ -209,7 +210,8 @@ export const getAllCollectionsAdmin = async (req, res, next) => {
         path: 'items',
         select: 'title thumbnail domain resourceType url'
       })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     res.json({
       success: true,
@@ -295,9 +297,12 @@ export const getAllResourcesAdmin = async (req, res, next) => {
     }
 
     const resources = await Resource.find(query)
+      .select('-content')
       .populate('category', 'name slug')
       .populate('submittedBy', 'username email')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .limit(200)
+      .lean();
 
     res.json({
       success: true,

@@ -75,7 +75,8 @@ export const getCollections = async (req, res, next) => {
         select: 'title thumbnail domain resourceType isNsfw category tags',
         populate: { path: 'category', select: 'name slug icon' }
       })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     // Filter adult collections if Incognito / includeNsfw is not active
     if (!includeNsfw) {
@@ -111,7 +112,8 @@ export const getCollectionById = async (req, res, next) => {
       .populate({
         path: 'items',
         populate: [{ path: 'category', select: 'name slug icon' }, { path: 'submittedBy', select: 'username avatar' }]
-      });
+      })
+      .lean();
 
     if (!collection) {
       return res.status(404).json({ success: false, message: 'Collection not found' });
@@ -123,7 +125,7 @@ export const getCollectionById = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'This collection is private' });
     }
 
-    const colObj = collection.toObject();
+    const colObj = collection.toObject ? collection.toObject() : { ...collection };
 
     // If safe browsing is active (not including NSFW) and user is not managing, filter out adult items
     if (!includeNsfw && !canManageCollection(req.user, collection)) {
@@ -229,7 +231,11 @@ export const addItemToCollection = async (req, res, next) => {
 
     const populated = await Collection.findById(collection._id)
       .populate('ownerId', 'username avatar')
-      .populate('items');
+      .populate({
+        path: 'items',
+        select: 'title thumbnail domain resourceType isNsfw category tags'
+      })
+      .lean();
 
     res.json({
       success: true,
@@ -261,7 +267,11 @@ export const removeItemFromCollection = async (req, res, next) => {
 
     const populated = await Collection.findById(collection._id)
       .populate('ownerId', 'username avatar')
-      .populate('items');
+      .populate({
+        path: 'items',
+        select: 'title thumbnail domain resourceType isNsfw category tags'
+      })
+      .lean();
 
     res.json({
       success: true,
