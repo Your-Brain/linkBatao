@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -37,6 +37,26 @@ export const RecommendationCarousel = ({
   const prevRef = useRef(null);
   const nextRef = useRef(null);
   const IconComponent = icon;
+
+  // Swiper requires at least 2 * max(slidesPerView) = 8 slides to loop without glitching or stacking.
+  // If the collection has fewer items (e.g. 2-7 items), replicate the list so loop mode never stops.
+  const displayItems = useMemo(() => {
+    if (!items || items.length === 0) return [];
+    if (items.length < 8) {
+      const repetitions = Math.ceil(12 / items.length);
+      const expanded = [];
+      for (let i = 0; i < repetitions; i++) {
+        items.forEach((item, idx) => {
+          expanded.push({
+            ...item,
+            _loopKey: `${item._id || idx}-loop-${i}`
+          });
+        });
+      }
+      return expanded;
+    }
+    return items.map((item, idx) => ({ ...item, _loopKey: item._id || idx }));
+  }, [items]);
 
   if (loading) {
     return (
@@ -145,7 +165,7 @@ export const RecommendationCarousel = ({
       {/* Swiper Container with Auto-Scroll & Infinite Looping */}
       <div className="relative -mx-2 sm:mx-0">
         <Swiper
-          key={`rec-swiper-${items.length}`}
+          key={`rec-swiper-${displayItems.length}`}
           modules={[Navigation, Pagination, Autoplay]}
           navigation={{
             prevEl: prevRef.current,
@@ -155,17 +175,24 @@ export const RecommendationCarousel = ({
             swiper.params.navigation.prevEl = prevRef.current;
             swiper.params.navigation.nextEl = nextRef.current;
           }}
-          loop={items.length >= 3}
+          loop={displayItems.length >= 4}
+          loopPreventsSliding={false}
+          loopAdditionalSlides={4}
+          grabCursor={true}
+          watchSlidesProgress={true}
           autoplay={{
-            delay: 2800,
+            delay: 3200,
             disableOnInteraction: false,
             pauseOnMouseEnter: true
           }}
-          speed={800}
+          speed={900}
           observer={true}
           observeParents={true}
           spaceBetween={16}
           slidesPerView={1.15}
+          touchRatio={1.2}
+          resistance={true}
+          resistanceRatio={0.85}
           pagination={{ clickable: true, dynamicBullets: true }}
           breakpoints={{
             500: {
@@ -185,13 +212,13 @@ export const RecommendationCarousel = ({
               spaceBetween: 20
             }
           }}
-          className="pb-8 pt-1 !overflow-visible"
+          className="pb-8 pt-1 !overflow-visible select-none"
         >
-          {items.map((resource) => {
+          {displayItems.map((resource) => {
             const isAdult = Boolean(resource.isNsfw || resource.category?.slug === 'sex');
 
             return (
-              <SwiperSlide key={resource._id} className="h-auto">
+              <SwiperSlide key={resource._loopKey} className="h-auto">
                 <div
                   className={`h-full group flex flex-col justify-between rounded-2xl bg-[#0d081e]/90 hover:bg-[#120a2a] border transition-all duration-300 shadow-md hover:shadow-xl hover:-translate-y-1 overflow-hidden ${isAdult
                       ? 'border-purple-600/40 hover:border-purple-400/80 shadow-[0_0_15px_rgba(147,51,234,0.12)]'
@@ -207,8 +234,9 @@ export const RecommendationCarousel = ({
                       <img
                         src={resource.thumbnail}
                         alt={resource.title}
+                        draggable="false"
                         referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500 opacity-90 group-hover:opacity-100"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500 opacity-90 group-hover:opacity-100 pointer-events-none"
                         onError={(e) => {
                           if (!e.target.dataset.triedProxy && resource.thumbnail) {
                             e.target.dataset.triedProxy = 'true';

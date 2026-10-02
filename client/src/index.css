@@ -218,6 +218,13 @@ body {
 }
 
 /* Swiper custom overrides */
+.swiper-wrapper {
+  transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1) !important;
+}
+.swiper-slide {
+  user-select: none;
+  -webkit-user-drag: none;
+}
 .swiper-pagination-bullet {
   background: rgba(167, 139, 250, 0.35) !important;
   transition: all 0.3s ease !important;
