@@ -455,7 +455,7 @@ export const createResource = async (req, res, next) => {
         if (meta && meta.thumbnail) {
           finalThumbnail = meta.thumbnail;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     const newResource = await Resource.create({

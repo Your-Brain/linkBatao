@@ -107,7 +107,7 @@ const resourceSchema = new mongoose.Schema(
     },
     anonymousId: {
       type: String,
-      default: function() {
+      default: function () {
         const randomHex = Math.floor(Math.random() * 0xfffff).toString(16).toUpperCase().padStart(5, '0');
         return `Anonymous #${randomHex}`;
       }

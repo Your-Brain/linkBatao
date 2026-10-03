@@ -477,7 +477,7 @@ function extractAndScoreCandidates($, rawHtml, baseUrl) {
           }
         }
       }
-    } catch (e) {}
+    } catch (e) { }
   });
 
   // 3. HTML5 Video Tag Poster (Score 96)
@@ -527,7 +527,7 @@ function extractAndScoreCandidates($, rawHtml, baseUrl) {
         if (initials.videoModel?.previewThumbURL) {
           addCandidate(initials.videoModel.previewThumbURL, 90, 'xhamster-videoModel-previewThumbURL');
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     const xhImage = rawHtml.match(/"imageURL"\s*:\s*"([^"]+)"/i);
@@ -547,7 +547,7 @@ function extractAndScoreCandidates($, rawHtml, baseUrl) {
         if (streamJson.poster) addCandidate(streamJson.poster, 95, 'spankbang-stream-poster');
         if (streamJson.preview) addCandidate(streamJson.preview, 90, 'spankbang-stream-preview');
         if (streamJson.thumbnail) addCandidate(streamJson.thumbnail, 88, 'spankbang-stream-thumb');
-      } catch (e) {}
+      } catch (e) { }
     }
 
     // RedTube & YouPorn page params
@@ -717,7 +717,7 @@ export async function fetchUrlMetadata(urlString) {
             ytThumb = oembedRes.data.thumbnail_url;
           }
         }
-      } catch (err) {}
+      } catch (err) { }
 
       return {
         title: ytTitle || (videoId ? `YouTube Video (${videoId})` : 'YouTube Video'),
@@ -750,7 +750,7 @@ export async function fetchUrlMetadata(urlString) {
             isNsfw: false
           };
         }
-      } catch (err) {}
+      } catch (err) { }
     }
 
     // 3. Specialized fetcher for Spotify
@@ -773,7 +773,7 @@ export async function fetchUrlMetadata(urlString) {
             isNsfw: false
           };
         }
-      } catch (err) {}
+      } catch (err) { }
     }
 
     // 4. Specialized fetcher for SoundCloud
@@ -798,7 +798,7 @@ export async function fetchUrlMetadata(urlString) {
             isNsfw: false
           };
         }
-      } catch (err) {}
+      } catch (err) { }
     }
 
     // 5. Specialized direct snapshot generators for Live Cam sites
@@ -962,7 +962,7 @@ export async function fetchUrlMetadata(urlString) {
             response = embedRes;
             responseHtml = typeof embedRes.data === 'string' ? embedRes.data : '';
             responseContentType = embedRes.headers['content-type'] || '';
-          } catch (e) {}
+          } catch (e) { }
         }
       } else if (host.includes('spankbang.com') || host.includes('spankbang.party')) {
         // Spankbang fallback to embed
@@ -976,7 +976,7 @@ export async function fetchUrlMetadata(urlString) {
             response = embedRes;
             responseHtml = typeof embedRes.data === 'string' ? embedRes.data : '';
             responseContentType = embedRes.headers['content-type'] || '';
-          } catch (e) {}
+          } catch (e) { }
         }
       } else if (host.includes('xhamster') || host.includes('xhwide')) {
         // xHamster fallback to embed across mirrors
@@ -999,7 +999,7 @@ export async function fetchUrlMetadata(urlString) {
                 responseContentType = embedRes.headers['content-type'] || '';
                 break;
               }
-            } catch (e) {}
+            } catch (e) { }
           }
         }
       }
@@ -1070,7 +1070,7 @@ export async function fetchUrlMetadata(urlString) {
                 validThumbnail = xhEmbedCandidates[0].url;
                 break;
               }
-            } catch (e) {}
+            } catch (e) { }
           }
         }
       } else {
@@ -1096,7 +1096,7 @@ export async function fetchUrlMetadata(urlString) {
             if (embedCandidates.length > 0) {
               validThumbnail = embedCandidates[0].url;
             }
-          } catch (e) {}
+          } catch (e) { }
         }
       }
     }
@@ -1132,10 +1132,10 @@ export async function fetchUrlMetadata(urlString) {
     const textToCheck = `${title} ${description} ${$('meta[name="keywords"]').attr('content') || ''}`.toLowerCase();
     const finalIsAdult = Boolean(
       isAdult ||
-        adultKeywords.some(kw => {
-          const regex = new RegExp(`\\b${kw}\\b`, 'i');
-          return regex.test(textToCheck);
-        })
+      adultKeywords.some(kw => {
+        const regex = new RegExp(`\\b${kw}\\b`, 'i');
+        return regex.test(textToCheck);
+      })
     );
 
     // Infer Resource Type from Open Graph or DOM elements
@@ -1189,7 +1189,7 @@ export async function fetchUrlMetadata(urlString) {
             if (oRes.data?.thumbnail_url) {
               fallbackThumb = upgradeThumbnailQuality(cleanExtractedUrl(oRes.data.thumbnail_url, targetUrl));
             }
-          } catch (e) {}
+          } catch (e) { }
         }
       } else if (host.includes('stripchat.com')) {
         const u = parsed.pathname.replace(/^\//, '').split('/')[0];
@@ -1221,7 +1221,7 @@ export async function fetchUrlMetadata(urlString) {
                 fallbackThumb = xhCandidates[0].url;
                 break;
               }
-            } catch (e) {}
+            } catch (e) { }
           }
         }
         if (!fallbackThumb && host) {

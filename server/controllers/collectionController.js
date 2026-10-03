@@ -59,7 +59,7 @@ export const getCollections = async (req, res, next) => {
     const isAdmin = req.user && (req.user.role === 'ADMIN' || req.user.role === 'MODERATOR');
     const includeNsfw = req.query.includeNsfw === 'true' || req.query.nsfw === 'true';
     let query = { visibility: 'PUBLIC' };
-    
+
     if (isAdmin) {
       query = {}; // Admins can view all collections
     } else if (req.user) {
