@@ -19,5 +19,8 @@
       "src": "/(.*)",
       "dest": "server.js"
     }
-  ]
+  ],
+  "env": {
+    "MONGOMS_DISABLE_POSTINSTALL": "1"
+  }
 }
