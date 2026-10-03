@@ -20,7 +20,8 @@ const categories = [
   { name: 'News', slug: 'news', description: 'World news, technology trends, investigative journalism & finance', icon: 'Newspaper', order: 9 },
   { name: 'Art', slug: 'art', description: 'Digital art, 3D design, photography, graphic design & creative works', icon: 'Palette', order: 10 },
   { name: 'Lifestyle', slug: 'lifestyle', description: 'Travel, architecture, wellness, culinary arts & minimalist living', icon: 'Compass', order: 11 },
-  { name: 'Other', slug: 'other', description: 'Uncategorized resources, novelties & miscellaneous links', icon: 'Box', order: 12 }
+  { name: 'Other', slug: 'other', description: 'Uncategorized resources, novelties & miscellaneous links', icon: 'Box', order: 12 },
+  { name: 'sex', slug: 'sex', description: 'sex', icon: 'Box', order: 13 }
 ];
 
 const seedData = async () => {
