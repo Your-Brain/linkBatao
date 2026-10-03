@@ -1084,7 +1084,7 @@ export async function fetchUrlMetadata(urlString) {
               ? `https://www.xnxx.com/embedframe/${vid}`
               : `https://www.xvideos.com/embedframe/${vid}`;
             const embedRes = await axios.get(embedUrl, {
-              timeout: 5000,
+              timeout: 3500,
               headers: STANDARD_HEADERS
             });
             const embedHtml = typeof embedRes.data === 'string' ? embedRes.data : '';
