@@ -706,7 +706,7 @@ export async function fetchUrlMetadata(urlString) {
         const oembedRes = await axios.get(
           `https://www.youtube.com/oembed?url=${encodeURIComponent(urlString)}&format=json`,
           {
-            timeout: 4000,
+            timeout: 3000,
             headers: { 'User-Agent': 'Mozilla/5.0' }
           }
         );
@@ -735,7 +735,7 @@ export async function fetchUrlMetadata(urlString) {
         const oembedRes = await axios.get(
           `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(urlString)}`,
           {
-            timeout: 4000,
+            timeout: 3000,
             headers: { 'User-Agent': 'Mozilla/5.0' }
           }
         );
@@ -759,7 +759,7 @@ export async function fetchUrlMetadata(urlString) {
         const oembedRes = await axios.get(
           `https://open.spotify.com/oembed?url=${encodeURIComponent(urlString)}`,
           {
-            timeout: 4000,
+            timeout: 3000,
             headers: { 'User-Agent': 'Mozilla/5.0' }
           }
         );
@@ -782,7 +782,7 @@ export async function fetchUrlMetadata(urlString) {
         const oembedRes = await axios.get(
           `https://soundcloud.com/oembed?url=${encodeURIComponent(urlString)}&format=json`,
           {
-            timeout: 4000,
+            timeout: 3000,
             headers: { 'User-Agent': 'Mozilla/5.0' }
           }
         );
@@ -870,7 +870,7 @@ export async function fetchUrlMetadata(urlString) {
         try {
           const oembedUrl = `https://www.pornhub.com/oembed?url=https://www.pornhub.com/view_video.php?viewkey=${viewkey}&format=json`;
           const oembedRes = await axios.get(oembedUrl, {
-            timeout: 6000,
+            timeout: 3500,
             headers: STANDARD_HEADERS
           });
 
@@ -896,7 +896,7 @@ export async function fetchUrlMetadata(urlString) {
         try {
           const embedUrl = `https://www.pornhub.com/embed/${viewkey}`;
           const embedRes = await axios.get(embedUrl, {
-            timeout: 6000,
+            timeout: 3500,
             headers: STANDARD_HEADERS
           });
           const embedHtml = typeof embedRes.data === 'string' ? embedRes.data : '';
@@ -935,9 +935,9 @@ export async function fetchUrlMetadata(urlString) {
 
     try {
       response = await axios.get(urlString, {
-        timeout: 9000,
+        timeout: 7000,
         maxRedirects: 5,
-        maxContentLength: 5 * 1024 * 1024,
+        maxContentLength: 3 * 1024 * 1024,
         headers: STANDARD_HEADERS
       });
       responseHtml = typeof response.data === 'string' ? response.data : '';
@@ -956,7 +956,7 @@ export async function fetchUrlMetadata(urlString) {
               ? `https://www.xnxx.com/embedframe/${vid}`
               : `https://www.xvideos.com/embedframe/${vid}`;
             const embedRes = await axios.get(embedUrl, {
-              timeout: 6000,
+              timeout: 3500,
               headers: STANDARD_HEADERS
             });
             response = embedRes;
@@ -970,7 +970,7 @@ export async function fetchUrlMetadata(urlString) {
         if (match && match[1]) {
           try {
             const embedRes = await axios.get(`https://spankbang.com/${match[1]}/embed/`, {
-              timeout: 6000,
+              timeout: 3500,
               headers: STANDARD_HEADERS
             });
             response = embedRes;
@@ -990,7 +990,7 @@ export async function fetchUrlMetadata(urlString) {
           for (const embedUrl of embedCandidates) {
             try {
               const embedRes = await axios.get(embedUrl, {
-                timeout: 5000,
+                timeout: 3000,
                 headers: STANDARD_HEADERS
               });
               if (embedRes.data && typeof embedRes.data === 'string') {
@@ -1208,7 +1208,7 @@ export async function fetchUrlMetadata(urlString) {
           for (const embedUrl of embedCandidates) {
             try {
               const embedRes = await axios.get(embedUrl, {
-                timeout: 5000,
+                timeout: 3000,
                 headers: STANDARD_HEADERS
               });
               const embedHtml = typeof embedRes.data === 'string' ? embedRes.data : '';
