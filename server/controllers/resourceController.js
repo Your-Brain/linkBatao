@@ -330,17 +330,49 @@ export const previewMetadata = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'URL is required' });
     }
 
-    const { normalizedUrl, domain } = normalizeUrl(url);
+    let normalizedUrl, domain;
+    try {
+      const norm = normalizeUrl(url);
+      normalizedUrl = norm.normalizedUrl;
+      domain = norm.domain;
+    } catch (e) {
+      normalizedUrl = String(url).trim();
+      if (!normalizedUrl.startsWith('http')) normalizedUrl = 'https://' + normalizedUrl;
+      try {
+        domain = new URL(normalizedUrl).hostname.replace(/^www\./, '');
+      } catch (err) {
+        domain = 'link';
+      }
+    }
 
-    // Check if resource already exists in DB
-    const existing = await Resource.findOne({ normalizedUrl })
-      .populate('category', 'name slug');
+    // Check if resource already exists in DB (safe check, non-blocking if DB is cold)
+    let existing = null;
+    try {
+      existing = await Resource.findOne({ normalizedUrl })
+        .populate('category', 'name slug')
+        .lean();
+    } catch (dbErr) {
+      console.warn('[Metadata Preview DB Warning]', dbErr.message);
+    }
 
     // Run Embed Detection
     const embedInfo = detectEmbed(normalizedUrl);
 
     // Fetch safe Open Graph metadata
-    const fetchedMeta = await fetchUrlMetadata(normalizedUrl);
+    let fetchedMeta = {};
+    try {
+      fetchedMeta = await fetchUrlMetadata(normalizedUrl);
+    } catch (fetchErr) {
+      console.error('[Metadata Fetch Error]', fetchErr.message);
+      fetchedMeta = {
+        title: domain || 'Discovered Resource',
+        description: `Resource from ${domain}`,
+        thumbnail: '',
+        resourceType: embedInfo.resourceType || 'WEBSITE',
+        domain: domain,
+        isNsfw: false
+      };
+    }
 
     res.json({
       success: true,
@@ -351,11 +383,11 @@ export const previewMetadata = async (req, res, next) => {
       embedType: embedInfo.embedType,
       embedUrl: embedInfo.embedUrl,
       metadata: {
-        title: fetchedMeta.title,
-        description: fetchedMeta.description,
-        thumbnail: fetchedMeta.thumbnail,
-        resourceType: embedInfo.resourceType || fetchedMeta.resourceType,
-        isNsfw: fetchedMeta.isNsfw || false
+        title: fetchedMeta.title || domain,
+        description: fetchedMeta.description || '',
+        thumbnail: fetchedMeta.thumbnail || '',
+        resourceType: embedInfo.resourceType || fetchedMeta.resourceType || 'WEBSITE',
+        isNsfw: Boolean(fetchedMeta.isNsfw)
       }
     });
   } catch (err) {

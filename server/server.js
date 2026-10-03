@@ -18,8 +18,17 @@ dotenv.config();
 
 const app = express();
 
-// Connect to MongoDB
-connectDB();
+// Connect to MongoDB on boot (local) and ensure connected per request (serverless)
+connectDB().catch(err => console.warn('[Database Initial Warning]', err.message));
+
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+  } catch (err) {
+    console.error('[Serverless DB Error]', err.message);
+  }
+  next();
+});
 
 // Security Middlewares
 app.use(helmet({

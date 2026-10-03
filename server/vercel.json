@@ -1,26 +1,14 @@
 {
   "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "server.js",
-      "use": "@vercel/node",
-      "config": {
-        "maxLambdaSize": "50mb"
-      }
+      "source": "/(.*)",
+      "destination": "/server.js"
     }
   ],
   "functions": {
     "server.js": {
       "maxDuration": 30
     }
-  },
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "server.js"
-    }
-  ],
-  "env": {
-    "MONGOMS_DISABLE_POSTINSTALL": "1"
   }
 }
